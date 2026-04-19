@@ -1,0 +1,29 @@
+{
+    "name": "google/agent-control-php",
+    "description": "A PHP application to control agents from Google Jules and coordinated by GitHub issues.",
+    "type": "project",
+    "require": {
+        "php": ">=8.3",
+        "google/apiclient": "^2.15",
+        "knplabs/github-api": "^3.11",
+        "guzzlehttp/guzzle": "^7.8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "test/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Google Jules Agent"
+        }
+    ]
+}

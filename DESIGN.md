@@ -5,11 +5,14 @@ The application follows a modular architecture, separating concerns between the 
 
 ## Tech Stack
 - **Development & Production**:
-    - **Language**: PHP
+    - **Language**: PHP 8.3+
     - **Server**: PHP-compatible web server (e.g., Apache, Nginx)
     - **Database**: MySQL
-    - **Authentication**: Google SSO
-    - **API Integration**: GitHub REST API, Google Jules API
+    - **Frontend**: Tailwind CSS (Responsive UI), Alpine.js (Interactivity)
+    - **Authentication**: Google SSO via `google/apiclient`
+    - **API Integration**:
+        - **GitHub**: `knplabs/github-api`
+        - **Google Jules**: `guzzlehttp/guzzle` (REST API client)
 - **Testing**:
     - **CI/CD**: GitHub Actions
     - **Tools**: PHPUnit for unit testing, Mocking libraries for API responses
