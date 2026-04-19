@@ -2,6 +2,7 @@
     "name": "google/agent-control-php",
     "description": "A PHP application to control agents from Google Jules and coordinated by GitHub issues.",
     "type": "project",
+    "license": "proprietary",
     "require": {
         "php": ">=8.3",
         "google/apiclient": "^2.15",
