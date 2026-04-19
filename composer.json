@@ -25,5 +25,8 @@
         {
             "name": "Google Jules Agent"
         }
-    ]
+    ],
+    "scripts": {
+        "test": "vendor/bin/phpunit test"
+    }
 }
