@@ -26,7 +26,20 @@ class Auth
 
     public function getAuthUrl(): string
     {
+        $state = bin2hex(random_bytes(16));
+        $_SESSION['oauth2state'] = $state;
+        $this->client->setState($state);
         return $this->client->createAuthUrl();
+    }
+
+    public function verifyState(string $state): bool
+    {
+        if (empty($state) || !isset($_SESSION['oauth2state']) || $state !== $_SESSION['oauth2state']) {
+            unset($_SESSION['oauth2state']);
+            return false;
+        }
+        unset($_SESSION['oauth2state']);
+        return true;
     }
 
     public function authenticate(string $code): array

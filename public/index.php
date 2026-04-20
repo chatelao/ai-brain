@@ -7,8 +7,16 @@ use App\Auth;
 use App\User;
 
 $auth = new Auth();
-$db = new Database();
-$userModel = new User($db);
+$user = null;
+$error = null;
+
+try {
+    $db = new Database();
+    $userModel = new User($db);
+    $user = $auth->isLoggedIn() ? $userModel->findById($auth->getUserId()) : null;
+} catch (Exception $e) {
+    $error = $e->getMessage();
+}
 
 ?>
 <!DOCTYPE html>
@@ -28,9 +36,7 @@ $userModel = new User($db);
                     <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap">Agent Control</span>
                 </div>
                 <div class="flex items-center">
-                    <?php
-                    $user = $auth->isLoggedIn() ? $userModel->findById($auth->getUserId()) : null;
-                    if ($user): ?>
+                    <?php if ($user): ?>
                         <div class="flex items-center ml-3">
                             <div>
                                 <button type="button" class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300" id="user-menu-button-2" aria-expanded="false" data-dropdown-toggle="dropdown-2">
@@ -56,7 +62,12 @@ $userModel = new User($db);
                     <div class="grid w-full grid-cols-1 gap-4 mt-4">
                         <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
                             <h3 class="text-base font-normal text-gray-500">Welcome to Agent Control</h3>
-                            <?php if ($user): ?>
+                            <?php if ($error): ?>
+                                <p class="text-2xl font-bold leading-none text-red-600 sm:text-3xl">System Error</p>
+                                <div class="mt-4 text-red-500">
+                                    <?= htmlspecialchars($error) ?>
+                                </div>
+                            <?php elseif ($user): ?>
                                 <p class="text-2xl font-bold leading-none text-gray-900 sm:text-3xl">Dashboard</p>
                                 <div class="mt-4">
                                     <p class="text-gray-600">You are logged in as <strong><?= htmlspecialchars($user['email']) ?></strong>.</p>
