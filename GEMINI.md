@@ -9,7 +9,8 @@ running on a php webserver using a MySQL database and Google SSO login for multi
 - `DESIGN.md`: The detailed design of the solution, including the architecture, used tech stack for development, production and testing, etc.
 - `ROADMAP.md`: The list of accomplished and planned steps of the project, it should be group into Phases, Tasks and Subtasks if necessary. Checkboxes show the progress to be updated with every increment.
 - `/specification/`: External Know-How as datasheet, standards, etc. Should be converted to Markdown if PDF, etc.
-- `/src/`: The source code of the project, esp. the Swagger/OpenAPI definitions of the interfaces between the Frontend and the Backend.
+- `/src/`: The source code of the projec
+- `/src/openapi.yaml`the REST-API definition used to generate the front- & backend glue-code
 - `/src/frontend/`: The source code for the frontend (Browser) parts of the project
 - `/src/backend/`: The source code for the PHP backend
 - `/src/client-api/`: The source code for client api modules of the project
@@ -17,12 +18,7 @@ running on a php webserver using a MySQL database and Google SSO login for multi
 - `/src/clients/`: Definition of external interfaces
 - `/test/`: All tools, configurations & test cases
 - `/build/`: Only temporary place for compilation, may be cached by Github
-
-# HOWTO
-
-- Keep `src/install.sh` to install all tools to build the application (test only tools, see below)
-- Define the REST-API in the OpenAPI.yaml and then generate the front- & backend
-
+- `/scripts/install.sh` to install all tools to build the application (test only tools, see below)
 
 # Testing Locally & with Github Action Workflow
 
