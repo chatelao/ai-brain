@@ -7,6 +7,8 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 ![Architecture](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/docs/architecture.puml)
 
 ### Used APIs and Interfaces
+
+#### Production
 | API / Interface | Description | Source Page |
 | :--- | :--- | :--- |
 | **Google SSO** | Secure user authentication and session management. | [Google Identity Platform](https://developers.google.com/identity/protocols/oauth2) |
@@ -18,6 +20,10 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 | **Alpine.js** | Minimal framework for composing JavaScript behavior. | [Alpine.js Documentation](https://alpinejs.dev/docs) |
 | **Guzzle** | PHP HTTP client for sending API requests. | [Guzzle Documentation](https://docs.guzzlephp.org/) |
 | **GitHub PHP API** | Object-oriented wrapper for the GitHub API. | [KnpLabs GitHub API](https://github.com/KnpLabs/php-github-api) |
+
+#### Test/Documentation
+| API / Interface | Description | Source Page |
+| :--- | :--- | :--- |
 | **PlantUML** | Architecture diagram generation from text. | [PlantUML Documentation](https://plantuml.com/) |
 
 ## Features
