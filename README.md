@@ -4,7 +4,7 @@
 A PHP application to control agents from Google Jules, coordinated by GitHub repositories and issues. It provides a centralized platform for managing AI agent workflows through a unified web interface.
 
 ## Architecture
-![Architecture](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/docs/architecture.puml)
+![Architecture](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/specification/architecture.puml)
 
 ### Used APIs and Interfaces
 
@@ -43,22 +43,23 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 1. Clone the repository.
 2. Install dependencies:
    ```bash
-   ./src/install.sh
+   ./scripts/install.sh
    ```
 3. Set up your environment variables (DB_HOST, DB_NAME, DB_USER, DB_PASS, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI).
-4. Initialize the database using `src/schema.sql`.
+4. Initialize the database using `src/sql/schema.sql`.
 
 ### Local Development
 Start the local development server:
 ```bash
-php -S localhost:8080 -t public
+php -S localhost:8080 -t src/frontend
 ```
 
 ## Project Structure
-- `public/`: Web entry points (index.php, login.php, etc.).
-- `src/`: Core PHP logic and classes.
+- `src/frontend/`: Web entry points (index.php, login.php, etc.) and frontend assets.
+- `src/backend/`: Core PHP logic and classes.
+- `src/sql/`: Database schema and migrations.
 - `test/`: PHPUnit tests and testing tools.
-- `docs/`: Additional documentation and mockups.
+- `specification/`: Additional documentation, mockups, and external know-how.
 - `CONCEPT.md`, `DESIGN.md`, `GEMINI.md`, `ROADMAP.md`: Project documentation.
 
 ## Documentation
