@@ -2,6 +2,7 @@
 
 ## Phase 1: Foundation
 - [x] Setup initial project structure (directories, base files).
+- [x] Create mockup UI for dashboard and project details (GitHub Pages).
 - [ ] Implement Google SSO login.
 - [x] Setup MySQL database schema for users and projects.
 - [ ] Basic dashboard for user management.
