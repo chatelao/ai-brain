@@ -8,8 +8,8 @@
 - [x] Basic dashboard for user management.
 
 ## Phase 2: GitHub Integration
-- [ ] Implement GitHub OAuth for repository access.
-- [ ] Create interface to link GitHub repositories to projects.
+- [x] Implement GitHub OAuth for repository access.
+- [x] Create interface to link GitHub repositories to projects.
 - [ ] Develop webhook handler for GitHub issues.
 - [ ] Basic issue-to-task mapping.
 
