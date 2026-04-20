@@ -14,7 +14,7 @@ class SchemaTest extends TestCase
         $this->pdo = new PDO('sqlite::memory:');
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        $schema = file_get_contents(__DIR__ . '/../../../src/schema.sql');
+        $schema = file_get_contents(__DIR__ . '/../../../src/sql/schema.sql');
 
         // SQLite doesn't support some MySQL syntax like AUTO_INCREMENT (use AUTOINCREMENT)
         // and ENGINE=InnoDB. We'll do some basic transformations for testing schema in SQLite
