@@ -74,4 +74,21 @@ class UserTest extends TestCase
         $this->assertEquals(2, $result['id']);
         $this->assertEquals('New User', $result['name']);
     }
+
+    public function testUpdateGitHubInfo()
+    {
+        $stmt = $this->createMock(PDOStatement::class);
+        $stmt->expects($this->once())
+             ->method('execute')
+             ->with(['token123', 'githubuser', 1])
+             ->willReturn(true);
+
+        $this->pdo->expects($this->once())
+                  ->method('prepare')
+                  ->with($this->stringContains('UPDATE users SET github_token = ?, github_username = ? WHERE id = ?'))
+                  ->willReturn($stmt);
+
+        $result = $this->userModel->updateGitHubInfo(1, 'token123', 'githubuser');
+        $this->assertTrue($result);
+    }
 }

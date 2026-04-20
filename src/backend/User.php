@@ -55,4 +55,12 @@ class User
             return $this->findById((int)$id);
         }
     }
+
+    public function updateGitHubInfo(int $id, string $token, string $username): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE users SET github_token = ?, github_username = ? WHERE id = ?"
+        );
+        return $stmt->execute([$token, $username, $id]);
+    }
 }

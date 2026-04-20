@@ -5,10 +5,12 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use App\Database;
 use App\Auth;
 use App\User;
+use App\Project;
 
 $auth = new Auth();
 $db = new Database();
 $userModel = new User($db);
+$projectModel = new Project($db);
 
 ?>
 <!DOCTYPE html>
@@ -57,10 +59,41 @@ $userModel = new User($db);
                         <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
                             <h3 class="text-base font-normal text-gray-500">Welcome to Agent Control</h3>
                             <?php if ($user): ?>
-                                <p class="text-2xl font-bold leading-none text-gray-900 sm:text-3xl">Dashboard</p>
+                                <div class="flex justify-between items-center">
+                                    <p class="text-2xl font-bold leading-none text-gray-900 sm:text-3xl">Dashboard</p>
+                                    <?php if ($user['github_token']): ?>
+                                        <a href="add_project.php" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Add Project</a>
+                                    <?php else: ?>
+                                        <a href="github_connect.php" class="text-white bg-gray-800 hover:bg-gray-900 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Connect GitHub</a>
+                                    <?php endif; ?>
+                                </div>
                                 <div class="mt-4">
                                     <p class="text-gray-600">You are logged in as <strong><?= htmlspecialchars($user['email']) ?></strong>.</p>
-                                    <p class="mt-2 text-gray-500">Next step: Link your GitHub repositories.</p>
+                                    <?php if ($user['github_username']): ?>
+                                        <p class="text-sm text-gray-500 mt-1">Connected GitHub: <strong><?= htmlspecialchars($user['github_username']) ?></strong></p>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="mt-8">
+                                    <h4 class="text-xl font-bold text-gray-900 mb-4">Your Projects</h4>
+                                    <?php
+                                    $projects = $projectModel->findByUserId($user['id']);
+                                    if (empty($projects)): ?>
+                                        <p class="text-gray-500 italic">No projects linked yet. <?php if ($user['github_token']): ?><a href="add_project.php" class="text-blue-600 hover:underline">Link your first repository.</a><?php endif; ?></p>
+                                    <?php else: ?>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <?php foreach ($projects as $project): ?>
+                                                <div class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                                                    <div class="font-semibold text-lg text-gray-900"><?= htmlspecialchars($project['github_repo']) ?></div>
+                                                    <div class="text-xs text-gray-400 mt-1">Added on <?= htmlspecialchars($project['created_at']) ?></div>
+                                                    <div class="mt-4 flex space-x-2">
+                                                        <a href="#" class="text-sm font-medium text-blue-600 hover:underline">View Issues</a>
+                                                        <a href="#" class="text-sm font-medium text-gray-500 hover:underline">Settings</a>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             <?php else: ?>
                                 <p class="text-2xl font-bold leading-none text-gray-900 sm:text-3xl">Please Login</p>

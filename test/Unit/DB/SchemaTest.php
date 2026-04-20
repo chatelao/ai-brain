@@ -49,6 +49,8 @@ class SchemaTest extends TestCase
         $this->assertContains('name', $columnNames);
         $this->assertContains('email', $columnNames);
         $this->assertContains('avatar', $columnNames);
+        $this->assertContains('github_token', $columnNames);
+        $this->assertContains('github_username', $columnNames);
         $this->assertContains('created_at', $columnNames);
     }
 
