@@ -4,33 +4,7 @@
 A PHP application to control agents from Google Jules, coordinated by GitHub repositories and issues. It provides a centralized platform for managing AI agent workflows through a unified web interface.
 
 ## Architecture
-```plantuml
-@startuml
-!theme plain
-
-actor User
-
-package "Web Server" {
-    component "Frontend\n(Tailwind CSS, Alpine.js)" as Frontend
-    component "PHP Backend\n(src/)" as Backend
-    database "MySQL Database" as DB
-}
-
-package "External Integrations" {
-    cloud "Google SSO" as SSO
-    cloud "GitHub API" as GitHub
-    cloud "Google Jules API" as Jules
-}
-
-User --> Frontend : Accesses Dashboard
-Frontend <--> Backend : Request/Response
-Backend <--> DB : Data Persistence
-Backend <--> SSO : User Authentication
-Backend <--> GitHub : Repo/Issue Coordination
-Backend <--> Jules : Agent Control
-
-@enduml
-```
+![Architecture](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/docs/architecture.puml)
 
 ## Features
 - **Centralized Agent Management**: Coordinate multiple AI agents across projects.
