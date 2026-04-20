@@ -33,8 +33,23 @@ class ProjectDBIntegrationTest extends TestCase
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INT NOT NULL,
             github_repo VARCHAR(255) NOT NULL,
+            webhook_secret VARCHAR(255),
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )");
+
+        $this->pdo->exec("CREATE TABLE tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INT NOT NULL,
+            issue_number INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            body TEXT,
+            status TEXT DEFAULT 'pending',
+            github_data TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+            UNIQUE(project_id, issue_number)
         )");
 
         $this->db = $this->createMock(Database::class);
@@ -52,6 +67,18 @@ class ProjectDBIntegrationTest extends TestCase
         $this->assertTrue($result);
 
         $projects = $this->projectModel->findByUserId($userId);
+        $this->assertCount(1, $projects);
+        $this->assertEquals($repo, $projects[0]['github_repo']);
+        $this->assertNotEmpty($projects[0]['webhook_secret']);
+    }
+
+    public function testFindByRepo()
+    {
+        $userId = 1;
+        $repo = 'owner/repo';
+        $this->projectModel->create($userId, $repo);
+
+        $projects = $this->projectModel->findByRepo($repo);
         $this->assertCount(1, $projects);
         $this->assertEquals($repo, $projects[0]['github_repo']);
     }

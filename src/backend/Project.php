@@ -12,10 +12,20 @@ class Project
 
     public function create(int $userId, string $githubRepo): bool
     {
+        $webhookSecret = bin2hex(random_bytes(16));
         $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO projects (user_id, github_repo) VALUES (?, ?)"
+            "INSERT INTO projects (user_id, github_repo, webhook_secret) VALUES (?, ?, ?)"
         );
-        return $stmt->execute([$userId, $githubRepo]);
+        return $stmt->execute([$userId, $githubRepo, $webhookSecret]);
+    }
+
+    public function findByRepo(string $githubRepo): array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT * FROM projects WHERE github_repo = ?"
+        );
+        $stmt->execute([$githubRepo]);
+        return $stmt->fetchAll();
     }
 
     public function findByUserId(int $userId): array
