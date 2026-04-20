@@ -1,7 +1,8 @@
 # Roadmap: Agent Control PHP Application
 
 ## Phase 1: Foundation
-- [/] Setup initial project structure (directories, base files).
+- [x] Setup initial project structure (directories, base files).
+- [x] Create mockup UI for dashboard and project details (GitHub Pages).
 - [ ] Implement Google SSO login.
 - [ ] Setup MySQL database schema for users and projects.
 - [ ] Basic dashboard for user management.
