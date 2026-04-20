@@ -6,6 +6,20 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 ## Architecture
 ![Architecture](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/docs/architecture.puml)
 
+### Used APIs and Interfaces
+| API / Interface | Description | Source Page |
+| :--- | :--- | :--- |
+| **Google SSO** | Secure user authentication and session management. | [Google Identity Platform](https://developers.google.com/identity/protocols/oauth2) |
+| **GitHub REST API** | Management of repositories, issues, and webhooks. | [GitHub REST API Documentation](https://docs.github.com/en/rest) |
+| **Google Jules API** | Orchestration and control of AI agents. | [Google AI / Gemini](https://ai.google.dev/) |
+| **PHP** | Server-side scripting language for backend logic. | [PHP Official Documentation](https://www.php.net/docs.php) |
+| **MySQL** | Relational database for storing user and project data. | [MySQL Documentation](https://dev.mysql.com/doc/) |
+| **Tailwind CSS** | Utility-first CSS framework for responsive UI design. | [Tailwind CSS Documentation](https://tailwindcss.com/docs) |
+| **Alpine.js** | Minimal framework for composing JavaScript behavior. | [Alpine.js Documentation](https://alpinejs.dev/docs) |
+| **Guzzle** | PHP HTTP client for sending API requests. | [Guzzle Documentation](https://docs.guzzlephp.org/) |
+| **GitHub PHP API** | Object-oriented wrapper for the GitHub API. | [KnpLabs GitHub API](https://github.com/KnpLabs/php-github-api) |
+| **PlantUML** | Architecture diagram generation from text. | [PlantUML Documentation](https://plantuml.com/) |
+
 ## Features
 - **Centralized Agent Management**: Coordinate multiple AI agents across projects.
 - **GitHub Integration**: Link repositories and issues to specific agent tasks.
