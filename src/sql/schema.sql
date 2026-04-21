@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     body TEXT,
     status ENUM('pending', 'in_progress', 'completed', 'failed') DEFAULT 'pending',
     github_data JSON,
+    agent_response TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,

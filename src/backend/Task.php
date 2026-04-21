@@ -37,6 +37,14 @@ class Task
         return $stmt->execute([$status, $id]);
     }
 
+    public function updateAgentResponse(int $id, string $response, string $status = 'completed'): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE tasks SET agent_response = ?, status = ? WHERE id = ?"
+        );
+        return $stmt->execute([$response, $status, $id]);
+    }
+
     public function create(array $data): bool
     {
         $stmt = $this->db->getConnection()->prepare(
