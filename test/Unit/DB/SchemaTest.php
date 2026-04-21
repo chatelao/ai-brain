@@ -33,6 +33,9 @@ class SchemaTest extends TestCase
             $query = str_ireplace('AUTO_INCREMENT', '', $query);
             $query = preg_replace('/ENGINE=InnoDB.*/i', '', $query);
             $query = str_ireplace('TIMESTAMP DEFAULT CURRENT_TIMESTAMP', 'DATETIME DEFAULT CURRENT_TIMESTAMP', $query);
+            $query = preg_replace('/ENUM\([^)]+\)/i', 'TEXT', $query);
+            $query = str_ireplace('ON UPDATE CURRENT_TIMESTAMP', '', $query);
+            $query = preg_replace('/UNIQUE KEY \w+ \(/i', 'UNIQUE(', $query);
 
             $this->pdo->exec($query);
         }
@@ -61,6 +64,24 @@ class SchemaTest extends TestCase
         $this->assertContains('id', $columnNames);
         $this->assertContains('user_id', $columnNames);
         $this->assertContains('github_repo', $columnNames);
+        $this->assertContains('webhook_secret', $columnNames);
         $this->assertContains('created_at', $columnNames);
+    }
+
+    public function testTasksTableHasCorrectColumns()
+    {
+        $stmt = $this->pdo->query("PRAGMA table_info(tasks)");
+        $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $columnNames = array_column($columns, 'name');
+        $this->assertContains('id', $columnNames);
+        $this->assertContains('project_id', $columnNames);
+        $this->assertContains('issue_number', $columnNames);
+        $this->assertContains('title', $columnNames);
+        $this->assertContains('body', $columnNames);
+        $this->assertContains('status', $columnNames);
+        $this->assertContains('github_data', $columnNames);
+        $this->assertContains('created_at', $columnNames);
+        $this->assertContains('updated_at', $columnNames);
     }
 }

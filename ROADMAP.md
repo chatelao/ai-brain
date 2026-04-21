@@ -10,8 +10,8 @@
 ## Phase 2: GitHub Integration
 - [x] Implement GitHub OAuth for repository access.
 - [x] Create interface to link GitHub repositories to projects.
-- [ ] Develop webhook handler for GitHub issues.
-- [ ] Basic issue-to-task mapping.
+- [x] Develop webhook handler for GitHub issues.
+- [x] Basic issue-to-task mapping.
 
 ## Phase 3: Agent Orchestration
 - [ ] Integrate Google Jules API.
