@@ -18,8 +18,8 @@ The application follows a modular architecture, separating concerns between the 
     - **Tools**: PHPUnit for unit testing, Mocking libraries for API responses
 
 ## Data Model
-- **Users**: Stores user profiles and Google SSO identifiers.
-- **Projects**: Links users to GitHub repositories.
+- **Users**: Stores user profiles, Google SSO identifiers, and associated GitHub account tokens.
+- **Projects**: Links users (via their connected GitHub accounts) to GitHub repositories.
 - **Agents**: Configurable agent definitions and their capabilities.
 - **Tasks**: Logs of agent activities, linked to GitHub issues and project progress.
 
