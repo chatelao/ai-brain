@@ -9,8 +9,8 @@ This application aims to provide a centralized platform for controlling and coor
 - **Improved Collaboration**: Enable team members to manage and monitor agent activities in a unified interface.
 
 ## Use Cases
-- **User Authentication**: Secure login using Google SSO to manage access for different users.
-- **Project Coordination**: Linking GitHub repositories and issues to specific agent tasks.
+- **User Authentication**: Secure login using Google SSO to manage access for different users, with support for linking multiple GitHub accounts per user.
+- **Project Coordination**: Linking GitHub repositories and issues from any connected GitHub account to specific agent tasks.
 - **Agent Triggering**: Automatically or manually initiating Google Jules agents based on GitHub issue activity.
 - **Status Monitoring**: Tracking the progress and results of agent-led tasks within the application.
 
