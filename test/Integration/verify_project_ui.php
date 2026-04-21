@@ -25,18 +25,28 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     avatar VARCHAR(255),
-    github_token VARCHAR(255),
-    github_username VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)");
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS user_github_accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INT NOT NULL,
+    github_username VARCHAR(255) NOT NULL,
+    github_token VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(user_id, github_username)
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS projects (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INT NOT NULL,
+    github_account_id INT NOT NULL,
     github_repo VARCHAR(255) NOT NULL,
     webhook_secret VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (github_account_id) REFERENCES user_github_accounts(id) ON DELETE CASCADE
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
@@ -67,9 +77,13 @@ $userModel = new User($db);
 $pdo->exec("INSERT OR IGNORE INTO users (id, google_id, name, email) VALUES (1, 'google-123', 'Test User', 'test@example.com')");
 $_SESSION['user_id'] = 1;
 
+// Add GitHub account
+$userModel->addGitHubAccount(1, 'mock-token', 'mock-user');
+$githubAccountId = $pdo->lastInsertId();
+
 // Create a mock project
 $projectModel = new Project($db);
-$projectModel->create(1, 'owner/repo');
+$projectModel->create(1, $githubAccountId, 'owner/repo');
 $project = $projectModel->findByRepo('owner/repo')[0];
 
 // Create some tasks

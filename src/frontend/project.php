@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
     if ($task && $task['project_id'] === $project['id']) {
         try {
             $logger->log($taskId, "Agent triggered by user " . $user['name']);
-            $githubToken = $user['github_token'] ?? null;
+            $githubToken = $project['github_token'] ?? null;
             $githubService = null;
             if ($githubToken) {
                 $githubService = new GitHubService(null, $githubToken);

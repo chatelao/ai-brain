@@ -27,6 +27,16 @@ class UserDBIntegrationTest extends TestCase
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
 
+        $this->pdo->exec("CREATE TABLE user_github_accounts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INT NOT NULL,
+            github_username VARCHAR(255) NOT NULL,
+            github_token VARCHAR(255) NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE(user_id, github_username)
+        )");
+
         $this->db = $this->createMock(Database::class);
         $this->db->method('getConnection')->willReturn($this->pdo);
 
@@ -52,30 +62,28 @@ class UserDBIntegrationTest extends TestCase
         $this->assertEquals('int@example.com', $foundUser['email']);
     }
 
-    public function testCreateOrUpdateUpdatesExistingUser()
+    public function testAddAndGetGitHubAccounts()
     {
-        $userData = [
+        $user = $this->userModel->createOrUpdate([
             'google_id' => 'google-int-123',
-            'name' => 'Original Name',
-            'email' => 'int@example.com',
-            'avatar' => 'avatar.jpg'
-        ];
+            'name' => 'Integration User',
+            'email' => 'int@example.com'
+        ]);
 
-        $this->userModel->createOrUpdate($userData);
+        $this->userModel->addGitHubAccount($user['id'], 'token1', 'user1');
+        $this->userModel->addGitHubAccount($user['id'], 'token2', 'user2');
 
-        $updatedData = [
-            'google_id' => 'google-int-123',
-            'name' => 'Updated Name',
-            'email' => 'int@example.com',
-            'avatar' => 'new_avatar.jpg'
-        ];
+        $accounts = $this->userModel->getGitHubAccounts($user['id']);
+        $this->assertCount(2, $accounts);
 
-        $user = $this->userModel->createOrUpdate($updatedData);
+        $this->userModel->addGitHubAccount($user['id'], 'token1-updated', 'user1');
+        $accounts = $this->userModel->getGitHubAccounts($user['id']);
+        $this->assertCount(2, $accounts);
 
-        $this->assertEquals('Updated Name', $user['name']);
-        $this->assertEquals('new_avatar.jpg', $user['avatar']);
-
-        $stmt = $this->pdo->query("SELECT COUNT(*) FROM users");
-        $this->assertEquals(1, $stmt->fetchColumn());
+        foreach ($accounts as $account) {
+            if ($account['github_username'] === 'user1') {
+                $this->assertEquals('token1-updated', $account['github_token']);
+            }
+        }
     }
 }
