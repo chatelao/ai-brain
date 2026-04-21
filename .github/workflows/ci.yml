@@ -11,13 +11,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.3'
         extensions: mbstring, xml, ctype, iconv, mysql
         coverage: xdebug
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
     - name: Install dependencies
       run: ./test/install.sh
-    - name: Run tests
+
+    - name: Run PHPUnit tests
       run: composer test
+
+    - name: Run UI tests with screenshots
+      run: python3 test/Integration/verify_ui.py
+
+    - name: Upload screenshots
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: screenshots
+        path: test/screenshots/
