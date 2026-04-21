@@ -33,7 +33,7 @@ class Database
     public function getConnection(): PDO
     {
         if (self::$pdo === null) {
-            if (empty($this->db)) {
+            if ($this->db === null || $this->db === '') {
                 throw new PDOException("Database name not configured.");
             }
 

@@ -16,6 +16,7 @@ class DatabaseTest extends TestCase
 
     public function testGetConnectionThrowsExceptionWhenNoDbName()
     {
+        Database::resetConnection();
         $db = new Database('localhost', null, 'user', 'pass');
         $this->expectException(PDOException::class);
         $this->expectExceptionMessage('Database name not configured.');
