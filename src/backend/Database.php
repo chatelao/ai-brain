@@ -7,7 +7,7 @@ use PDOException;
 
 class Database
 {
-    private ?PDO $pdo = null;
+    private static ?PDO $pdo = null;
 
     public function __construct(
         private ?string $host = null,
@@ -22,26 +22,39 @@ class Database
         $this->pass = $pass ?? (getenv('DB_PASS') ?: null);
     }
 
+    /**
+     * For testing purposes to reset the static connection
+     */
+    public static function resetConnection(): void
+    {
+        self::$pdo = null;
+    }
+
     public function getConnection(): PDO
     {
-        if ($this->pdo === null) {
+        if (self::$pdo === null) {
             if (empty($this->db)) {
                 throw new PDOException("Database name not configured.");
             }
 
-            $dsn = "mysql:host=$this->host;dbname=$this->db;charset=$this->charset";
+            if ($this->db === ':memory:' || str_ends_with($this->db, '.sqlite')) {
+                $dsn = "sqlite:$this->db";
+            } else {
+                $dsn = "mysql:host=$this->host;dbname=$this->db;charset=$this->charset";
+            }
+
             $options = [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ];
             try {
-                $this->pdo = new PDO($dsn, $this->user, $this->pass, $options);
+                self::$pdo = new PDO($dsn, $this->user, $this->pass, $options);
             } catch (PDOException $e) {
                 throw new PDOException($e->getMessage(), (int)$e->getCode());
             }
         }
 
-        return $this->pdo;
+        return self::$pdo;
     }
 }
