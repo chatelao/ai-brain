@@ -4,6 +4,10 @@ import subprocess
 import time
 
 def run_cuj(page):
+    # Ensure screenshots directory exists
+    screenshot_dir = "test/screenshots"
+    os.makedirs(screenshot_dir, exist_ok=True)
+
     # Start the PHP server
     env = os.environ.copy()
     env["DB_NAME"] = ":memory:"
@@ -14,27 +18,27 @@ def run_cuj(page):
     time.sleep(2)  # Wait for server to start
 
     try:
+        # Step 1: Navigate to Project Details
         page.goto("http://localhost:8088")
         page.wait_for_timeout(1000)
 
         # Check if we see the project details
-        # The title should contain the repo name
         page.wait_for_selector("h1:has-text('owner/repo')")
-        page.wait_for_timeout(500)
+        page.screenshot(path=f"{screenshot_dir}/01_project_details.png")
+        print(f"Saved screenshot: {screenshot_dir}/01_project_details.png")
 
-        # Check if tasks are visible
+        # Step 2: Verify tasks are visible
         page.wait_for_selector("text=Sample Issue #1")
-        page.wait_for_timeout(500)
+        page.screenshot(path=f"{screenshot_dir}/02_tasks_list.png")
+        print(f"Saved screenshot: {screenshot_dir}/02_tasks_list.png")
 
-        # Click "Run Agent" on the first task
-        # Note: In our mock, triggerAgent returns a simulated response or error
-        # Since GOOGLE_JULES_API_KEY is likely missing, it will show an error response
+        # Step 3: Click "Run Agent" on the first task
         page.click("button:has-text('Run Agent') >> nth=0")
-        page.wait_for_timeout(1000)
+        page.wait_for_timeout(2000) # Wait for agent simulation
 
         # Take screenshot of the result (including agent response)
-        page.screenshot(path="/home/jules/verification/screenshots/project_details.png")
-        page.wait_for_timeout(1000)
+        page.screenshot(path=f"{screenshot_dir}/03_agent_triggered.png")
+        print(f"Saved screenshot: {screenshot_dir}/03_agent_triggered.png")
 
     finally:
         server_process.terminate()
@@ -42,9 +46,7 @@ def run_cuj(page):
 if __name__ == "__main__":
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        context = browser.new_context(
-            record_video_dir="/home/jules/verification/videos"
-        )
+        context = browser.new_context()
         page = context.new_page()
         try:
             run_cuj(page)
