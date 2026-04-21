@@ -8,6 +8,7 @@ use App\User;
 use App\Project;
 use App\Task;
 use App\JulesService;
+use App\GitHubService;
 
 $auth = new Auth();
 $db = new Database();
@@ -44,12 +45,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
 
     if ($task && $task['project_id'] === $project['id']) {
         try {
-            $lastAgentResponse = $julesService->triggerAgent($task);
+            $githubToken = $user['github_token'] ?? null;
+            $githubService = null;
+            if ($githubToken) {
+                $githubService = new GitHubService(null, $githubToken);
+            }
+
+            // Update status to in_progress
             $taskModel->updateStatus($taskId, 'in_progress');
+
+            if ($githubService) {
+                $githubService->postComment($project['github_repo'], $task['issue_number'], "🤖 Agent has started processing this issue...");
+            }
+
+            $lastAgentResponse = $julesService->triggerAgent($task);
+
+            $taskModel->updateAgentResponse($taskId, $lastAgentResponse, 'completed');
+
+            if ($githubService) {
+                $githubService->postComment($project['github_repo'], $task['issue_number'], "✅ Agent has completed the analysis:\n\n" . $lastAgentResponse);
+            }
+
             // Refresh tasks
             $tasks = $taskModel->findByProjectId($projectId);
         } catch (\Exception $e) {
             $errorMessage = "Error triggering agent: " . $e->getMessage();
+            $taskModel->updateStatus($taskId, 'failed');
+            if (isset($githubService) && $githubService) {
+                try {
+                    $githubService->postComment($project['github_repo'], $task['issue_number'], "❌ Agent failed to process this issue: " . $e->getMessage());
+                } catch (\Exception $ge) {
+                    // Ignore GitHub commenting errors on top of main error
+                }
+            }
         }
     }
 }

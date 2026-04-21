@@ -14,9 +14,9 @@
 - [x] Basic issue-to-task mapping.
 
 ## Phase 3: Agent Orchestration
-- [ ] Integrate Google Jules API.
-- [ ] Build the orchestration engine to trigger agents from issues.
-- [ ] Implement progress tracking and status updates back to GitHub.
+- [x] Integrate Google Jules API.
+- [x] Build the orchestration engine to trigger agents from issues.
+- [x] Implement progress tracking and status updates back to GitHub.
 - [ ] Add logging and monitoring for agent activities.
 
 ## Phase 4: Refinement & Scaling

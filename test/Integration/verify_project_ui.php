@@ -7,6 +7,9 @@ use App\User;
 use App\Project;
 use App\Task;
 
+// Set environment for testing
+putenv('DB_NAME=:memory:');
+
 // Initialize session if not started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -44,6 +47,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     body TEXT,
     status TEXT DEFAULT 'pending',
     github_data TEXT,
+    agent_response TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(project_id, issue_number)
