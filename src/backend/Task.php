@@ -59,4 +59,10 @@ class Task
             $data['status'] ?? 'pending'
         ]);
     }
+
+    public function getLogs(int $taskId): array
+    {
+        $logger = new Logger($this->db);
+        return $logger->getLogsByTaskId($taskId);
+    }
 }

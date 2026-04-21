@@ -9,6 +9,7 @@ use App\Project;
 use App\Task;
 use App\JulesService;
 use App\GitHubService;
+use App\Logger;
 
 $auth = new Auth();
 $db = new Database();
@@ -16,6 +17,7 @@ $userModel = new User($db);
 $projectModel = new Project($db);
 $taskModel = new Task($db);
 $julesService = new JulesService();
+$logger = new Logger($db);
 
 if (!$auth->isLoggedIn()) {
     header('Location: login.php');
@@ -45,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
 
     if ($task && $task['project_id'] === $project['id']) {
         try {
+            $logger->log($taskId, "Agent triggered by user " . $user['name']);
             $githubToken = $user['github_token'] ?? null;
             $githubService = null;
             if ($githubToken) {
@@ -53,29 +56,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
 
             // Update status to in_progress
             $taskModel->updateStatus($taskId, 'in_progress');
+            $logger->log($taskId, "Task status updated to in_progress");
 
             if ($githubService) {
                 $githubService->postComment($project['github_repo'], $task['issue_number'], "🤖 Agent has started processing this issue...");
+                $logger->log($taskId, "Posted 'started' comment to GitHub");
             }
 
+            $logger->log($taskId, "Calling Jules API...");
             $lastAgentResponse = $julesService->triggerAgent($task);
+            $logger->log($taskId, "Received response from Jules API");
 
             $taskModel->updateAgentResponse($taskId, $lastAgentResponse, 'completed');
+            $logger->log($taskId, "Task agent response updated and status set to completed");
 
             if ($githubService) {
                 $githubService->postComment($project['github_repo'], $task['issue_number'], "✅ Agent has completed the analysis:\n\n" . $lastAgentResponse);
+                $logger->log($taskId, "Posted 'completed' comment to GitHub");
             }
 
             // Refresh tasks
             $tasks = $taskModel->findByProjectId($projectId);
         } catch (\Exception $e) {
             $errorMessage = "Error triggering agent: " . $e->getMessage();
+            $logger->log($taskId, "Error: " . $e->getMessage(), "error");
             $taskModel->updateStatus($taskId, 'failed');
             if (isset($githubService) && $githubService) {
                 try {
                     $githubService->postComment($project['github_repo'], $task['issue_number'], "❌ Agent failed to process this issue: " . $e->getMessage());
+                    $logger->log($taskId, "Posted 'failed' comment to GitHub");
                 } catch (\Exception $ge) {
-                    // Ignore GitHub commenting errors on top of main error
+                    $logger->log($taskId, "Failed to post error comment to GitHub: " . $ge->getMessage(), "error");
                 }
             }
         }
@@ -161,13 +172,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
                                         <tr>
                                             <th scope="col" class="px-6 py-3">Issue</th>
                                             <th scope="col" class="px-6 py-3">Status</th>
+                                            <th scope="col" class="px-6 py-3">Logs</th>
                                             <th scope="col" class="px-6 py-3">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($tasks)): ?>
                                             <tr class="bg-white border-b">
-                                                <td colspan="3" class="px-6 py-4 text-center">No tasks found. Open an issue on GitHub to see it here.</td>
+                                                <td colspan="4" class="px-6 py-4 text-center">No tasks found. Open an issue on GitHub to see it here.</td>
                                             </tr>
                                         <?php endif; ?>
                                         <?php foreach ($tasks as $task): ?>
@@ -180,6 +192,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
                                                     <span class="px-2 py-1 text-xs font-medium rounded-full <?= $task['status'] === 'completed' ? 'bg-green-100 text-green-800' : ($task['status'] === 'in_progress' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') ?>">
                                                         <?= htmlspecialchars($task['status']) ?>
                                                     </span>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <div class="max-h-32 overflow-y-auto text-[10px] font-mono bg-gray-50 p-2 rounded border border-gray-100">
+                                                        <?php
+                                                        $taskLogs = $taskModel->getLogs($task['id']);
+                                                        if (empty($taskLogs)): ?>
+                                                            <span class="text-gray-400 italic">No logs available.</span>
+                                                        <?php else: ?>
+                                                            <?php foreach ($taskLogs as $log): ?>
+                                                                <div class="mb-1">
+                                                                    <span class="text-gray-400">[<?= htmlspecialchars(date('H:i:s', strtotime($log['created_at']))) ?>]</span>
+                                                                    <span class="<?= $log['level'] === 'error' ? 'text-red-600 font-bold' : 'text-gray-700' ?>"><?= htmlspecialchars($log['message']) ?></span>
+                                                                </div>
+                                                            <?php endforeach; ?>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <form method="POST" class="inline">

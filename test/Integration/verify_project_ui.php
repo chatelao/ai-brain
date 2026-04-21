@@ -53,6 +53,15 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     UNIQUE(project_id, issue_number)
 )");
 
+$pdo->exec("CREATE TABLE IF NOT EXISTS task_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id INT NOT NULL,
+    level VARCHAR(20) DEFAULT 'info',
+    message TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+)");
+
 // Create a mock user
 $userModel = new User($db);
 $pdo->exec("INSERT OR IGNORE INTO users (id, google_id, name, email) VALUES (1, 'google-123', 'Test User', 'test@example.com')");
@@ -72,6 +81,11 @@ $taskModel->create([
     'body' => 'Description for issue 1',
     'status' => 'pending'
 ]);
+
+// Add some logs to task 1
+$logger = new \App\Logger($db);
+$logger->log(1, "Mock log entry 1 for task 101");
+$logger->log(1, "Mock error log entry 2 for task 101", "error");
 $taskModel->create([
     'project_id' => $project['id'],
     'issue_number' => 102,
