@@ -22,11 +22,11 @@ running on a php webserver using a MySQL database and Google SSO login for multi
 
 # Testing Locally & with Github Action Workflow
 
+- Setup the empty CI/CD pipeline before coding anything
 - Write CI/CD test independent as `test` script of the Github action workflows
+- Create screenshots of each UI step tested and store it as asset of the Action Workflow for review
 - Use `test/install.sh` to install test tools.
 - Use the Github action workflows to run the tests after commits.
 - Before committing fetch all changes from the remote repository and merge the changes
 - Run the CI/CD on every commit on every branch
 - Add as much caching as possible to the Github action workflows
-
-
