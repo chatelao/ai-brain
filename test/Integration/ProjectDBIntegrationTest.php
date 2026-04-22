@@ -25,7 +25,7 @@ class ProjectDBIntegrationTest extends TestCase
             google_id VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
-            avatar VARCHAR(255),
+            avatar VARCHAR(255), role VARCHAR(20) DEFAULT 'user',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
 

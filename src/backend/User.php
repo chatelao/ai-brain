@@ -32,24 +32,26 @@ class User
 
         if ($user) {
             $stmt = $this->db->getConnection()->prepare(
-                "UPDATE users SET name = ?, email = ?, avatar = ? WHERE google_id = ?"
+                "UPDATE users SET name = ?, email = ?, avatar = ?, role = ? WHERE google_id = ?"
             );
             $stmt->execute([
                 $data['name'],
                 $data['email'],
                 $data['avatar'] ?? null,
+                $data['role'] ?? $user['role'],
                 $data['google_id']
             ]);
             return array_merge($user, $data);
         } else {
             $stmt = $this->db->getConnection()->prepare(
-                "INSERT INTO users (google_id, name, email, avatar) VALUES (?, ?, ?, ?)"
+                "INSERT INTO users (google_id, name, email, avatar, role) VALUES (?, ?, ?, ?, ?)"
             );
             $stmt->execute([
                 $data['google_id'],
                 $data['name'],
                 $data['email'],
-                $data['avatar'] ?? null
+                $data['avatar'] ?? null,
+                $data['role'] ?? 'user'
             ]);
             $id = $this->db->getConnection()->lastInsertId();
             return $this->findById((int)$id);
@@ -84,6 +86,19 @@ class User
             "SELECT * FROM user_github_accounts WHERE user_id = ?"
         );
         $stmt->execute([$userId]);
+        return $stmt->fetchAll();
+    }
+
+    public function getAllUsersWithProjectCount(): array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT u.*, COUNT(p.id) as project_count
+             FROM users u
+             LEFT JOIN projects p ON u.id = p.user_id
+             GROUP BY u.id
+             ORDER BY u.created_at DESC"
+        );
+        $stmt->execute();
         return $stmt->fetchAll();
     }
 }
