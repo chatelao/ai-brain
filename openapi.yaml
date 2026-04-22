@@ -1,0 +1,407 @@
+openapi: 3.0.0
+info:
+  title: Agent Control API
+  description: Interface between the frontend and backend of the Agent Control application.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+  /login.php:
+    get:
+      summary: Initiate Google SSO login
+      description: Redirects the user to Google for authentication.
+      responses:
+        '302':
+          description: Redirect to Google OAuth URL
+
+  /callback.php:
+    get:
+      summary: Google SSO callback
+      description: Handles the response from Google and logs the user in.
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          examples:
+            GoogleAuth:
+              value: 4/0AfgeXvv-some-token-123
+      responses:
+        '302':
+          description: Redirect to index.php after successful login
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                GoogleAuth:
+                  value: index.php
+        '200':
+          description: Error message on failure
+
+  /logout.php:
+    get:
+      summary: Log out
+      description: Destroys the user session.
+      responses:
+        '302':
+          description: Redirect to login.php
+
+  /github-login.php:
+    get:
+      summary: Initiate GitHub OAuth
+      description: Redirects the user to GitHub for account linking.
+      responses:
+        '302':
+          description: Redirect to GitHub OAuth URL
+
+  /github-callback.php:
+    get:
+      summary: GitHub OAuth callback
+      description: Handles the response from GitHub and links the account.
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          examples:
+            GitHubAuth:
+              value: github_code_123
+      responses:
+        '302':
+          description: Redirect to index.php with success or error status
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                GitHubAuth:
+                  value: index.php?github=success
+
+  /index.php:
+    get:
+      summary: Dashboard
+      description: Displays user projects and linked GitHub accounts.
+      parameters:
+        - name: success
+          in: query
+          schema:
+            type: string
+          examples:
+            ProjectCreated:
+              value: project_created
+        - name: github
+          in: query
+          schema:
+            type: string
+          examples:
+            GitHubLinked:
+              value: success
+        - name: delete_project
+          in: query
+          schema:
+            type: integer
+          examples:
+            DeleteProject:
+              value: 1
+        - name: csrf_token
+          in: query
+          schema:
+            type: string
+          examples:
+            DeleteProject:
+              value: token_abc_123
+      responses:
+        '200':
+          description: Dashboard HTML page
+    post:
+      summary: Link new repository
+      description: Creates a new project by linking a GitHub repository.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                github_repo:
+                  type: string
+                github_account_id:
+                  type: integer
+                csrf_token:
+                  type: string
+            examples:
+              CreateProject:
+                value:
+                  github_repo: "google/jules"
+                  github_account_id: 1
+                  csrf_token: "token_abc_123"
+      responses:
+        '302':
+          description: Redirect to index.php with success status
+          headers:
+            Location:
+              schema:
+                type: string
+              examples:
+                CreateProject:
+                  value: index.php?success=project_created
+
+  /project.php:
+    get:
+      summary: Project details
+      description: Displays tasks and logs for a specific project.
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          examples:
+            ViewProject:
+              value: 1
+      responses:
+        '200':
+          description: Project details HTML page
+          content:
+            text/html:
+              examples:
+                ViewProject:
+                  value: "<html>...google/jules...</html>"
+    post:
+      summary: Trigger agent
+      description: Manually triggers the Jules agent for a specific task.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                trigger_agent:
+                  type: string
+                task_id:
+                  type: integer
+                csrf_token:
+                  type: string
+            examples:
+              TriggerAgent:
+                value:
+                  trigger_agent: "Run Agent"
+                  task_id: 42
+                  csrf_token: "token_abc_123"
+      responses:
+        '200':
+          description: Project details HTML page updated with agent response
+          content:
+            text/html:
+              examples:
+                TriggerAgent:
+                  value: "<html>...Agent response...</html>"
+
+  /webhook.php:
+    post:
+      summary: GitHub Webhook
+      description: Receives 'issues' events from GitHub.
+      parameters:
+        - name: X-Hub-Signature-256
+          in: header
+          required: true
+          schema:
+            type: string
+          examples:
+            IssueEvent:
+              value: sha256=hash_here
+        - name: X-GitHub-Event
+          in: header
+          required: true
+          schema:
+            type: string
+            enum: [issues]
+          examples:
+            IssueEvent:
+              value: issues
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GitHubIssueEvent'
+            examples:
+              IssueEvent:
+                value:
+                  action: "opened"
+                  issue:
+                    number: 101
+                    title: "Bug: App crashes"
+                    body: "Steps to reproduce..."
+                  repository:
+                    full_name: "google/jules"
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              examples:
+                IssueEvent:
+                  value: "OK"
+        '400':
+          description: Invalid request
+        '401':
+          description: Invalid signature
+        '404':
+          description: Project not found
+        '500':
+          description: Failed to process event
+
+  /admin/index.php:
+    get:
+      summary: Admin dashboard
+      description: User management for administrators.
+      responses:
+        '200':
+          description: Admin dashboard HTML page
+          content:
+            text/html:
+              examples:
+                AdminView:
+                  value: "<html>...User Management...</html>"
+        '302':
+          description: Redirect to login if not logged in
+        '403':
+          description: Access denied if not admin
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        google_id:
+          type: string
+          example: "123456789"
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          example: "john@example.com"
+        avatar:
+          type: string
+          nullable: true
+          example: "https://avatar.url"
+        role:
+          type: string
+          enum: [user, admin]
+          example: "user"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-10-27T10:00:00Z"
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        github_account_id:
+          type: integer
+          example: 1
+        github_repo:
+          type: string
+          example: "google/jules"
+        webhook_secret:
+          type: string
+          example: "secret_123"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-10-27T10:05:00Z"
+        github_username:
+          type: string
+          example: "johndoe_git"
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        project_id:
+          type: integer
+          example: 1
+        issue_number:
+          type: integer
+          example: 101
+        title:
+          type: string
+          example: "Bug: App crashes"
+        body:
+          type: string
+          example: "Steps to reproduce..."
+        status:
+          type: string
+          enum: [pending, in_progress, completed, failed]
+          example: "pending"
+        agent_response:
+          type: string
+          nullable: true
+          example: "The bug is caused by..."
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-10-27T10:10:00Z"
+
+    TaskLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 500
+        task_id:
+          type: integer
+          example: 42
+        message:
+          type: string
+          example: "Agent triggered by user John Doe"
+        level:
+          type: string
+          enum: [info, error]
+          example: "info"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-10-27T10:11:00Z"
+
+    GitHubIssueEvent:
+      type: object
+      properties:
+        action:
+          type: string
+          example: "opened"
+        issue:
+          type: object
+          properties:
+            number:
+              type: integer
+              example: 101
+            title:
+              type: string
+              example: "Bug: App crashes"
+            body:
+              type: string
+              example: "Steps to reproduce..."
+        repository:
+          type: object
+          properties:
+            full_name:
+              type: string
+              example: "google/jules"
