@@ -18,7 +18,7 @@ $githubAuth = new GitHubAuth();
 if (isset($_GET['code']) && isset($_GET['state'])) {
     try {
         $githubData = $githubAuth->authenticate($_GET['code'], $_GET['state']);
-        $userModel->updateGitHubCredentials($auth->getUserId(), $githubData['access_token'], $githubData['github_username']);
+        $userModel->addGitHubAccount($auth->getUserId(), $githubData['access_token'], $githubData['github_username']);
         header('Location: index.php?github=success');
         exit;
     } catch (Exception $e) {

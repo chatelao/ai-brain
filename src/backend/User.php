@@ -56,11 +56,34 @@ class User
         }
     }
 
-    public function updateGitHubCredentials(int $id, string $token, string $username): bool
+    public function addGitHubAccount(int $userId, string $token, string $username): bool
+    {
+        // Check database type first
+        $dbType = $this->db->getConnection()->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+        if ($dbType === 'sqlite') {
+            $stmt = $this->db->getConnection()->prepare(
+                "INSERT INTO user_github_accounts (user_id, github_token, github_username)
+                 VALUES (?, ?, ?)
+                 ON CONFLICT(user_id, github_username) DO UPDATE SET github_token = excluded.github_token"
+            );
+            return $stmt->execute([$userId, $token, $username]);
+        }
+
+        $stmt = $this->db->getConnection()->prepare(
+            "INSERT INTO user_github_accounts (user_id, github_token, github_username)
+             VALUES (?, ?, ?)
+             ON DUPLICATE KEY UPDATE github_token = ?"
+        );
+        return $stmt->execute([$userId, $token, $username, $token]);
+    }
+
+    public function getGitHubAccounts(int $userId): array
     {
         $stmt = $this->db->getConnection()->prepare(
-            "UPDATE users SET github_token = ?, github_username = ? WHERE id = ?"
+            "SELECT * FROM user_github_accounts WHERE user_id = ?"
         );
-        return $stmt->execute([$token, $username, $id]);
+        $stmt->execute([$userId]);
+        return $stmt->fetchAll();
     }
 }
