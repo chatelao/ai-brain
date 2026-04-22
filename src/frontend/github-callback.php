@@ -4,6 +4,16 @@ use App\Auth;
 use App\GitHubAuth;
 use App\Database;
 use App\User;
+use App\RateLimiter;
+
+$db = new Database();
+$rateLimiter = new RateLimiter($db);
+$ip = $rateLimiter->getIpAddress();
+
+if (!$rateLimiter->check("github_callback_$ip", 20, 60)) {
+    http_response_code(429);
+    exit('Too many requests. Please try again later.');
+}
 
 $auth = new Auth();
 if (!$auth->isLoggedIn()) {
@@ -11,7 +21,6 @@ if (!$auth->isLoggedIn()) {
     exit;
 }
 
-$db = new Database();
 $userModel = new User($db);
 $githubAuth = new GitHubAuth();
 

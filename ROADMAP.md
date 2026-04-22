@@ -23,5 +23,5 @@
 - [ ] Comprehensive test suite (Unit, Integration, E2E).
 - [ ] CI/CD pipeline optimization with caching.
 - [ ] Multi-user management features and role-based access.
-- [ ] Support for multiple GitHub accounts per ai-brain user.
-- [ ] Performance tuning and security hardening.
+- [x] Support for multiple GitHub accounts per ai-brain user.
+- [x] Performance tuning and security hardening.
