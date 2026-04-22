@@ -5,8 +5,16 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use App\Database;
 use App\Project;
 use App\WebhookHandler;
+use App\RateLimiter;
 
 $db = new Database();
+$rateLimiter = new RateLimiter($db);
+$ip = $rateLimiter->getIpAddress();
+
+if (!$rateLimiter->check("webhook_$ip", 100, 60)) {
+    http_response_code(429);
+    exit('Too many webhook requests. Please try again later.');
+}
 $projectModel = new Project($db);
 $handler = new WebhookHandler($db);
 
