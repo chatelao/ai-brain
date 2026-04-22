@@ -51,6 +51,7 @@ class Auth
     public function login(array $user): void
     {
         $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_role'] = $user['role'] ?? 'user';
     }
 
     public function logout(): void
@@ -67,6 +68,11 @@ class Auth
     public function isLoggedIn(): bool
     {
         return isset($_SESSION['user_id']);
+    }
+
+    public function isAdmin(): bool
+    {
+        return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
     }
 
     public function getCsrfToken(): string
