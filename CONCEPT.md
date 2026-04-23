@@ -22,3 +22,4 @@ This application aims to provide a centralized platform for controlling and coor
     - **Google SSO**: For authentication.
     - **GitHub REST API**: For repository and issue management.
     - **Google Jules API**: For agent control.
+    - **Telegram Bot API**: For mobile-based agent control and notifications.

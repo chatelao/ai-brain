@@ -20,6 +20,7 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 | **Alpine.js** | Minimal framework for composing JavaScript behavior. | [Alpine.js Documentation](https://alpinejs.dev/docs) |
 | **Guzzle** | PHP HTTP client for sending API requests. | [Guzzle Documentation](https://docs.guzzlephp.org/) |
 | **GitHub PHP API** | Object-oriented wrapper for the GitHub API. | [KnpLabs GitHub API](https://github.com/KnpLabs/php-github-api) |
+| **Telegram Bot API** | Mobile-based agent control and notifications. | [Telegram Bot API](https://core.telegram.org/bots/api) |
 
 #### Test/Documentation
 | API / Interface | Description | Source Page |
