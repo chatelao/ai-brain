@@ -13,6 +13,7 @@ The application follows a modular architecture, separating concerns between the 
     - **API Integration**:
         - **GitHub**: `knplabs/github-api`
         - **Google Jules**: `guzzlehttp/guzzle` (REST API client)
+        - **Telegram**: `guzzlehttp/guzzle` (for webhook responses and API calls)
 - **Testing**:
     - **CI/CD**: GitHub Actions
     - **Tools**: PHPUnit for unit testing, Mocking libraries for API responses
@@ -27,6 +28,7 @@ The application follows a modular architecture, separating concerns between the 
 - **GitHub**: Use webhooks to listen for issue events and the REST API to fetch details and post updates.
 - **Google Jules**: Utilize secure API calls to trigger and manage agent sessions.
 - **Google SSO**: Implement OAuth 2.0 flow for secure user authentication.
+- **Telegram**: Implement webhook handler with secret token validation and asynchronous processing using `fastcgi_finish_request()`.
 
 ## Security
 - Secure storage of API tokens using environment variables.
