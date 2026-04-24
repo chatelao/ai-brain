@@ -43,11 +43,13 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 ### Installation
 1. Clone the repository.
 2. Install dependencies:
+ 
    ```bash
    ./scripts/install.sh
    ```
-3. Set up your environment variables (DB_HOST, DB_NAME, DB_USER, DB_PASS, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI).
-4. Initialize the database using `src/sql/schema.sql`.
+
+4. Set up your environment variables (DB_HOST, DB_NAME, DB_USER, DB_PASS, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI).
+5. Initialize the database using `src/sql/schema.sql`.
 
 ### Local Development
 Start the local development server:
