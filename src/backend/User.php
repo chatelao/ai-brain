@@ -101,4 +101,52 @@ class User
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    public function generateTelegramLinkToken(int $userId): string
+    {
+        $token = bin2hex(random_bytes(16));
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE users SET telegram_link_token = ? WHERE id = ?"
+        );
+        $stmt->execute([$token, $userId]);
+        return $token;
+    }
+
+    public function linkTelegramAccount(string $token, int $chatId): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT id FROM users WHERE telegram_link_token = ?"
+        );
+        $stmt->execute([$token]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            return false;
+        }
+
+        $stmt = $this->db->getConnection()->prepare(
+            "INSERT INTO user_telegram_accounts (user_id, telegram_chat_id) VALUES (?, ?)"
+        );
+        $success = $stmt->execute([$user['id'], $chatId]);
+
+        if ($success) {
+            // Clear the token after successful linking
+            $stmt = $this->db->getConnection()->prepare(
+                "UPDATE users SET telegram_link_token = NULL WHERE id = ?"
+            );
+            $stmt->execute([$user['id']]);
+        }
+
+        return $success;
+    }
+
+    public function getTelegramChatId(int $userId): ?int
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT telegram_chat_id FROM user_telegram_accounts WHERE user_id = ?"
+        );
+        $stmt->execute([$userId]);
+        $result = $stmt->fetch();
+        return $result ? (int)$result['telegram_chat_id'] : null;
+    }
 }

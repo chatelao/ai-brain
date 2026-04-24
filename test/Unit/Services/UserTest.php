@@ -74,4 +74,63 @@ class UserTest extends TestCase
         $this->assertEquals(2, $result['id']);
         $this->assertEquals('New User', $result['name']);
     }
+
+    public function testGenerateTelegramLinkToken()
+    {
+        $stmt = $this->createMock(PDOStatement::class);
+        $stmt->expects($this->once())
+             ->method('execute')
+             ->with($this->callback(function($params) {
+                 return strlen($params[0]) === 32 && $params[1] === 1;
+             }));
+
+        $this->pdo->expects($this->once())
+                  ->method('prepare')
+                  ->with($this->stringContains("UPDATE users SET telegram_link_token = ? WHERE id = ?"))
+                  ->willReturn($stmt);
+
+        $token = $this->userModel->generateTelegramLinkToken(1);
+        $this->assertEquals(32, strlen($token));
+    }
+
+    public function testLinkTelegramAccountSuccess()
+    {
+        // 1. SELECT user by token
+        $stmt1 = $this->createMock(PDOStatement::class);
+        $stmt1->method('fetch')->willReturn(['id' => 10]);
+
+        // 2. INSERT into user_telegram_accounts
+        $stmt2 = $this->createMock(PDOStatement::class);
+        $stmt2->method('execute')->willReturn(true);
+
+        // 3. UPDATE users to clear token
+        $stmt3 = $this->createMock(PDOStatement::class);
+
+        $this->pdo->method('prepare')
+                  ->willReturnCallback(function($sql) use ($stmt1, $stmt2, $stmt3) {
+                      if (str_contains($sql, "SELECT id FROM users WHERE telegram_link_token = ?")) return $stmt1;
+                      if (str_contains($sql, "INSERT INTO user_telegram_accounts")) return $stmt2;
+                      if (str_contains($sql, "UPDATE users SET telegram_link_token = NULL")) return $stmt3;
+                      return null;
+                  });
+
+        $result = $this->userModel->linkTelegramAccount('valid_token', 123456);
+        $this->assertTrue($result);
+    }
+
+    public function testLinkTelegramAccountFailure()
+    {
+        // 1. SELECT user by token returns null
+        $stmt1 = $this->createMock(PDOStatement::class);
+        $stmt1->method('fetch')->willReturn(null);
+
+        $this->pdo->method('prepare')
+                  ->willReturnCallback(function($sql) use ($stmt1) {
+                      if (str_contains($sql, "SELECT id FROM users WHERE telegram_link_token = ?")) return $stmt1;
+                      return null;
+                  });
+
+        $result = $this->userModel->linkTelegramAccount('invalid_token', 123456);
+        $this->assertFalse($result);
+    }
 }

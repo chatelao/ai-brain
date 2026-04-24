@@ -256,6 +256,49 @@ paths:
         '500':
           description: Failed to process event
 
+  /telegram-webhook.php:
+    post:
+      summary: Telegram Webhook
+      description: Receives updates from the Telegram Bot API.
+      parameters:
+        - name: X-Telegram-Bot-Api-Secret-Token
+          in: header
+          required: true
+          schema:
+            type: string
+          examples:
+            TelegramUpdate:
+              value: secret_token_123
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            examples:
+              TelegramStart:
+                value:
+                  update_id: 12345
+                  message:
+                    message_id: 1
+                    from:
+                      id: 98765
+                      first_name: "John"
+                    chat:
+                      id: 98765
+                      type: "private"
+                    date: 1610000000
+                    text: "/start token_abc"
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              examples:
+                TelegramUpdate:
+                  value: "OK"
+        '401':
+          description: Unauthorized
+
   /admin/index.php:
     get:
       summary: Admin dashboard
