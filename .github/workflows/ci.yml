@@ -33,9 +33,17 @@ jobs:
     - name: Run UI tests with screenshots
       run: python3 test/Integration/verify_ui.py
 
-    - name: Upload screenshots
+    - name: Install documentation dependencies
+      run: pip install -r docs/requirements.txt
+
+    - name: Build documentation
+      run: sphinx-build -b html docs docs/_build/html
+
+    - name: Upload artifacts
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: screenshots
-        path: test/screenshots/
+        name: all-artifacts
+        path: |
+          test/screenshots/
+          docs/_build/html/
