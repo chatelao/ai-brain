@@ -10,6 +10,7 @@ Welcome to AI Brain's documentation!
    design
    roadmap
    gemini
+   howto
 
 Indices and tables
 ==================
