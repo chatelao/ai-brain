@@ -1,4 +1,5 @@
 # Agent Control PHP Application
+[![Documentation Status](https://readthedocs.org/projects/ai-brain/badge/?version=latest)](https://ai-brain.readthedocs.io/en/latest/?badge=latest)
 
 ## Overview
 A PHP application to control agents from Google Jules, coordinated by GitHub repositories and issues. It provides a centralized platform for managing AI agent workflows through a unified web interface.
