@@ -10,23 +10,23 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 ### Used APIs and Interfaces
 
 #### Production
-| API / Interface | Description | Source Page |
-| :--- | :--- | :--- |
-| **Google SSO** | Secure user authentication and session management. | [Google Identity Platform](https://developers.google.com/identity/protocols/oauth2) |
-| **GitHub REST API** | Management of repositories, issues, and webhooks. | [GitHub REST API Documentation](https://docs.github.com/en/rest) |
-| **Google Jules API** | Orchestration and control of AI agents. | [Google AI / Gemini](https://ai.google.dev/) |
-| **PHP** | Server-side scripting language for backend logic. | [PHP Official Documentation](https://www.php.net/docs.php) |
-| **MySQL** | Relational database for storing user and project data. | [MySQL Documentation](https://dev.mysql.com/doc/) |
-| **Tailwind CSS** | Utility-first CSS framework for responsive UI design. | [Tailwind CSS Documentation](https://tailwindcss.com/docs) |
-| **Alpine.js** | Minimal framework for composing JavaScript behavior. | [Alpine.js Documentation](https://alpinejs.dev/docs) |
-| **Guzzle** | PHP HTTP client for sending API requests. | [Guzzle Documentation](https://docs.guzzlephp.org/) |
-| **GitHub PHP API** | Object-oriented wrapper for the GitHub API. | [KnpLabs GitHub API](https://github.com/KnpLabs/php-github-api) |
-| **Telegram Bot API** | Mobile-based agent control and notifications. | [Telegram Bot API](https://core.telegram.org/bots/api) |
+| API / Interface | Description |
+| :--- | :--- |
+| [**Google SSO**](https://developers.google.com/identity/protocols/oauth2) | Secure user authentication and session management. |
+| [**GitHub REST API**](https://docs.github.com/en/rest) | Management of repositories, issues, and webhooks. |
+| [**Google Jules API**](https://ai.google.dev/) | Orchestration and control of AI agents. |
+| [**PHP**](https://www.php.net/docs.php) | Server-side scripting language for backend logic. |
+| [**MySQL**](https://dev.mysql.com/doc/) | Relational database for storing user and project data. |
+| [**Tailwind CSS**](https://tailwindcss.com/docs) | Utility-first CSS framework for responsive UI design. |
+| [**Alpine.js**](https://alpinejs.dev/docs) | Minimal framework for composing JavaScript behavior. |
+| [**Guzzle**](https://docs.guzzlephp.org/) | PHP HTTP client for sending API requests. |
+| [**GitHub PHP API**](https://github.com/KnpLabs/php-github-api) | Object-oriented wrapper for the GitHub API. |
+| [**Telegram Bot API**](https://core.telegram.org/bots/api) | Mobile-based agent control and notifications. |
 
 #### Test/Documentation
-| API / Interface | Description | Source Page |
-| :--- | :--- | :--- |
-| **PlantUML** | Architecture diagram generation from text. | [PlantUML Documentation](https://plantuml.com/) |
+| API / Interface | Description |
+| :--- | :--- |
+| [**PlantUML**](https://plantuml.com/) | Architecture diagram generation from text. |
 
 ## Features
 - **Centralized Agent Management**: Coordinate multiple AI agents across projects.
