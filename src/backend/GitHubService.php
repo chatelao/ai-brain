@@ -34,4 +34,45 @@ class GitHubService
             'body' => $comment
         ]);
     }
+
+    /**
+     * @throws Exception
+     */
+    public function createIssue(string $repo, string $title, ?string $body, array $labels): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        return $this->client->api('issue')->create($username, $repository, [
+            'title' => $title,
+            'body' => $body,
+            'labels' => $labels
+        ]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function removeLabel(string $repo, int $issueNumber, string $label): void
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        try {
+            $this->client->api('issue')->labels()->remove($username, $repository, $issueNumber, $label);
+        } catch (Exception $e) {
+            // Ignore if label not found
+            if ($e->getCode() !== 404) {
+                throw $e;
+            }
+        }
+    }
 }

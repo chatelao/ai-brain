@@ -16,12 +16,12 @@ class WebhookHandler
         return hash_equals($hash, $signature);
     }
 
-    public function handle(int $projectId, array $event): bool
+    public function handle(int $projectId, array $event, ?GitHubService $githubService = null): bool
     {
         $action = $event['action'] ?? '';
         $issue = $event['issue'] ?? null;
 
-        if (!$issue || !in_array($action, ['opened', 'reopened', 'edited'])) {
+        if (!$issue || !in_array($action, ['opened', 'reopened', 'edited', 'closed', 'labeled', 'unlabeled'])) {
             return false;
         }
 
@@ -46,7 +46,7 @@ class WebhookHandler
 
         $stmt = $connection->prepare($sql);
 
-        return $stmt->execute([
+        $result = $stmt->execute([
             $projectId,
             $issue['number'],
             $issue['title'],
@@ -54,5 +54,28 @@ class WebhookHandler
             json_encode($issue),
             'pending'
         ]);
+
+        if ($result && $action === 'closed' && $githubService) {
+            $stateReason = $issue['state_reason'] ?? '';
+            $labels = $issue['labels'] ?? [];
+            $hasAutorepeat = false;
+            foreach ($labels as $label) {
+                if (($label['name'] ?? '') === 'autorepeat') {
+                    $hasAutorepeat = true;
+                    break;
+                }
+            }
+
+            if ($stateReason === 'completed' && $hasAutorepeat) {
+                $labelNames = array_map(fn($l) => $l['name'], $labels);
+                $repo = $event['repository']['full_name'] ?? '';
+                if ($repo) {
+                    $githubService->createIssue($repo, $issue['title'], $issue['body'], $labelNames);
+                    $githubService->removeLabel($repo, $issue['number'], 'autorepeat');
+                }
+            }
+        }
+
+        return $result;
     }
 }

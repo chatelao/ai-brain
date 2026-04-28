@@ -110,7 +110,7 @@ class WebhookHandlerTest extends TestCase
     {
         $projectId = 1;
         $event = [
-            'action' => 'labeled',
+            'action' => 'deleted',
             'issue' => [
                 'number' => 123,
                 'title' => 'Test Issue',

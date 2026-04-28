@@ -53,11 +53,75 @@ class WebhookHandlerTest extends TestCase
         $this->assertTrue($this->handler->handle($projectId, $event));
     }
 
-    public function testHandleUnsupportedAction()
+    public function testHandleClosedIssueWithAutorepeat()
     {
         $projectId = 1;
         $event = [
             'action' => 'closed',
+            'repository' => ['full_name' => 'owner/repo'],
+            'issue' => [
+                'number' => 123,
+                'title' => 'Test Issue',
+                'body' => 'Body',
+                'state_reason' => 'completed',
+                'labels' => [
+                    ['name' => 'autorepeat'],
+                    ['name' => 'bug']
+                ]
+            ]
+        ];
+
+        $stmt = $this->createMock(PDOStatement::class);
+        $stmt->method('execute')->willReturn(true);
+
+        $this->pdo->method('getAttribute')->with(PDO::ATTR_DRIVER_NAME)->willReturn('mysql');
+        $this->pdo->method('prepare')->willReturn($stmt);
+
+        $githubService = $this->createMock(\App\GitHubService::class);
+        $githubService->expects($this->once())
+            ->method('createIssue')
+            ->with('owner/repo', 'Test Issue', 'Body', ['autorepeat', 'bug']);
+        $githubService->expects($this->once())
+            ->method('removeLabel')
+            ->with('owner/repo', 123, 'autorepeat');
+
+        $this->assertTrue($this->handler->handle($projectId, $event, $githubService));
+    }
+
+    public function testHandleClosedIssueWithoutAutorepeat()
+    {
+        $projectId = 1;
+        $event = [
+            'action' => 'closed',
+            'issue' => [
+                'number' => 123,
+                'title' => 'Test Issue',
+                'body' => 'Body',
+                'state_reason' => 'completed',
+                'labels' => [
+                    ['name' => 'bug']
+                ]
+            ]
+        ];
+
+        $stmt = $this->createMock(PDOStatement::class);
+        $stmt->method('execute')->willReturn(true);
+
+        $this->pdo->method('getAttribute')->with(PDO::ATTR_DRIVER_NAME)->willReturn('mysql');
+        $this->pdo->method('prepare')->willReturn($stmt);
+
+        $githubService = $this->createMock(\App\GitHubService::class);
+        $githubService->expects($this->never())->method('createIssue');
+        $githubService->expects($this->never())->method('removeLabel');
+
+        $this->assertTrue($this->handler->handle($projectId, $event, $githubService));
+    }
+
+    public function testHandleUnsupportedAction()
+    {
+        $projectId = 1;
+        $event = [
+            'action' => 'deleted',
             'issue' => ['number' => 123]
         ];
 

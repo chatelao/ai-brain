@@ -19,6 +19,36 @@ class Task
         return $stmt->fetchAll();
     }
 
+    public function getRunningAutorepeatTasks(int $userId): array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT t.*, p.github_repo
+             FROM tasks t
+             JOIN projects p ON t.project_id = p.id
+             WHERE p.user_id = ?
+             ORDER BY t.created_at DESC"
+        );
+        $stmt->execute([$userId]);
+        $tasks = $stmt->fetchAll();
+
+        return array_filter($tasks, function($task) {
+            $githubData = json_decode($task['github_data'], true);
+            if (!$githubData) return false;
+
+            $isOpen = ($githubData['state'] ?? '') === 'open';
+            $hasAutorepeat = false;
+            $labels = $githubData['labels'] ?? [];
+            foreach ($labels as $label) {
+                if (($label['name'] ?? '') === 'autorepeat') {
+                    $hasAutorepeat = true;
+                    break;
+                }
+            }
+
+            return $isOpen && $hasAutorepeat;
+        });
+    }
+
     public function findById(int $id): ?array
     {
         $stmt = $this->db->getConnection()->prepare(
