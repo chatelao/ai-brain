@@ -6,6 +6,7 @@ use App\Database;
 use App\Auth;
 use App\User;
 use App\Project;
+use App\Task;
 
 $auth = new Auth();
 $db = new Database();
@@ -44,6 +45,7 @@ if ($user && isset($_GET['delete_project'])) {
 
 $projects = $user ? $projectModel->findByUserId($user['id']) : [];
 $githubAccounts = $user ? $userModel->getGitHubAccounts($user['id']) : [];
+$autorepeatTasks = $user ? (new Task($db))->getRunningAutorepeatTasks($user['id']) : [];
 
 $errorMessage = $errorMessage ?? null;
 
@@ -101,6 +103,42 @@ $errorMessage = $errorMessage ?? null;
                     <?php if ($errorMessage): ?>
                         <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
                             <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage) ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($user && !empty($autorepeatTasks)): ?>
+                        <div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">Running Autorepeat Tasks</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left text-gray-500">
+                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3">Project</th>
+                                            <th scope="col" class="px-6 py-3">Issue</th>
+                                            <th scope="col" class="px-6 py-3">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($autorepeatTasks as $task): ?>
+                                            <tr class="bg-white border-b">
+                                                <td class="px-6 py-4 font-medium text-gray-900">
+                                                    <?= htmlspecialchars($task['github_repo']) ?>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <a href="project.php?id=<?= $task['project_id'] ?>" class="text-blue-600 hover:underline font-semibold">
+                                                        #<?= htmlspecialchars($task['issue_number']) ?> <?= htmlspecialchars($task['title']) ?>
+                                                    </a>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                                        Active
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     <?php endif; ?>
 

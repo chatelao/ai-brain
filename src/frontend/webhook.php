@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use App\Database;
 use App\Project;
 use App\WebhookHandler;
+use App\GitHubService;
 use App\RateLimiter;
 
 $db = new Database();
@@ -58,7 +59,12 @@ if (!$verified) {
     exit('Invalid signature');
 }
 
-if ($handler->handle($matchingProject['id'], $data)) {
+$githubService = null;
+if (!empty($matchingProject['github_token'])) {
+    $githubService = new GitHubService(null, $matchingProject['github_token']);
+}
+
+if ($handler->handle($matchingProject['id'], $data, $githubService)) {
     http_response_code(200);
     echo 'OK';
 } else {
