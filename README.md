@@ -58,6 +58,13 @@ Start the local development server:
 php -S localhost:8080 -t src/frontend
 ```
 
+### Local Development with Vagrant
+If you prefer to use a virtualized environment, you can use Vagrant:
+1. Ensure you have Vagrant and VirtualBox installed.
+2. Run `vagrant up` to start the VM and provision it.
+3. The application will be accessible at `http://localhost:8080`.
+4. You may need to update the environment variables in `/etc/nginx/sites-available/aibrain` inside the VM if you want to use GitHub or Google SSO.
+
 ## Project Structure
 - `src/frontend/`: Web entry points (index.php, login.php, etc.) and frontend assets.
 - `src/backend/`: Core PHP logic and classes.
