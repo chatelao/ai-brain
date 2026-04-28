@@ -72,6 +72,16 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS task_logs (
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
 )");
 
+$pdo->exec("CREATE TABLE IF NOT EXISTS issue_templates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    title_template VARCHAR(255) NOT NULL,
+    body_template TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+)");
+
 // Create a mock user
 $userModel = new User($db);
 $pdo->exec("INSERT OR IGNORE INTO users (id, google_id, name, email) VALUES (1, 'google-123', 'Test User', 'test@example.com')");
