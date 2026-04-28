@@ -7,6 +7,7 @@ use App\Auth;
 use App\User;
 use App\Project;
 use App\Task;
+use App\IssueTemplate;
 use App\JulesService;
 use App\GitHubService;
 use App\Logger;
@@ -31,6 +32,9 @@ $project = $projectModel->findById($projectId);
 if (!$project || $project['user_id'] !== $user['id']) {
     die("Project not found or access denied.");
 }
+
+$templateModel = new IssueTemplate($db);
+$templates = $templateModel->findByUserId($user['id']);
 
 $tasks = $taskModel->findByProjectId($projectId);
 $lastAgentResponse = null;
@@ -89,6 +93,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
                     $logger->log($taskId, "Failed to post error comment to GitHub: " . $ge->getMessage(), "error");
                 }
             }
+        }
+    }
+}
+
+// Handle Create Issue from Template
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+
+    $templateId = (int)$_POST['template_id'];
+    $val1 = $_POST['val1'] ?? '';
+    $val2 = $_POST['val2'] ?? '';
+
+    $template = $templateModel->findById($templateId);
+    if ($template && $template['user_id'] === $user['id']) {
+        try {
+            $title = str_replace(['%1', '%2'], [$val1, $val2], $template['title_template']);
+            $body = str_replace(['%1', '%2'], [$val1, $val2], $template['body_template']);
+
+            $githubToken = $project['github_token'] ?? null;
+            if (!$githubToken) {
+                throw new Exception("GitHub token not found for this project.");
+            }
+
+            $githubService = new GitHubService(null, $githubToken);
+            $githubService->createIssue($project['github_repo'], $title, $body, []);
+
+            header("Location: project.php?id=$projectId&success=issue_created");
+            exit;
+        } catch (Exception $e) {
+            $errorMessage = "Error creating issue: " . $e->getMessage();
         }
     }
 }
@@ -154,6 +190,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
                         </div>
                     <?php endif; ?>
 
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'issue_created'): ?>
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                            <span class="font-medium">Success!</span> Issue created from template. It may take a few seconds to appear in the list (synced via webhook).
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($lastAgentResponse): ?>
                         <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50" role="alert">
                             <span class="font-medium">Agent Response:</span>
@@ -163,8 +205,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
                         </div>
                     <?php endif; ?>
 
-                    <div class="grid grid-cols-1 gap-4 mb-4">
-                        <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
+                        <div class="lg:col-span-1 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">Create Issue from Template</h3>
+                            <?php if (empty($templates)): ?>
+                                <p class="text-sm text-gray-500 italic">No templates available. <a href="templates.php" class="text-blue-600 hover:underline">Create one first.</a></p>
+                            <?php else: ?>
+                                <form method="POST">
+                                    <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                    <div class="mb-4">
+                                        <label class="block mb-2 text-sm font-medium text-gray-900">Select Template</label>
+                                        <select name="template_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                            <?php foreach ($templates as $tmpl): ?>
+                                                <option value="<?= $tmpl['id'] ?>"><?= htmlspecialchars($tmpl['name']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block mb-2 text-sm font-medium text-gray-900">%1 value</label>
+                                        <input type="text" name="val1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block mb-2 text-sm font-medium text-gray-900">%2 value</label>
+                                        <input type="text" name="val2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                    </div>
+                                    <button type="submit" name="create_from_template" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none">Create Issue</button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="lg:col-span-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                             <h3 class="text-lg font-bold text-gray-900 mb-4">Tasks synced from GitHub</h3>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm text-left text-gray-500">
