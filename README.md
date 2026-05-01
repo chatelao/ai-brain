@@ -29,10 +29,32 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 | [**PlantUML**](https://plantuml.com/) | Architecture diagram generation from text. |
 
 ## Features
-- **Centralized Agent Management**: Coordinate multiple AI agents across projects.
-- **GitHub Integration**: Link repositories and issues to specific agent tasks.
-- **Secure Authentication**: Google SSO for multi-user management.
-- **Workflow Automation**: Trigger agent actions directly from project management tools.
+
+### Authentication & Security
+- **Google SSO**: Secure user authentication and session management.
+- **Role-Based Access Control (RBAC)**: Fine-grained permissions for administrators and regular users.
+- **Security Hardening**: Integrated CSRF protection and IP-based rate limiting for sensitive endpoints.
+
+### GitHub Integration
+- **Multi-Account Support**: Link and manage multiple GitHub accounts per application user.
+- **Repository Synchronization**: Seamlessly link repositories and synchronize issues as actionable tasks.
+- **Automated Webhooks**: Real-time updates for issue events (opened, edited, reopened) via secure webhooks.
+- **Customizable Templates**: Create and manage reusable GitHub issue templates with dynamic parameter support.
+
+### Agent Orchestration
+- **Google Jules (Gemini) Integration**: Power agent workflows using advanced AI models.
+- **Task Management**: Track agent activity, execution logs, and status updates directly in the dashboard.
+- **Automated Feedback**: Agents can post responses and status updates back to GitHub issues as comments.
+
+### Telegram Connectivity
+- **Mobile Control**: Interact with agents and receive status notifications via a dedicated Telegram Bot.
+- **Secure Webhooks**: Robust webhook handling with secret token validation.
+- **Asynchronous Processing**: Optimized response times using fast-cgi finish request for immediate acknowledgement.
+
+### Developer Experience
+- **Vagrant Environment**: Pre-configured virtualized development environment for consistent setups.
+- **CI/CD Pipeline**: Automated testing (PHPUnit, Playwright) and documentation builds via GitHub Actions.
+- **Comprehensive Documentation**: Integrated Sphinx documentation (Read the Docs) and OpenAPI 3.0 specification.
 
 ## Getting Started
 
