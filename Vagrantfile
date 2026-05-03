@@ -40,6 +40,14 @@ composer install
 # Install and configure Nginx
 apt-get install -y nginx
 
+# Install phpMyAdmin
+echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/app-password password ${DB_PASS}" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/mysql/admin-pass password ${DB_PASS}" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/mysql/app-pass password ${DB_PASS}" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
+apt-get install -y phpmyadmin
+
 cat <<EOF > /etc/nginx/sites-available/aibrain
 server {
     listen 80;
@@ -69,6 +77,21 @@ server {
         fastcgi_param GITHUB_CLIENT_ID "your_github_client_id";
         fastcgi_param GITHUB_CLIENT_SECRET "your_github_client_secret";
         fastcgi_param GITHUB_REDIRECT_URI "http://localhost:8080/github-callback.php";
+    }
+
+    location /phpmyadmin {
+        root /usr/share/;
+        index index.php index.html index.htm;
+        location ~ ^/phpmyadmin/(.+\.php)$ {
+            try_files \$uri =404;
+            root /usr/share/;
+            fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+            include snippets/fastcgi-php.conf;
+            fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        }
+        location ~* ^/phpmyadmin/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+            root /usr/share/;
+        }
     }
 
     location ~ /\.ht {
