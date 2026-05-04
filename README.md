@@ -80,6 +80,15 @@ If you prefer to use a virtualized environment, you can use Vagrant:
 3. The application will be accessible at `http://localhost:8080`.
 4. You may need to update the environment variables in `/etc/nginx/sites-available/aibrain` inside the VM if you want to use GitHub or Google SSO.
 
+### Troubleshooting Vagrant
+
+#### Error: E_ACCESSDENIED (0x80070005)
+If you encounter `VBoxManage.exe: error: Details: code E_ACCESSDENIED (0x80070005)` when running `vagrant up`:
+- **Dropbox/OneDrive:** This error often occurs if the project is located in a folder synced by Dropbox or OneDrive. These services lock files that VirtualBox needs to access.
+  - **Solution:** Move the project to a non-synced folder (e.g., `C:\ws\ai-brain`) or temporarily pause syncing while using Vagrant.
+- **Stale VM Locks:** Sometimes VirtualBox background processes hang.
+  - **Solution:** Kill all `VBoxSVC.exe` and `VBoxManage.exe` processes in Task Manager, delete the `.vagrant` folder in your project, and try again.
+
 ## Project Structure
 - `src/frontend/`: Web entry points (index.php, login.php, etc.) and frontend assets.
 - `src/backend/`: Core PHP logic and classes.

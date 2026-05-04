@@ -21,6 +21,12 @@ DB_NAME="aibrain"
 DB_USER="aibrain"
 DB_PASS="aibrain_pass"
 
+# Wait for MySQL to be ready
+echo "Waiting for MySQL to start..."
+while ! mysqladmin ping -h"localhost" --silent; do
+    sleep 1
+done
+
 mysql -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
 mysql -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
 mysql -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
@@ -108,14 +114,24 @@ systemctl restart php8.3-fpm
 systemctl restart nginx
 SCRIPT
 
+# Check for Dropbox path which often causes E_ACCESSDENIED (0x80070005)
+if Dir.pwd.downcase.include?('dropbox')
+  puts "WARNING: You are running Vagrant from a Dropbox folder."
+  puts "Dropbox file locking can cause 'E_ACCESSDENIED (0x80070005)' errors with VirtualBox."
+  puts "If 'vagrant up' fails, try pausing Dropbox sync or moving the project outside of Dropbox."
+end
+
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/jammy64"
 
-  config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
+  config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1", auto_correct: true
 
   config.vm.provider "virtualbox" do |vb|
+    vb.name = "ai-brain-dev"
     vb.memory = "2048"
     vb.cpus = 2
+    vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
+    vb.customize ["modifyvm", :id, "--audio", "none"]
   end
 
   config.vm.provision "shell", inline: $script
