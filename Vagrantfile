@@ -114,11 +114,11 @@ systemctl restart php8.3-fpm
 systemctl restart nginx
 SCRIPT
 
-# Check for Dropbox path which often causes E_ACCESSDENIED (0x80070005)
-if Dir.pwd.downcase.include?('dropbox')
-  puts "WARNING: You are running Vagrant from a Dropbox folder."
-  puts "Dropbox file locking can cause 'E_ACCESSDENIED (0x80070005)' errors with VirtualBox."
-  puts "If 'vagrant up' fails, try pausing Dropbox sync or moving the project outside of Dropbox."
+# Check for Dropbox or OneDrive path which often causes E_ACCESSDENIED (0x80070005)
+if Dir.pwd.downcase.include?('dropbox') || Dir.pwd.downcase.include?('onedrive')
+  puts "WARNING: You are running Vagrant from a Dropbox or OneDrive folder."
+  puts "Cloud sync file locking can cause 'E_ACCESSDENIED (0x80070005)' errors with VirtualBox."
+  puts "If 'vagrant up' fails, try pausing sync or moving the project outside of these folders."
 end
 
 Vagrant.configure("2") do |config|
@@ -127,7 +127,7 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1", auto_correct: true
 
   config.vm.provider "virtualbox" do |vb|
-    vb.name = "ai-brain-dev"
+    vb.name = "ai-brain-dev-#{File.basename(Dir.pwd)}"
     vb.memory = "2048"
     vb.cpus = 2
     vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
