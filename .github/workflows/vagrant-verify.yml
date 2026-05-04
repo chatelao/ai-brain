@@ -1,0 +1,60 @@
+name: Vagrant Verification
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  vagrant-up:
+    # Use macos-13 (Intel) as it's the stable Intel-based runner required for VirtualBox.
+    # Note: VirtualBox on GitHub-hosted runners is fragile due to nested virtualization
+    # and kernel extension requirements. This workflow serves as a best-effort verification
+    # of the Vagrantfile configuration and provisioning script.
+    runs-on: macos-13
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Vagrant
+      uses: hashicorp/setup-vagrant@v1
+
+    - name: Install VirtualBox
+      run: |
+        brew install --cask virtualbox
+        VBoxManage --version
+
+    - name: Debug Environment
+      run: |
+        vagrant --version
+        VBoxManage list hostinfo
+
+    - name: Vagrant Up
+      run: vagrant up --provider virtualbox
+
+    - name: Verify Vagrant Status
+      run: |
+        vagrant status
+        vagrant status | grep "running"
+
+    - name: Test Connectivity
+      run: |
+        echo "Waiting for application to be ready..."
+        # Retry with delay to allow provisioning and service start
+        for i in {1..15}; do
+          if curl -s http://localhost:8080 | grep -q "Agent Control"; then
+            echo "Successfully connected to Agent Control Dashboard!"
+            exit 0
+          fi
+          echo "Attempt $i failed, retrying in 20 seconds..."
+          sleep 20
+        done
+        echo "Timed out waiting for application."
+        curl -v http://localhost:8080
+        exit 1
+
+    - name: Vagrant Destroy
+      if: always()
+      run: vagrant destroy -f
