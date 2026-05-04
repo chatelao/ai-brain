@@ -86,6 +86,10 @@ If you prefer to use a virtualized environment, you can use Vagrant:
 If you encounter `VBoxManage.exe: error: Details: code E_ACCESSDENIED (0x80070005)` when running `vagrant up`:
 - **Dropbox/OneDrive:** This error often occurs if the project is located in a folder synced by Dropbox or OneDrive. These services lock files that VirtualBox needs to access.
   - **Solution:** Move the project to a non-synced folder (e.g., `C:\ws\ai-brain`) or temporarily pause syncing while using Vagrant.
+- **VM Name Collisions:** A VM with the same name might already exist in VirtualBox, causing registration conflicts.
+  - **Solution:** Open the VirtualBox GUI and check for any VMs named `ai-brain-dev-*`. Remove them if they are stale.
+- **Permissions:** Sometimes VirtualBox requires elevated permissions to manage VM sessions.
+  - **Solution:** Try running your terminal (Command Prompt or PowerShell) as **Administrator**.
 - **Stale VM Locks:** Sometimes VirtualBox background processes hang.
   - **Solution:** Kill all `VBoxSVC.exe` and `VBoxManage.exe` processes in Task Manager, delete the `.vagrant` folder in your project, and try again.
 
