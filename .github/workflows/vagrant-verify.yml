@@ -24,7 +24,7 @@ jobs:
 
     - name: Install VirtualBox
       run: |
-        brew install --cask virtualbox
+        brew install --cask --no-quarantine virtualbox
         VBoxManage --version
 
     - name: Debug Environment
