@@ -4,11 +4,11 @@ hide circle
 skinparam linetype ortho
 
 entity "users" {
-  * id : INT <<PK>>
+  * <color:grey><i>id</i></color> : INT <<PK>>
   --
-  * google_id : VARCHAR(255) <<UNIQUE>>
+  * <color:grey>google_id</color> : VARCHAR(255) <<UNIQUE>>
   * name : VARCHAR(255)
-  * email : VARCHAR(255) <<UNIQUE>>
+  * <color:grey>email</color> : VARCHAR(255) <<UNIQUE>>
   avatar : VARCHAR(255)
   role : VARCHAR(20)
   telegram_link_token : VARCHAR(255) <<UNIQUE>>
@@ -16,29 +16,29 @@ entity "users" {
 }
 
 entity "user_github_accounts" {
-  * id : INT <<PK>>
+  * <color:grey><i>id</i></color> : INT <<PK>>
   --
-  * user_id : INT <<FK>>
-  * github_username : VARCHAR(255)
+  * <color:grey><i>user_id</i></color> : INT <<FK>>
+  * <color:grey>github_username</color> : VARCHAR(255)
   * github_token : VARCHAR(255)
   created_at : TIMESTAMP
 }
 
 entity "projects" {
-  * id : INT <<PK>>
+  * <color:grey><i>id</i></color> : INT <<PK>>
   --
-  * user_id : INT <<FK>>
-  * github_account_id : INT <<FK>>
-  * github_repo : VARCHAR(255)
+  * <color:grey><i>user_id</i></color> : INT <<FK>>
+  * <color:grey><i>github_account_id</i></color> : INT <<FK>>
+  * <color:grey>github_repo</color> : VARCHAR(255)
   webhook_secret : VARCHAR(255)
   created_at : TIMESTAMP
 }
 
 entity "tasks" {
-  * id : INT <<PK>>
+  * <color:grey><i>id</i></color> : INT <<PK>>
   --
-  * project_id : INT <<FK>>
-  * issue_number : INT
+  * <color:grey><i>project_id</i></color> : INT <<FK>>
+  * <color:grey>issue_number</color> : INT
   * title : VARCHAR(255)
   body : TEXT
   status : ENUM
@@ -49,34 +49,34 @@ entity "tasks" {
 }
 
 entity "task_logs" {
-  * id : INT <<PK>>
+  * <color:grey><i>id</i></color> : INT <<PK>>
   --
-  * task_id : INT <<FK>>
+  * <color:grey><i>task_id</i></color> : INT <<FK>>
   level : VARCHAR(20)
   * message : TEXT
   created_at : TIMESTAMP
 }
 
 entity "rate_limits" {
-  * rate_key : VARCHAR(255) <<PK>>
+  * <color:grey>rate_key</color> : VARCHAR(255) <<PK>>
   --
   request_count : INT
   * reset_at : TIMESTAMP
 }
 
 entity "user_telegram_accounts" {
-  * id : INT <<PK>>
+  * <color:grey><i>id</i></color> : INT <<PK>>
   --
-  * user_id : INT <<FK>>
-  * telegram_chat_id : BIGINT <<UNIQUE>>
+  * <color:grey><i>user_id</i></color> : INT <<FK>>
+  * <color:grey>telegram_chat_id</color> : BIGINT <<UNIQUE>>
   created_at : TIMESTAMP
 }
 
 entity "issue_templates" {
-  * id : INT <<PK>>
+  * <color:grey><i>id</i></color> : INT <<PK>>
   --
-  * user_id : INT <<FK>>
-  * name : VARCHAR(255)
+  * <color:grey><i>user_id</i></color> : INT <<FK>>
+  * <color:grey>name</color> : VARCHAR(255)
   * title_template : VARCHAR(255)
   body_template : TEXT
   created_at : TIMESTAMP
