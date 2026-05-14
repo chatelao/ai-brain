@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_template'])) {
 
     if (!empty($name) && !empty($title)) {
         try {
-            $templateModel->create($user['id'], $name, $title, $body);
+            $templateModel->create($user['user_id'], $name, $title, $body);
             $successMessage = "Template created successfully.";
         } catch (Exception $e) {
             $errorMessage = $e->getMessage();
@@ -48,11 +48,11 @@ if (isset($_GET['delete_template'])) {
     if (!$auth->validateCsrfToken($_GET['csrf_token'] ?? null)) {
         die("CSRF token validation failed.");
     }
-    $templateModel->delete((int)$_GET['delete_template'], $user['id']);
+    $templateModel->delete((int)$_GET['delete_template'], $user['user_id']);
     $successMessage = "Template deleted successfully.";
 }
 
-$templates = $templateModel->findByUserId($user['id']);
+$templates = $templateModel->findByUserId($user['user_id']);
 
 ?>
 <!DOCTYPE html>
@@ -149,7 +149,7 @@ $templates = $templateModel->findByUserId($user['id']);
                                                     <?= htmlspecialchars($template['title_template']) ?>
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <a href="?delete_template=<?= $template['id'] ?>&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-red-600 hover:text-red-800 font-medium" onclick="return confirm('Are you sure?')">Delete</a>
+                                                    <a href="?delete_template=<?= $template['issue_template_id'] ?>&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-red-600 hover:text-red-800 font-medium" onclick="return confirm('Are you sure?')">Delete</a>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>

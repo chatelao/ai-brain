@@ -47,7 +47,7 @@ class SchemaTest extends TestCase
         $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $columnNames = array_column($columns, 'name');
-        $this->assertContains('id', $columnNames);
+        $this->assertContains('user_id', $columnNames);
         $this->assertContains('google_id', $columnNames);
         $this->assertContains('name', $columnNames);
         $this->assertContains('email', $columnNames);
@@ -61,7 +61,7 @@ class SchemaTest extends TestCase
         $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $columnNames = array_column($columns, 'name');
-        $this->assertContains('id', $columnNames);
+        $this->assertContains('project_id', $columnNames);
         $this->assertContains('user_id', $columnNames);
         $this->assertContains('github_repo', $columnNames);
         $this->assertContains('webhook_secret', $columnNames);
@@ -74,7 +74,7 @@ class SchemaTest extends TestCase
         $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $columnNames = array_column($columns, 'name');
-        $this->assertContains('id', $columnNames);
+        $this->assertContains('task_id', $columnNames);
         $this->assertContains('project_id', $columnNames);
         $this->assertContains('issue_number', $columnNames);
         $this->assertContains('title', $columnNames);

@@ -25,7 +25,7 @@ class AdminDashboardIntegrationTest extends TestCase
         $this->pdo->exec("DROP TABLE IF EXISTS users");
         $this->pdo->exec("DROP TABLE IF EXISTS projects");
         $this->pdo->exec("CREATE TABLE users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             google_id VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
@@ -34,9 +34,9 @@ class AdminDashboardIntegrationTest extends TestCase
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
         $this->pdo->exec("CREATE TABLE projects (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
-            github_account_id INTEGER NOT NULL,
+            user_github_account_id INTEGER NOT NULL,
             github_repo VARCHAR(255) NOT NULL,
             webhook_secret VARCHAR(255),
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -68,18 +68,18 @@ class AdminDashboardIntegrationTest extends TestCase
         ]);
 
         // Add project for user 2
-        $this->pdo->exec("INSERT INTO projects (user_id, github_account_id, github_repo) VALUES ({$user2['id']}, 1, 'repo1')");
+        $this->pdo->exec("INSERT INTO projects (user_id, user_github_account_id, github_repo) VALUES ({$user2['user_id']}, 1, 'repo1')");
 
         $allUsers = $userModel->getAllUsersWithProjectCount();
 
         $this->assertCount(2, $allUsers);
 
         // Check user 2 has 1 project
-        $u2 = array_values(array_filter($allUsers, fn($u) => $u['id'] == $user2['id']))[0];
+        $u2 = array_values(array_filter($allUsers, fn($u) => $u['user_id'] == $user2['user_id']))[0];
         $this->assertEquals(1, $u2['project_count']);
 
         // Check user 1 has 0 projects
-        $u1 = array_values(array_filter($allUsers, fn($u) => $u['id'] == $user1['id']))[0];
+        $u1 = array_values(array_filter($allUsers, fn($u) => $u['user_id'] == $user1['user_id']))[0];
         $this->assertEquals(0, $u1['project_count']);
         $this->assertEquals('admin', $u1['role']);
     }

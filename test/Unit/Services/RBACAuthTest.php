@@ -41,7 +41,7 @@ class RBACAuthTest extends TestCase
     {
         $auth = new Auth();
         $user = [
-            'id' => 123,
+            'user_id' => 123,
             'role' => 'admin'
         ];
         $auth->login($user);
@@ -53,7 +53,7 @@ class RBACAuthTest extends TestCase
     {
         $auth = new Auth();
         $user = [
-            'id' => 123
+            'user_id' => 123
         ];
         $auth->login($user);
         $this->assertEquals('user', $_SESSION['user_role']);

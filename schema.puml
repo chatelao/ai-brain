@@ -4,7 +4,7 @@ hide circle
 skinparam linetype ortho
 
 entity "users" {
-  * id : INT <<PK>>
+  * user_id : INT <<PK>>
   --
   * google_id : VARCHAR(255) <<UNIQUE>>
   * name : VARCHAR(255)
@@ -16,7 +16,7 @@ entity "users" {
 }
 
 entity "user_github_accounts" {
-  * id : INT <<PK>>
+  * user_github_account_id : INT <<PK>>
   --
   * user_id : INT <<FK>>
   * github_username : VARCHAR(255)
@@ -25,17 +25,17 @@ entity "user_github_accounts" {
 }
 
 entity "projects" {
-  * id : INT <<PK>>
+  * project_id : INT <<PK>>
   --
   * user_id : INT <<FK>>
-  * github_account_id : INT <<FK>>
+  * user_github_account_id : INT <<FK>>
   * github_repo : VARCHAR(255)
   webhook_secret : VARCHAR(255)
   created_at : TIMESTAMP
 }
 
 entity "tasks" {
-  * id : INT <<PK>>
+  * task_id : INT <<PK>>
   --
   * project_id : INT <<FK>>
   * issue_number : INT
@@ -49,7 +49,7 @@ entity "tasks" {
 }
 
 entity "task_logs" {
-  * id : INT <<PK>>
+  * task_log_id : INT <<PK>>
   --
   * task_id : INT <<FK>>
   level : VARCHAR(20)
@@ -65,7 +65,7 @@ entity "rate_limits" {
 }
 
 entity "user_telegram_accounts" {
-  * id : INT <<PK>>
+  * user_telegram_account_id : INT <<PK>>
   --
   * user_id : INT <<FK>>
   * telegram_chat_id : BIGINT <<UNIQUE>>
@@ -73,7 +73,7 @@ entity "user_telegram_accounts" {
 }
 
 entity "issue_templates" {
-  * id : INT <<PK>>
+  * issue_template_id : INT <<PK>>
   --
   * user_id : INT <<FK>>
   * name : VARCHAR(255)
@@ -86,7 +86,7 @@ users ||--o{ user_github_accounts : "user_id"
 users ||--o{ projects : "user_id"
 users ||--o{ user_telegram_accounts : "user_id"
 users ||--o{ issue_templates : "user_id"
-user_github_accounts ||--o{ projects : "github_account_id"
+user_github_accounts ||--o{ projects : "user_github_account_id"
 projects ||--o{ tasks : "project_id"
 tasks ||--o{ task_logs : "task_id"
 

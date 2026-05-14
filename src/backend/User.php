@@ -18,10 +18,10 @@ class User
         return $user ?: null;
     }
 
-    public function findById(int $id): ?array
+    public function findById(int $userId): ?array
     {
-        $stmt = $this->db->getConnection()->prepare("SELECT * FROM users WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt = $this->db->getConnection()->prepare("SELECT * FROM users WHERE user_id = ?");
+        $stmt->execute([$userId]);
         $user = $stmt->fetch();
         return $user ?: null;
     }
@@ -53,8 +53,8 @@ class User
                 $data['avatar'] ?? null,
                 $data['role'] ?? 'user'
             ]);
-            $id = $this->db->getConnection()->lastInsertId();
-            return $this->findById((int)$id);
+            $userId = $this->db->getConnection()->lastInsertId();
+            return $this->findById((int)$userId);
         }
     }
 
@@ -92,10 +92,10 @@ class User
     public function getAllUsersWithProjectCount(): array
     {
         $stmt = $this->db->getConnection()->prepare(
-            "SELECT u.*, COUNT(p.id) as project_count
+            "SELECT u.*, COUNT(p.project_id) as project_count
              FROM users u
-             LEFT JOIN projects p ON u.id = p.user_id
-             GROUP BY u.id
+             LEFT JOIN projects p ON u.user_id = p.user_id
+             GROUP BY u.user_id
              ORDER BY u.created_at DESC"
         );
         $stmt->execute();
@@ -106,7 +106,7 @@ class User
     {
         $token = bin2hex(random_bytes(16));
         $stmt = $this->db->getConnection()->prepare(
-            "UPDATE users SET telegram_link_token = ? WHERE id = ?"
+            "UPDATE users SET telegram_link_token = ? WHERE user_id = ?"
         );
         $stmt->execute([$token, $userId]);
         return $token;
@@ -115,7 +115,7 @@ class User
     public function linkTelegramAccount(string $token, int $chatId): bool
     {
         $stmt = $this->db->getConnection()->prepare(
-            "SELECT id FROM users WHERE telegram_link_token = ?"
+            "SELECT user_id FROM users WHERE telegram_link_token = ?"
         );
         $stmt->execute([$token]);
         $user = $stmt->fetch();
@@ -127,14 +127,14 @@ class User
         $stmt = $this->db->getConnection()->prepare(
             "INSERT INTO user_telegram_accounts (user_id, telegram_chat_id) VALUES (?, ?)"
         );
-        $success = $stmt->execute([$user['id'], $chatId]);
+        $success = $stmt->execute([$user['user_id'], $chatId]);
 
         if ($success) {
             // Clear the token after successful linking
             $stmt = $this->db->getConnection()->prepare(
-                "UPDATE users SET telegram_link_token = NULL WHERE id = ?"
+                "UPDATE users SET telegram_link_token = NULL WHERE user_id = ?"
             );
-            $stmt->execute([$user['id']]);
+            $stmt->execute([$user['user_id']]);
         }
 
         return $success;

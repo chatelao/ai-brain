@@ -27,21 +27,21 @@ class IssueTemplate
         return $stmt->fetchAll();
     }
 
-    public function findById(int $id): ?array
+    public function findById(int $issueTemplateId): ?array
     {
         $stmt = $this->db->getConnection()->prepare(
-            "SELECT * FROM issue_templates WHERE id = ?"
+            "SELECT * FROM issue_templates WHERE issue_template_id = ?"
         );
-        $stmt->execute([$id]);
+        $stmt->execute([$issueTemplateId]);
         $template = $stmt->fetch();
         return $template ?: null;
     }
 
-    public function delete(int $id, int $userId): bool
+    public function delete(int $issueTemplateId, int $userId): bool
     {
         $stmt = $this->db->getConnection()->prepare(
-            "DELETE FROM issue_templates WHERE id = ? AND user_id = ?"
+            "DELETE FROM issue_templates WHERE issue_template_id = ? AND user_id = ?"
         );
-        return $stmt->execute([$id, $userId]);
+        return $stmt->execute([$issueTemplateId, $userId]);
     }
 }

@@ -24,7 +24,7 @@ class Task
         $stmt = $this->db->getConnection()->prepare(
             "SELECT t.*, p.github_repo
              FROM tasks t
-             JOIN projects p ON t.project_id = p.id
+             JOIN projects p ON t.project_id = p.project_id
              WHERE p.user_id = ?
              ORDER BY t.created_at DESC"
         );
@@ -32,7 +32,7 @@ class Task
         $tasks = $stmt->fetchAll();
 
         return array_filter($tasks, function($task) {
-            $githubData = json_decode($task['github_data'], true);
+            $githubData = json_decode($task['github_data'] ?? '', true);
             if (!$githubData) return false;
 
             $isOpen = ($githubData['state'] ?? '') === 'open';
@@ -49,30 +49,30 @@ class Task
         });
     }
 
-    public function findById(int $id): ?array
+    public function findById(int $taskId): ?array
     {
         $stmt = $this->db->getConnection()->prepare(
-            "SELECT * FROM tasks WHERE id = ?"
+            "SELECT * FROM tasks WHERE task_id = ?"
         );
-        $stmt->execute([$id]);
+        $stmt->execute([$taskId]);
         $task = $stmt->fetch();
         return $task ?: null;
     }
 
-    public function updateStatus(int $id, string $status): bool
+    public function updateStatus(int $taskId, string $status): bool
     {
         $stmt = $this->db->getConnection()->prepare(
-            "UPDATE tasks SET status = ? WHERE id = ?"
+            "UPDATE tasks SET status = ? WHERE task_id = ?"
         );
-        return $stmt->execute([$status, $id]);
+        return $stmt->execute([$status, $taskId]);
     }
 
-    public function updateAgentResponse(int $id, string $response, string $status = 'completed'): bool
+    public function updateAgentResponse(int $taskId, string $response, string $status = 'completed'): bool
     {
         $stmt = $this->db->getConnection()->prepare(
-            "UPDATE tasks SET agent_response = ?, status = ? WHERE id = ?"
+            "UPDATE tasks SET agent_response = ?, status = ? WHERE task_id = ?"
         );
-        return $stmt->execute([$response, $status, $id]);
+        return $stmt->execute([$response, $status, $taskId]);
     }
 
     public function create(array $data): bool

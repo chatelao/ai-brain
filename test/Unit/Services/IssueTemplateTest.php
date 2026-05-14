@@ -18,15 +18,15 @@ class IssueTemplateTest extends TestCase
         $this->db = new Database(null, ':memory:');
         $pdo = $this->db->getConnection();
 
-        $pdo->exec("CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, google_id TEXT, name TEXT, email TEXT)");
+        $pdo->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY AUTOINCREMENT, google_id TEXT, name TEXT, email TEXT)");
         $pdo->exec("CREATE TABLE issue_templates (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            issue_template_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
             name TEXT,
             title_template TEXT,
             body_template TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id)
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
         )");
 
         $pdo->exec("INSERT INTO users (google_id, name, email) VALUES ('123', 'Test User', 'test@example.com')");
@@ -51,7 +51,7 @@ class IssueTemplateTest extends TestCase
         $userId = 1;
         $this->templateModel->create($userId, 'Template 1', 'Title 1', 'Body 1');
         $templates = $this->templateModel->findByUserId($userId);
-        $id = $templates[0]['id'];
+        $id = $templates[0]['issue_template_id'];
 
         $template = $this->templateModel->findById($id);
         $this->assertNotNull($template);
@@ -63,7 +63,7 @@ class IssueTemplateTest extends TestCase
         $userId = 1;
         $this->templateModel->create($userId, 'To Delete', 'Title', 'Body');
         $templates = $this->templateModel->findByUserId($userId);
-        $id = $templates[0]['id'];
+        $id = $templates[0]['issue_template_id'];
 
         $result = $this->templateModel->delete($id, $userId);
         $this->assertTrue($result);

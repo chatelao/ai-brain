@@ -130,7 +130,7 @@ paths:
               properties:
                 github_repo:
                   type: string
-                github_account_id:
+                user_github_account_id:
                   type: integer
                 csrf_token:
                   type: string
@@ -138,7 +138,7 @@ paths:
               CreateProject:
                 value:
                   github_repo: "google/jules"
-                  github_account_id: 1
+                  user_github_account_id: 1
                   csrf_token: "token_abc_123"
       responses:
         '302':
@@ -321,7 +321,7 @@ components:
     User:
       type: object
       properties:
-        id:
+        user_id:
           type: integer
           example: 1
         google_id:
@@ -349,13 +349,13 @@ components:
     Project:
       type: object
       properties:
-        id:
+        project_id:
           type: integer
           example: 1
         user_id:
           type: integer
           example: 1
-        github_account_id:
+        user_github_account_id:
           type: integer
           example: 1
         github_repo:
@@ -375,7 +375,7 @@ components:
     Task:
       type: object
       properties:
-        id:
+        task_id:
           type: integer
           example: 42
         project_id:
@@ -406,7 +406,7 @@ components:
     TaskLog:
       type: object
       properties:
-        id:
+        task_log_id:
           type: integer
           example: 500
         task_id:

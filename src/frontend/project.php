@@ -29,12 +29,12 @@ $user = $userModel->findById($auth->getUserId());
 $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $project = $projectModel->findById($projectId);
 
-if (!$project || $project['user_id'] !== $user['id']) {
+if (!$project || $project['user_id'] !== $user['user_id']) {
     die("Project not found or access denied.");
 }
 
 $templateModel = new IssueTemplate($db);
-$templates = $templateModel->findByUserId($user['id']);
+$templates = $templateModel->findByUserId($user['user_id']);
 
 $tasks = $taskModel->findByProjectId($projectId);
 $lastAgentResponse = null;
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
     $taskId = (int)$_POST['task_id'];
     $task = $taskModel->findById($taskId);
 
-    if ($task && $task['project_id'] === $project['id']) {
+    if ($task && $task['project_id'] === $project['project_id']) {
         try {
             $logger->log($taskId, "Agent triggered by user " . $user['name']);
             $githubToken = $project['github_token'] ?? null;
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'
     $val2 = $_POST['val2'] ?? '';
 
     $template = $templateModel->findById($templateId);
-    if ($template && $template['user_id'] === $user['id']) {
+    if ($template && $template['user_id'] === $user['user_id']) {
         try {
             $title = str_replace(['%1', '%2'], [$val1, $val2], $template['title_template']);
             $body = str_replace(['%1', '%2'], [$val1, $val2], $template['body_template']);
@@ -217,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'
                                         <label class="block mb-2 text-sm font-medium text-gray-900">Select Template</label>
                                         <select name="template_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                                             <?php foreach ($templates as $tmpl): ?>
-                                                <option value="<?= $tmpl['id'] ?>"><?= htmlspecialchars($tmpl['name']) ?></option>
+                                                <option value="<?= $tmpl['issue_template_id'] ?>"><?= htmlspecialchars($tmpl['name']) ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
@@ -266,7 +266,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'
                                                 <td class="px-6 py-4">
                                                     <div class="max-h-32 overflow-y-auto text-[10px] font-mono bg-gray-50 p-2 rounded border border-gray-100">
                                                         <?php
-                                                        $taskLogs = $taskModel->getLogs($task['id']);
+                                                        $taskLogs = $taskModel->getLogs($task['task_id']);
                                                         if (empty($taskLogs)): ?>
                                                             <span class="text-gray-400 italic">No logs available.</span>
                                                         <?php else: ?>
@@ -282,7 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'
                                                 <td class="px-6 py-4">
                                                     <form method="POST" class="inline">
                                                         <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                                        <input type="hidden" name="task_id" value="<?= $task['id'] ?>">
+                                                        <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
                                                         <button type="submit" name="trigger_agent" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none">Run Agent</button>
                                                     </form>
                                                 </td>

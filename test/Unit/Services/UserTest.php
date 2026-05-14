@@ -30,7 +30,7 @@ class UserTest extends TestCase
              ->with(['google-123']);
         $stmt->expects($this->once())
              ->method('fetch')
-             ->willReturn(['id' => 1, 'google_id' => 'google-123', 'name' => 'Test User']);
+             ->willReturn(['user_id' => 1, 'google_id' => 'google-123', 'name' => 'Test User']);
 
         $this->pdo->expects($this->once())
                   ->method('prepare')
@@ -58,20 +58,20 @@ class UserTest extends TestCase
 
         // 3. findById after insert
         $stmt3 = $this->createMock(PDOStatement::class);
-        $stmt3->method('fetch')->willReturn(['id' => 2, 'google_id' => 'google-456', 'name' => 'New User']);
+        $stmt3->method('fetch')->willReturn(['user_id' => 2, 'google_id' => 'google-456', 'name' => 'New User']);
 
         $this->pdo->method('prepare')
                   ->willReturnCallback(function($sql) use ($stmt1, $stmt2, $stmt3) {
                       if (str_contains($sql, "SELECT * FROM users WHERE google_id = ?")) return $stmt1;
                       if (str_contains($sql, "INSERT INTO users")) return $stmt2;
-                      if (str_contains($sql, "SELECT * FROM users WHERE id = ?")) return $stmt3;
+                      if (str_contains($sql, "SELECT * FROM users WHERE user_id = ?")) return $stmt3;
                       return null;
                   });
 
         $this->pdo->method('lastInsertId')->willReturn("2");
 
         $result = $this->userModel->createOrUpdate($userData);
-        $this->assertEquals(2, $result['id']);
+        $this->assertEquals(2, $result['user_id']);
         $this->assertEquals('New User', $result['name']);
     }
 
@@ -86,7 +86,7 @@ class UserTest extends TestCase
 
         $this->pdo->expects($this->once())
                   ->method('prepare')
-                  ->with($this->stringContains("UPDATE users SET telegram_link_token = ? WHERE id = ?"))
+                  ->with($this->stringContains("UPDATE users SET telegram_link_token = ? WHERE user_id = ?"))
                   ->willReturn($stmt);
 
         $token = $this->userModel->generateTelegramLinkToken(1);
@@ -97,7 +97,7 @@ class UserTest extends TestCase
     {
         // 1. SELECT user by token
         $stmt1 = $this->createMock(PDOStatement::class);
-        $stmt1->method('fetch')->willReturn(['id' => 10]);
+        $stmt1->method('fetch')->willReturn(['user_id' => 10]);
 
         // 2. INSERT into user_telegram_accounts
         $stmt2 = $this->createMock(PDOStatement::class);
@@ -108,7 +108,7 @@ class UserTest extends TestCase
 
         $this->pdo->method('prepare')
                   ->willReturnCallback(function($sql) use ($stmt1, $stmt2, $stmt3) {
-                      if (str_contains($sql, "SELECT id FROM users WHERE telegram_link_token = ?")) return $stmt1;
+                      if (str_contains($sql, "SELECT user_id FROM users WHERE telegram_link_token = ?")) return $stmt1;
                       if (str_contains($sql, "INSERT INTO user_telegram_accounts")) return $stmt2;
                       if (str_contains($sql, "UPDATE users SET telegram_link_token = NULL")) return $stmt3;
                       return null;
@@ -126,7 +126,7 @@ class UserTest extends TestCase
 
         $this->pdo->method('prepare')
                   ->willReturnCallback(function($sql) use ($stmt1) {
-                      if (str_contains($sql, "SELECT id FROM users WHERE telegram_link_token = ?")) return $stmt1;
+                      if (str_contains($sql, "SELECT user_id FROM users WHERE telegram_link_token = ?")) return $stmt1;
                       return null;
                   });
 

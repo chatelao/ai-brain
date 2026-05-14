@@ -16,15 +16,15 @@ $projectModel = new Project($db);
 $user = $auth->isLoggedIn() ? $userModel->findById($auth->getUserId()) : null;
 
 // Handle Project Creation
-if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_repo']) && isset($_POST['github_account_id'])) {
+if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_repo']) && isset($_POST['user_github_account_id'])) {
     if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
         die("CSRF token validation failed.");
     }
     $repo = trim($_POST['github_repo']);
-    $accountId = (int)$_POST['github_account_id'];
+    $accountId = (int)$_POST['user_github_account_id'];
     if (!empty($repo) && $accountId > 0) {
         try {
-            $projectModel->create($user['id'], $accountId, $repo);
+            $projectModel->create($user['user_id'], $accountId, $repo);
             header('Location: index.php?success=project_created');
             exit;
         } catch (Exception $e) {
@@ -38,14 +38,14 @@ if ($user && isset($_GET['delete_project'])) {
     if (!$auth->validateCsrfToken($_GET['csrf_token'] ?? null)) {
         die("CSRF token validation failed.");
     }
-    $projectModel->delete((int)$_GET['delete_project'], $user['id']);
+    $projectModel->delete((int)$_GET['delete_project'], $user['user_id']);
     header('Location: index.php?success=project_deleted');
     exit;
 }
 
-$projects = $user ? $projectModel->findByUserId($user['id']) : [];
-$githubAccounts = $user ? $userModel->getGitHubAccounts($user['id']) : [];
-$autorepeatTasks = $user ? (new Task($db))->getRunningAutorepeatTasks($user['id']) : [];
+$projects = $user ? $projectModel->findByUserId($user['user_id']) : [];
+$githubAccounts = $user ? $userModel->getGitHubAccounts($user['user_id']) : [];
+$autorepeatTasks = $user ? (new Task($db))->getRunningAutorepeatTasks($user['user_id']) : [];
 
 $errorMessage = $errorMessage ?? null;
 
@@ -178,13 +178,13 @@ $errorMessage = $errorMessage ?? null;
                                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                                                 <div class="flex justify-between items-start">
                                                     <h5 class="text-lg font-bold text-gray-900 truncate"><?= htmlspecialchars($project['github_repo']) ?></h5>
-                                                    <a href="?delete_project=<?= $project['id'] ?>&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-red-600 hover:text-red-800" onclick="return confirm('Are you sure?')">
+                                                    <a href="?delete_project=<?= $project['project_id'] ?>&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-red-600 hover:text-red-800" onclick="return confirm('Are you sure?')">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                     </a>
                                                 </div>
                                                 <p class="text-sm text-gray-500 mt-1">Linked as <?= htmlspecialchars($project['github_username']) ?></p>
                                                 <div class="mt-4">
-                                                    <a href="project.php?id=<?= $project['id'] ?>" class="text-blue-600 hover:underline text-sm font-medium">View Project Details &rarr;</a>
+                                                    <a href="project.php?id=<?= $project['project_id'] ?>" class="text-blue-600 hover:underline text-sm font-medium">View Project Details &rarr;</a>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
@@ -198,9 +198,9 @@ $errorMessage = $errorMessage ?? null;
                                                     <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                                     <div class="mb-2">
                                                         <label class="block mb-1 text-xs font-medium text-gray-900">GitHub Account</label>
-                                                        <select name="github_account_id" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                                        <select name="user_github_account_id" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                                                             <?php foreach ($githubAccounts as $account): ?>
-                                                                <option value="<?= $account['id'] ?>"><?= htmlspecialchars($account['github_username']) ?></option>
+                                                                <option value="<?= $account['user_github_account_id'] ?>"><?= htmlspecialchars($account['github_username']) ?></option>
                                                             <?php endforeach; ?>
                                                         </select>
                                                     </div>

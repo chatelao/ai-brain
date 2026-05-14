@@ -64,7 +64,7 @@ if (!empty($matchingProject['github_token'])) {
     $githubService = new GitHubService(null, $matchingProject['github_token']);
 }
 
-if ($handler->handle($matchingProject['id'], $data, $githubService)) {
+if ($handler->handle($matchingProject['project_id'], $data, $githubService)) {
     http_response_code(200);
     echo 'OK';
 } else {

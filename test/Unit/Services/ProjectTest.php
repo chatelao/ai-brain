@@ -30,14 +30,14 @@ class ProjectTest extends TestCase
         $repo = 'owner/repo';
 
         $stmt1 = $this->createMock(PDOStatement::class);
-        $stmt1->method('fetch')->willReturn(['id' => 10]);
+        $stmt1->method('fetch')->willReturn(['user_github_account_id' => 10]);
 
         $stmt2 = $this->createMock(PDOStatement::class);
         $stmt2->method('execute')->willReturn(true);
 
         $this->pdo->method('prepare')
             ->willReturnCallback(function($sql) use ($stmt1, $stmt2) {
-                if (str_contains($sql, "SELECT id FROM user_github_accounts")) return $stmt1;
+                if (str_contains($sql, "SELECT user_github_account_id FROM user_github_accounts")) return $stmt1;
                 if (str_contains($sql, "INSERT INTO projects")) return $stmt2;
                 return null;
             });
@@ -66,7 +66,7 @@ class ProjectTest extends TestCase
     public function testFindByRepo()
     {
         $repo = 'owner/repo';
-        $expected = [['id' => 1, 'github_repo' => $repo]];
+        $expected = [['project_id' => 1, 'github_repo' => $repo]];
 
         $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn($expected);
@@ -80,7 +80,7 @@ class ProjectTest extends TestCase
     public function testFindByUserId()
     {
         $userId = 1;
-        $expected = [['id' => 1, 'user_id' => $userId]];
+        $expected = [['project_id' => 1, 'user_id' => $userId]];
 
         $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn($expected);
@@ -94,7 +94,7 @@ class ProjectTest extends TestCase
     public function testFindById()
     {
         $id = 1;
-        $expected = ['id' => $id, 'github_repo' => 'owner/repo'];
+        $expected = ['project_id' => $id, 'github_repo' => 'owner/repo'];
 
         $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('fetch')->willReturn($expected);

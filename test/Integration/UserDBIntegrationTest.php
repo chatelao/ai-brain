@@ -19,7 +19,7 @@ class UserDBIntegrationTest extends TestCase
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $this->pdo->exec("CREATE TABLE users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             google_id VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
@@ -28,12 +28,12 @@ class UserDBIntegrationTest extends TestCase
         )");
 
         $this->pdo->exec("CREATE TABLE user_github_accounts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_github_account_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INT NOT NULL,
             github_username VARCHAR(255) NOT NULL,
             github_token VARCHAR(255) NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
             UNIQUE(user_id, github_username)
         )");
 
@@ -70,14 +70,14 @@ class UserDBIntegrationTest extends TestCase
             'email' => 'int@example.com'
         ]);
 
-        $this->userModel->addGitHubAccount($user['id'], 'token1', 'user1');
-        $this->userModel->addGitHubAccount($user['id'], 'token2', 'user2');
+        $this->userModel->addGitHubAccount($user['user_id'], 'token1', 'user1');
+        $this->userModel->addGitHubAccount($user['user_id'], 'token2', 'user2');
 
-        $accounts = $this->userModel->getGitHubAccounts($user['id']);
+        $accounts = $this->userModel->getGitHubAccounts($user['user_id']);
         $this->assertCount(2, $accounts);
 
-        $this->userModel->addGitHubAccount($user['id'], 'token1-updated', 'user1');
-        $accounts = $this->userModel->getGitHubAccounts($user['id']);
+        $this->userModel->addGitHubAccount($user['user_id'], 'token1-updated', 'user1');
+        $accounts = $this->userModel->getGitHubAccounts($user['user_id']);
         $this->assertCount(2, $accounts);
 
         foreach ($accounts as $account) {

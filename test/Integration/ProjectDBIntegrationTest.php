@@ -21,7 +21,7 @@ class ProjectDBIntegrationTest extends TestCase
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $this->pdo->exec("CREATE TABLE users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             google_id VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
@@ -30,24 +30,24 @@ class ProjectDBIntegrationTest extends TestCase
         )");
 
         $this->pdo->exec("CREATE TABLE user_github_accounts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_github_account_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INT NOT NULL,
             github_username VARCHAR(255) NOT NULL,
             github_token VARCHAR(255) NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
             UNIQUE(user_id, github_username)
         )");
 
         $this->pdo->exec("CREATE TABLE projects (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INT NOT NULL,
-            github_account_id INT NOT NULL,
+            user_github_account_id INT NOT NULL,
             github_repo VARCHAR(255) NOT NULL,
             webhook_secret VARCHAR(255),
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY (github_account_id) REFERENCES user_github_accounts(id) ON DELETE CASCADE
+            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+            FOREIGN KEY (user_github_account_id) REFERENCES user_github_accounts(user_github_account_id) ON DELETE CASCADE
         )");
 
         $this->db = $this->createMock(Database::class);
@@ -65,7 +65,7 @@ class ProjectDBIntegrationTest extends TestCase
             'email' => 'test@example.com'
         ]);
         $this->userModel->addGitHubAccount(1, 'token-123', 'github-user');
-        return 1; // github_account_id
+        return 1; // user_github_account_id
     }
 
     public function testCreateProject()
@@ -104,7 +104,7 @@ class ProjectDBIntegrationTest extends TestCase
         $repo = 'owner/repo';
         $this->projectModel->create($userId, $accountId, $repo);
         $projects = $this->projectModel->findByUserId($userId);
-        $projectId = $projects[0]['id'];
+        $projectId = $projects[0]['project_id'];
 
         $result = $this->projectModel->delete($projectId, $userId);
         $this->assertTrue($result);
