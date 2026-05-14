@@ -1,0 +1,93 @@
+@startuml
+!theme plain
+hide circle
+skinparam linetype ortho
+
+entity "users" {
+  * id : INT <<PK>>
+  --
+  * google_id : VARCHAR(255) <<UNIQUE>>
+  * name : VARCHAR(255)
+  * email : VARCHAR(255) <<UNIQUE>>
+  avatar : VARCHAR(255)
+  role : VARCHAR(20)
+  telegram_link_token : VARCHAR(255) <<UNIQUE>>
+  created_at : TIMESTAMP
+}
+
+entity "user_github_accounts" {
+  * id : INT <<PK>>
+  --
+  * user_id : INT <<FK>>
+  * github_username : VARCHAR(255)
+  * github_token : VARCHAR(255)
+  created_at : TIMESTAMP
+}
+
+entity "projects" {
+  * id : INT <<PK>>
+  --
+  * user_id : INT <<FK>>
+  * github_account_id : INT <<FK>>
+  * github_repo : VARCHAR(255)
+  webhook_secret : VARCHAR(255)
+  created_at : TIMESTAMP
+}
+
+entity "tasks" {
+  * id : INT <<PK>>
+  --
+  * project_id : INT <<FK>>
+  * issue_number : INT
+  * title : VARCHAR(255)
+  body : TEXT
+  status : ENUM
+  github_data : JSON
+  agent_response : TEXT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "task_logs" {
+  * id : INT <<PK>>
+  --
+  * task_id : INT <<FK>>
+  level : VARCHAR(20)
+  * message : TEXT
+  created_at : TIMESTAMP
+}
+
+entity "rate_limits" {
+  * rate_key : VARCHAR(255) <<PK>>
+  --
+  request_count : INT
+  * reset_at : TIMESTAMP
+}
+
+entity "user_telegram_accounts" {
+  * id : INT <<PK>>
+  --
+  * user_id : INT <<FK>>
+  * telegram_chat_id : BIGINT <<UNIQUE>>
+  created_at : TIMESTAMP
+}
+
+entity "issue_templates" {
+  * id : INT <<PK>>
+  --
+  * user_id : INT <<FK>>
+  * name : VARCHAR(255)
+  * title_template : VARCHAR(255)
+  body_template : TEXT
+  created_at : TIMESTAMP
+}
+
+users ||--o{ user_github_accounts : "user_id"
+users ||--o{ projects : "user_id"
+users ||--o{ user_telegram_accounts : "user_id"
+users ||--o{ issue_templates : "user_id"
+user_github_accounts ||--o{ projects : "github_account_id"
+projects ||--o{ tasks : "project_id"
+tasks ||--o{ task_logs : "task_id"
+
+@enduml
