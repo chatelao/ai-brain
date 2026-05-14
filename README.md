@@ -7,6 +7,9 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 ## Architecture
 ![Architecture](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/specification/architecture.puml)
 
+### Database Schema
+![Database Schema](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/schema.puml)
+
 ### Used APIs and Interfaces
 
 #### Production
