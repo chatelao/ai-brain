@@ -57,6 +57,9 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 - Composer
 
 ### Installation
+See the [Installation Guide](INSTALL.md) for detailed instructions on how to install AI Brain on a web server using SSH or SFTP.
+
+For quick local installation:
 1. Clone the repository.
 2. Install dependencies:
  

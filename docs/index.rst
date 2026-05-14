@@ -10,6 +10,7 @@ Welcome to AI Brain's documentation!
    :caption: Contents:
 
    readme
+   install
    concept
    design
    roadmap
