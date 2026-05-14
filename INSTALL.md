@@ -29,8 +29,41 @@ The application requires several environment variables to be set in your web ser
 | `GITHUB_REDIRECT_URI` | `https://your-domain.com/github-callback.php` |
 | `GOOGLE_JULES_API_KEY` | (Optional) API Key for Google Jules/Gemini |
 | `TELEGRAM_BOT_TOKEN` | (Optional) Telegram Bot Token |
+| `TELEGRAM_WEBHOOK_SECRET` | (Optional) Secret token for Telegram webhooks |
 
 ---
+
+## Obtaining API Keys and Secrets
+
+### 1. Google OAuth (SSO)
+1.  Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2.  Create a new project.
+3.  Navigate to **APIs & Services > OAuth consent screen**.
+4.  Configure the consent screen, adding the `email`, `profile`, and `openid` scopes.
+5.  Go to **APIs & Services > Credentials**.
+6.  Click **Create Credentials > OAuth client ID**.
+7.  Select **Web application** as the application type.
+8.  Add your `GOOGLE_REDIRECT_URI` (e.g., `https://your-domain.com/callback.php`) to the **Authorized redirect URIs**.
+9.  Copy the **Client ID** and **Client Secret**.
+
+### 2. GitHub OAuth App
+1.  Go to your GitHub **Settings > Developer settings > OAuth Apps**.
+2.  Click **New OAuth App**.
+3.  Set the **Homepage URL** to your domain.
+4.  Set the **Authorization callback URL** to your `GITHUB_REDIRECT_URI` (e.g., `https://your-domain.com/github-callback.php`).
+5.  Click **Register application**.
+6.  Copy the **Client ID** and click **Generate a new client secret** to get your secret.
+
+### 3. Google Gemini (AI Agent)
+1.  Visit [Google AI Studio](https://aistudio.google.com/).
+2.  Click on **Get API key** in the sidebar.
+3.  Click **Create API key** (either in a new or existing Google Cloud project).
+4.  Copy the generated key for `GOOGLE_JULES_API_KEY`.
+
+### 4. Telegram Bot
+1.  Message [@BotFather](https://t.me/botfather) on Telegram.
+2.  Use the `/newbot` command and follow the instructions to get your **Bot Token**.
+3.  For `TELEGRAM_WEBHOOK_SECRET`, generate a random, secure string (e.g., using `openssl rand -hex 32`). This is used to verify that requests to your webhook are actually coming from Telegram.
 
 ## a) Installation with SSH
 
