@@ -28,16 +28,16 @@ if (!$auth->isLoggedIn()) {
 
 $user = $userModel->findById($auth->getUserId());
 $julesService = new JulesService(null, $user['jules_api_key'] ?? null);
-$telegramChatId = $userModel->getTelegramChatId($user['id']);
+$telegramChatId = $userModel->getTelegramChatId($user['user_id']);
 $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $project = $projectModel->findById($projectId);
 
-if (!$project || $project['user_id'] !== $user['id']) {
+if (!$project || $project['user_id'] !== $user['user_id']) {
     die("Project not found or access denied.");
 }
 
 $templateModel = new IssueTemplate($db);
-$templates = $templateModel->findByUserId($user['id']);
+$templates = $templateModel->findByUserId($user['user_id']);
 
 $tasks = $taskModel->findByProjectId($projectId);
 $lastAgentResponse = null;
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
     $taskId = (int)$_POST['task_id'];
     $task = $taskModel->findById($taskId);
 
-    if ($task && $task['project_id'] === $project['id']) {
+    if ($task && $task['project_id'] === $project['project_id']) {
         try {
             $logger->log($taskId, "Agent triggered by user " . $user['name']);
             $githubToken = $project['github_token'] ?? null;
@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'
     $params = $_POST['params'] ?? [];
 
     $template = $templateModel->findById($templateId);
-    if ($template && $template['user_id'] === $user['id']) {
+    if ($template && $template['user_id'] === $user['user_id']) {
         try {
             $title = strtr($template['title_template'], $params);
             $body = strtr($template['body_template'], $params);
@@ -176,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
             if (isset($issue['pull_request'])) {
                 continue;
             }
-            $taskModel->upsert($project['id'], $issue);
+            $taskModel->upsert($project['project_id'], $issue);
         }
 
         header("Location: project.php?id=$projectId&success=synced");
@@ -297,9 +297,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
 
                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm" x-data="{
                                 templates: <?= htmlspecialchars(json_encode($templates)) ?>,
-                                selectedTemplateId: '<?= $templates[0]['id'] ?? '' ?>',
+                                selectedTemplateId: '<?= $templates[0]['issue_template_id'] ?? '' ?>',
                                 get selectedTemplate() {
-                                    return this.templates.find(t => t.id == this.selectedTemplateId);
+                                    return this.templates.find(t => t.issue_template_id == this.selectedTemplateId);
                                 },
                                 get placeholders() {
                                     if (!this.selectedTemplate) return [];
@@ -318,7 +318,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                             <label class="block mb-2 text-sm font-medium text-gray-900">Select Template</label>
                                             <select name="template_id" x-model="selectedTemplateId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                                                 <?php foreach ($templates as $tmpl): ?>
-                                                    <option value="<?= $tmpl['id'] ?>"><?= htmlspecialchars($tmpl['name']) ?></option>
+                                                    <option value="<?= $tmpl['issue_template_id'] ?>"><?= htmlspecialchars($tmpl['name']) ?></option>
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
@@ -378,7 +378,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                 <td class="px-6 py-4">
                                                     <div class="max-h-32 overflow-y-auto text-[10px] font-mono bg-gray-50 p-2 rounded border border-gray-100">
                                                         <?php
-                                                        $taskLogs = $taskModel->getLogs($task['id']);
+                                                        $taskLogs = $taskModel->getLogs($task['task_id']);
                                                         if (empty($taskLogs)): ?>
                                                             <span class="text-gray-400 italic">No logs available.</span>
                                                         <?php else: ?>
@@ -394,7 +394,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                 <td class="px-6 py-4">
                                                     <form method="POST" class="inline">
                                                         <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                                        <input type="hidden" name="task_id" value="<?= $task['id'] ?>">
+                                                        <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
                                                         <button type="submit" name="trigger_agent" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none">Run Agent</button>
                                                     </form>
                                                 </td>

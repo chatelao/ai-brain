@@ -87,7 +87,7 @@ $allUsers = $userModel->getAllUsersWithProjectCount();
                                                         <img class="w-10 h-10 rounded-full" src="<?= htmlspecialchars($user['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="<?= htmlspecialchars($user['name']) ?> avatar">
                                                         <div class="text-sm font-normal text-gray-500 ml-3">
                                                             <div class="text-base font-semibold text-gray-900"><?= htmlspecialchars($user['name']) ?></div>
-                                                            <div class="text-xs font-normal text-gray-500">ID: <?= $user['id'] ?></div>
+                                                            <div class="text-xs font-normal text-gray-500">ID: <?= $user['user_id'] ?></div>
                                                         </div>
                                                     </td>
                                                     <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap"><?= htmlspecialchars($user['email']) ?></td>

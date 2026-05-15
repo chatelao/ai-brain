@@ -50,7 +50,7 @@ class Auth
 
     public function login(array $user): void
     {
-        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['user_role'] = $user['role'] ?? 'user';
     }
 

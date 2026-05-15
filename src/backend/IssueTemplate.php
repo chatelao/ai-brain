@@ -36,7 +36,7 @@ class IssueTemplate
     public function findById(int $id): ?array
     {
         $stmt = $this->db->getConnection()->prepare(
-            "SELECT * FROM issue_templates WHERE id = ?"
+            "SELECT * FROM issue_templates WHERE issue_template_id = ?"
         );
         $stmt->execute([$id]);
         $template = $stmt->fetch();
@@ -52,7 +52,7 @@ class IssueTemplate
     public function delete(int $id, int $userId): bool
     {
         $stmt = $this->db->getConnection()->prepare(
-            "DELETE FROM issue_templates WHERE id = ? AND user_id = ?"
+            "DELETE FROM issue_templates WHERE issue_template_id = ? AND user_id = ?"
         );
         return $stmt->execute([$id, $userId]);
     }
@@ -60,7 +60,7 @@ class IssueTemplate
     public function update(int $id, int $userId, string $name, string $title, ?string $body, ?string $parameterConfig = null): bool
     {
         $stmt = $this->db->getConnection()->prepare(
-            "UPDATE issue_templates SET name = ?, title_template = ?, body_template = ?, parameter_config = ? WHERE id = ? AND user_id = ?"
+            "UPDATE issue_templates SET name = ?, title_template = ?, body_template = ?, parameter_config = ? WHERE issue_template_id = ? AND user_id = ?"
         );
         return $stmt->execute([$name, $title, $body, $parameterConfig, $id, $userId]);
     }

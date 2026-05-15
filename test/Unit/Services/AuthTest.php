@@ -37,7 +37,7 @@ class AuthTest extends TestCase
 
     public function testLoginAndLogout()
     {
-        $user = ['id' => 123];
+        $user = ['user_id' => 123];
         $this->auth->login($user);
 
         $this->assertTrue($this->auth->isLoggedIn());

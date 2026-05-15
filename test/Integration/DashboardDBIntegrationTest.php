@@ -17,7 +17,7 @@ class DashboardDBIntegrationTest extends TestCase
     {
         $this->pdo = new PDO('sqlite::memory:');
         $this->pdo->exec("CREATE TABLE users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             google_id VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
@@ -42,7 +42,7 @@ class DashboardDBIntegrationTest extends TestCase
 
         $auth = $this->createMock(Auth::class);
         $auth->method('isLoggedIn')->willReturn(true);
-        $auth->method('getUserId')->willReturn($user['id']);
+        $auth->method('getUserId')->willReturn($user['user_id']);
 
         ob_start();
         include __DIR__ . '/dashboard_sim.php';

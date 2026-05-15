@@ -18,10 +18,10 @@ class IssueTemplateTest extends TestCase
         $this->db = new Database(null, ':memory:');
         $pdo = $this->db->getConnection();
 
-        $pdo->exec("CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, google_id TEXT, name TEXT, email TEXT)");
+        $pdo->exec("CREATE TABLE users (issue_template_id INTEGER PRIMARY KEY AUTOINCREMENT, google_id TEXT, name TEXT, email TEXT)");
         $pdo->exec("CREATE TABLE issue_templates (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
+            issue_template_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_issue_template_id INTEGER,
             name TEXT,
             title_template TEXT,
             body_template TEXT,

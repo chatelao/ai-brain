@@ -64,7 +64,7 @@ class UserTest extends TestCase
                   ->willReturnCallback(function($sql) use ($stmt1, $stmt2, $stmt3) {
                       if (str_contains($sql, "SELECT * FROM users WHERE google_id = ?")) return $stmt1;
                       if (str_contains($sql, "INSERT INTO users")) return $stmt2;
-                      if (str_contains($sql, "SELECT * FROM users WHERE id = ?")) return $stmt3;
+                      if (str_contains($sql, "SELECT * FROM users WHERE user_id = ?")) return $stmt3;
                       return null;
                   });
 
@@ -86,7 +86,7 @@ class UserTest extends TestCase
 
         $this->pdo->expects($this->once())
                   ->method('prepare')
-                  ->with($this->stringContains("UPDATE users SET telegram_link_token = ? WHERE id = ?"))
+                  ->with($this->stringContains("UPDATE users SET telegram_link_token = ? WHERE user_id = ?"))
                   ->willReturn($stmt);
 
         $token = $this->userModel->generateTelegramLinkToken(1);

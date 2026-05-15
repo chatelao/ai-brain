@@ -19,7 +19,7 @@ class TaskDBIntegrationTest extends TestCase
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $this->pdo->exec("CREATE TABLE tasks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER PRIMARY KEY AUTOINCREMENT,
             project_id INT NOT NULL,
             issue_number INT NOT NULL,
             title VARCHAR(255) NOT NULL,
@@ -53,7 +53,7 @@ class TaskDBIntegrationTest extends TestCase
         $this->assertCount(1, $tasks);
         $this->assertEquals('Test Issue', $tasks[0]['title']);
 
-        $task = $this->taskModel->findById($tasks[0]['id']);
+        $task = $this->taskModel->findById($tasks[0]['task_id']);
         $this->assertNotNull($task);
         $this->assertEquals(101, $task['issue_number']);
     }
@@ -67,7 +67,7 @@ class TaskDBIntegrationTest extends TestCase
         ];
         $this->taskModel->create($data);
         $tasks = $this->taskModel->findByProjectId(1);
-        $taskId = $tasks[0]['id'];
+        $taskId = $tasks[0]['task_id'];
 
         $this->assertTrue($this->taskModel->updateStatus($taskId, 'in_progress'));
 

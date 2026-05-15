@@ -15,7 +15,7 @@ class Project
     {
         // Verify that the github account belongs to the user
         $stmt = $this->db->getConnection()->prepare(
-            "SELECT id FROM user_github_accounts WHERE id = ? AND user_id = ?"
+            "SELECT github_account_id FROM user_github_accounts WHERE github_account_id = ? AND user_id = ?"
         );
         $stmt->execute([$githubAccountId, $userId]);
         if (!$stmt->fetch()) {
@@ -34,7 +34,7 @@ class Project
         $stmt = $this->db->getConnection()->prepare(
             "SELECT p.*, a.github_token, a.github_username
              FROM projects p
-             JOIN user_github_accounts a ON p.github_account_id = a.id
+             JOIN user_github_accounts a ON p.github_account_id = a.github_account_id
              WHERE p.github_repo = ?"
         );
         $stmt->execute([$githubRepo]);
@@ -46,7 +46,7 @@ class Project
         $stmt = $this->db->getConnection()->prepare(
             "SELECT p.*, a.github_username
              FROM projects p
-             JOIN user_github_accounts a ON p.github_account_id = a.id
+             JOIN user_github_accounts a ON p.github_account_id = a.github_account_id
              WHERE p.user_id = ?
              ORDER BY p.created_at DESC"
         );
@@ -59,8 +59,8 @@ class Project
         $stmt = $this->db->getConnection()->prepare(
             "SELECT p.*, a.github_token, a.github_username
              FROM projects p
-             JOIN user_github_accounts a ON p.github_account_id = a.id
-             WHERE p.id = ?"
+             JOIN user_github_accounts a ON p.github_account_id = a.github_account_id
+             WHERE p.project_id = ?"
         );
         $stmt->execute([$id]);
         $project = $stmt->fetch();
@@ -70,7 +70,7 @@ class Project
     public function delete(int $id, int $userId): bool
     {
         $stmt = $this->db->getConnection()->prepare(
-            "DELETE FROM projects WHERE id = ? AND user_id = ?"
+            "DELETE FROM projects WHERE project_id = ? AND user_id = ?"
         );
         return $stmt->execute([$id, $userId]);
     }
