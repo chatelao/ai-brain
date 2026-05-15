@@ -23,6 +23,7 @@
 - [x] Comprehensive test suite (Unit, Integration, E2E).
 - [x] CI/CD pipeline optimization with caching.
 - [x] Multi-user management features and role-based access.
+- [x] Implement database migration strategy as described in [CONCEPT_UPGRADES.md](CONCEPT_UPGRADES.md).
 - [x] Support for multiple GitHub accounts per ai-brain user.
 - [x] Performance tuning and security hardening.
 

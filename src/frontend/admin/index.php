@@ -56,9 +56,14 @@ $allUsers = $userModel->getAllUsersWithProjectCount();
         <div id="main-content" class="relative w-full h-full overflow-y-auto bg-gray-50">
             <main>
                 <div class="px-4 pt-6">
-                    <div class="mb-4">
-                        <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">User Management</h1>
-                        <p class="text-sm text-gray-500">Manage all users and their projects across the platform.</p>
+                    <div class="mb-4 flex justify-between items-center">
+                        <div>
+                            <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">User Management</h1>
+                            <p class="text-sm text-gray-500">Manage all users and their projects across the platform.</p>
+                        </div>
+                        <div>
+                            <a href="upgrade.php" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">System Upgrade</a>
+                        </div>
                     </div>
 
                     <div class="flex flex-col">
