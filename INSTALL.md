@@ -153,18 +153,27 @@ Use this method if you only have SFTP access and cannot run commands on the serv
 
    **Example `.htaccess` (Apache):**
    ```apache
-   SetEnv DB_HOST localhost
-   SetEnv DB_NAME your_db_name
-   SetEnv DB_USER your_user
-   SetEnv DB_PASS your_password
-   SetEnv GOOGLE_CLIENT_ID your_google_client_id
-   SetEnv GOOGLE_CLIENT_SECRET your_google_client_secret
-   SetEnv GOOGLE_REDIRECT_URI https://your-domain.com/callback.php
-   SetEnv GITHUB_CLIENT_ID your_github_client_id
-   SetEnv GITHUB_CLIENT_SECRET your_github_client_secret
-   SetEnv GITHUB_REDIRECT_URI https://your-domain.com/github-callback.php
-   SetEnv GOOGLE_JULES_API_KEY your_google_jules_api_key
-   SetEnv TELEGRAM_BOT_TOKEN your_telegram_bot_token
+   # Database Configuration
+   SetEnv DB_HOST                 localhost
+   SetEnv DB_NAME                 your_db_name
+   SetEnv DB_USER                 your_user
+   SetEnv DB_PASS                 your_password
+
+   # Google OAuth (https://console.cloud.google.com/)
+   SetEnv GOOGLE_CLIENT_ID        your_google_client_id
+   SetEnv GOOGLE_CLIENT_SECRET    your_google_client_secret
+   SetEnv GOOGLE_REDIRECT_URI     https://your-domain.com/callback.php
+
+   # GitHub OAuth (https://github.com/settings/developers)
+   SetEnv GITHUB_CLIENT_ID        your_github_client_id
+   SetEnv GITHUB_CLIENT_SECRET    your_github_client_secret
+   SetEnv GITHUB_REDIRECT_URI     https://your-domain.com/github-callback.php
+
+   # Google Gemini (https://aistudio.google.com/)
+   SetEnv GOOGLE_JULES_API_KEY    your_google_jules_api_key
+
+   # Telegram Bot (https://t.me/botfather)
+   SetEnv TELEGRAM_BOT_TOKEN      your_telegram_bot_token
    SetEnv TELEGRAM_WEBHOOK_SECRET your_telegram_webhook_secret
    ```
 
