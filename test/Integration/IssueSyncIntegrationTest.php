@@ -20,6 +20,7 @@ class IssueSyncIntegrationTest extends TestCase
 
         $this->pdo->exec("CREATE TABLE tasks (
             task_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INT NOT NULL,
             project_id INT NOT NULL,
             issue_number INT NOT NULL,
             title VARCHAR(255) NOT NULL,
@@ -39,6 +40,7 @@ class IssueSyncIntegrationTest extends TestCase
 
     public function testUpsertNewIssue()
     {
+        $userId = 1;
         $projectId = 1;
         $issue = [
             'number' => 1,
@@ -46,7 +48,7 @@ class IssueSyncIntegrationTest extends TestCase
             'body' => 'Initial Body'
         ];
 
-        $this->taskModel->upsert($projectId, $issue);
+        $this->taskModel->upsert($userId, $projectId, $issue);
 
         $stmt = $this->pdo->prepare("SELECT * FROM tasks WHERE project_id = ? AND issue_number = ?");
         $stmt->execute([$projectId, 1]);
@@ -58,6 +60,7 @@ class IssueSyncIntegrationTest extends TestCase
 
     public function testUpsertExistingIssue()
     {
+        $userId = 1;
         $projectId = 1;
         $issue1 = [
             'number' => 1,
@@ -65,7 +68,7 @@ class IssueSyncIntegrationTest extends TestCase
             'body' => 'Initial Body'
         ];
 
-        $this->taskModel->upsert($projectId, $issue1);
+        $this->taskModel->upsert($userId, $projectId, $issue1);
 
         $issue2 = [
             'number' => 1,
@@ -73,7 +76,7 @@ class IssueSyncIntegrationTest extends TestCase
             'body' => 'Updated Body'
         ];
 
-        $this->taskModel->upsert($projectId, $issue2);
+        $this->taskModel->upsert($userId, $projectId, $issue2);
 
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM tasks WHERE project_id = ? AND issue_number = ?");
         $stmt->execute([$projectId, 1]);

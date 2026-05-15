@@ -20,6 +20,7 @@ class TaskDBIntegrationTest extends TestCase
 
         $this->pdo->exec("CREATE TABLE tasks (
             task_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INT NOT NULL,
             project_id INT NOT NULL,
             issue_number INT NOT NULL,
             title VARCHAR(255) NOT NULL,
@@ -40,6 +41,7 @@ class TaskDBIntegrationTest extends TestCase
     public function testCreateAndFindTask()
     {
         $data = [
+            'user_id' => 1,
             'project_id' => 1,
             'issue_number' => 101,
             'title' => 'Test Issue',
@@ -61,6 +63,7 @@ class TaskDBIntegrationTest extends TestCase
     public function testUpdateStatus()
     {
         $data = [
+            'user_id' => 1,
             'project_id' => 1,
             'issue_number' => 101,
             'title' => 'Test Issue'

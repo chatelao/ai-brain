@@ -54,6 +54,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS projects (
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     task_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INT NOT NULL,
     project_id INT NOT NULL,
     issue_number INT NOT NULL,
     title VARCHAR(255) NOT NULL,
@@ -76,6 +77,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS user_telegram_accounts (
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS task_logs (
     task_log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INT NOT NULL,
     task_id INT NOT NULL,
     level VARCHAR(20) DEFAULT 'info',
     message TEXT NOT NULL,
@@ -111,6 +113,7 @@ $project = $projectModel->findByRepo('owner/repo')[0];
 // Create some tasks
 $taskModel = new Task($db);
 $taskModel->create([
+    'user_id' => 1,
     'project_id' => $project['project_id'],
     'issue_number' => 101,
     'title' => 'Sample Issue #1',
@@ -120,9 +123,10 @@ $taskModel->create([
 
 // Add some logs to task 1
 $logger = new \App\Logger($db);
-$logger->log(1, "Mock log entry 1 for task 101");
-$logger->log(1, "Mock error log entry 2 for task 101", "error");
+$logger->log(1, 1, "Mock log entry 1 for task 101");
+$logger->log(1, 1, "Mock error log entry 2 for task 101", "error");
 $taskModel->create([
+    'user_id' => 1,
     'project_id' => $project['project_id'],
     'issue_number' => 102,
     'title' => 'Another Bug #2',

@@ -91,9 +91,10 @@ class Task
     public function create(array $data): bool
     {
         $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO tasks (project_id, issue_number, title, body, github_data, status) VALUES (?, ?, ?, ?, ?, ?)"
+            "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status) VALUES (?, ?, ?, ?, ?, ?, ?)"
         );
         return $stmt->execute([
+            $data['user_id'],
             $data['project_id'],
             $data['issue_number'],
             $data['title'],
@@ -103,21 +104,21 @@ class Task
         ]);
     }
 
-    public function upsert(int $projectId, array $issue): bool
+    public function upsert(int $userId, int $projectId, array $issue): bool
     {
         $connection = $this->db->getConnection();
         $driver = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
 
         if ($driver === 'sqlite') {
-            $sql = "INSERT INTO tasks (project_id, issue_number, title, body, github_data, status)
-                    VALUES (?, ?, ?, ?, ?, ?)
+            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(project_id, issue_number) DO UPDATE SET
                         title = excluded.title,
                         body = excluded.body,
                         github_data = excluded.github_data";
         } else {
-            $sql = "INSERT INTO tasks (project_id, issue_number, title, body, github_data, status)
-                    VALUES (?, ?, ?, ?, ?, ?)
+            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE
                         title = VALUES(title),
                         body = VALUES(body),
@@ -127,6 +128,7 @@ class Task
         $stmt = $connection->prepare($sql);
 
         return $stmt->execute([
+            $userId,
             $projectId,
             $issue['number'],
             $issue['title'],

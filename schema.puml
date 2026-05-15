@@ -37,6 +37,7 @@ entity "projects" {
 entity "tasks" {
   * <color:grey><i>task_id</i></color> : INT <<PK>>
   --
+  * <color:grey><i>user_id</i></color> : INT <<FK>>
   * <color:grey><i>project_id</i></color> : INT <<FK>>
   * <color:grey>issue_number</color> : INT
   * title : VARCHAR(255)
@@ -51,6 +52,7 @@ entity "tasks" {
 entity "task_logs" {
   * <color:grey><i>task_log_id</i></color> : INT <<PK>>
   --
+  * <color:grey><i>user_id</i></color> : INT <<FK>>
   * <color:grey><i>task_id</i></color> : INT <<FK>>
   level : VARCHAR(20)
   * message : TEXT
@@ -84,6 +86,8 @@ entity "issue_templates" {
 
 users ||--o{ user_github_accounts : "user_id"
 users ||--o{ projects : "user_id"
+users ||--o{ tasks : "user_id"
+users ||--o{ task_logs : "user_id"
 users ||--o{ user_telegram_accounts : "user_id"
 users ||--o{ issue_templates : "user_id"
 user_github_accounts ||--o{ projects : "github_account_id"

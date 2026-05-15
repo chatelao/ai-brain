@@ -34,7 +34,7 @@ class WebhookHandlerTest extends TestCase
 
     public function testHandleOpenedIssue()
     {
-        $projectId = 1;
+        $project = ['user_id' => 1, 'project_id' => 1];
         $event = [
             'action' => 'opened',
             'issue' => [
@@ -50,12 +50,12 @@ class WebhookHandlerTest extends TestCase
         $this->pdo->method('getAttribute')->with(PDO::ATTR_DRIVER_NAME)->willReturn('mysql');
         $this->pdo->method('prepare')->willReturn($stmt);
 
-        $this->assertTrue($this->handler->handle($projectId, $event));
+        $this->assertTrue($this->handler->handle($project, $event));
     }
 
     public function testHandleClosedIssueWithAutorepeat()
     {
-        $projectId = 1;
+        $project = ['user_id' => 1, 'project_id' => 1];
         $event = [
             'action' => 'closed',
             'repository' => ['full_name' => 'owner/repo'],
@@ -85,12 +85,12 @@ class WebhookHandlerTest extends TestCase
             ->method('removeLabel')
             ->with('owner/repo', 123, 'autorepeat');
 
-        $this->assertTrue($this->handler->handle($projectId, $event, $githubService));
+        $this->assertTrue($this->handler->handle($project, $event, $githubService));
     }
 
     public function testHandleClosedIssueWithoutAutorepeat()
     {
-        $projectId = 1;
+        $project = ['user_id' => 1, 'project_id' => 1];
         $event = [
             'action' => 'closed',
             'issue' => [
@@ -114,23 +114,23 @@ class WebhookHandlerTest extends TestCase
         $githubService->expects($this->never())->method('createIssue');
         $githubService->expects($this->never())->method('removeLabel');
 
-        $this->assertTrue($this->handler->handle($projectId, $event, $githubService));
+        $this->assertTrue($this->handler->handle($project, $event, $githubService));
     }
 
     public function testHandleUnsupportedAction()
     {
-        $projectId = 1;
+        $project = ['user_id' => 1, 'project_id' => 1];
         $event = [
             'action' => 'deleted',
             'issue' => ['number' => 123]
         ];
 
-        $this->assertFalse($this->handler->handle($projectId, $event));
+        $this->assertFalse($this->handler->handle($project, $event));
     }
 
     public function testHandleSqlite()
     {
-        $projectId = 1;
+        $project = ['user_id' => 1, 'project_id' => 1];
         $event = [
             'action' => 'opened',
             'issue' => [
@@ -149,6 +149,6 @@ class WebhookHandlerTest extends TestCase
             return $stmt;
         });
 
-        $this->assertTrue($this->handler->handle($projectId, $event));
+        $this->assertTrue($this->handler->handle($project, $event));
     }
 }

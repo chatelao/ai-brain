@@ -20,6 +20,7 @@ class WebhookHandlerTest extends TestCase
 
         $this->pdo->exec("CREATE TABLE tasks (
             task_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INT NOT NULL,
             project_id INT NOT NULL,
             issue_number INT NOT NULL,
             title VARCHAR(255) NOT NULL,
@@ -49,7 +50,7 @@ class WebhookHandlerTest extends TestCase
 
     public function testHandleIssueOpened()
     {
-        $projectId = 1;
+        $project = ['user_id' => 1, 'project_id' => 1];
         $event = [
             'action' => 'opened',
             'issue' => [
@@ -59,11 +60,11 @@ class WebhookHandlerTest extends TestCase
             ]
         ];
 
-        $result = $this->handler->handle($projectId, $event);
+        $result = $this->handler->handle($project, $event);
         $this->assertTrue($result);
 
         $stmt = $this->pdo->prepare("SELECT * FROM tasks WHERE project_id = ? AND issue_number = ?");
-        $stmt->execute([$projectId, 123]);
+        $stmt->execute([$project['project_id'], 123]);
         $task = $stmt->fetch();
 
         $this->assertNotFalse($task);

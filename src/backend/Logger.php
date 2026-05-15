@@ -8,12 +8,12 @@ class Logger
     {
     }
 
-    public function log(int $taskId, string $message, string $level = 'info'): bool
+    public function log(int $userId, int $taskId, string $message, string $level = 'info'): bool
     {
         $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO task_logs (task_id, message, level) VALUES (?, ?, ?)"
+            "INSERT INTO task_logs (user_id, task_id, message, level) VALUES (?, ?, ?, ?)"
         );
-        return $stmt->execute([$taskId, $message, $level]);
+        return $stmt->execute([$userId, $taskId, $message, $level]);
     }
 
     public function getLogsByTaskId(int $taskId): array
