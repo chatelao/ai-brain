@@ -59,7 +59,16 @@ if ($user && isset($_GET['delete_project'])) {
 
 $projects = $user ? $projectModel->findByUserId($user['id']) : [];
 $githubAccounts = $user ? $userModel->getGitHubAccounts($user['id']) : [];
-$autorepeatTasks = $user ? (new Task($db))->getRunningAutorepeatTasks($user['id']) : [];
+$taskModel = new Task($db);
+$autorepeatTasks = $user ? $taskModel->getRunningAutorepeatTasks($user['id']) : [];
+
+$projectTasks = [];
+if ($user) {
+    $allTasks = $taskModel->findByUserProjects($user['id']);
+    foreach ($allTasks as $task) {
+        $projectTasks[$task['project_id']][] = $task;
+    }
+}
 
 $errorMessage = $errorMessage ?? null;
 
@@ -73,6 +82,32 @@ $errorMessage = $errorMessage ?? null;
     <title>Agent Control Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        .status-square {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .status-square:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        .status-square.green { background-color: #238636; }
+        .status-square.yellow { background-color: #d29922; }
+        .status-square.blue { background-color: #0366d6; }
+        .status-square.red { background-color: #f85149; }
+        .status-square.purple { background-color: #8957e5; }
+        .status-square.grey { background-color: #8b949e; }
+        .auto-repeat-tag {
+            border: 2px solid #e82dce !important;
+            box-sizing: border-box;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
     <nav class="bg-white border-b border-gray-200 fixed w-full z-30 top-0">
@@ -221,6 +256,25 @@ $errorMessage = $errorMessage ?? null;
                                                     </a>
                                                 </div>
                                                 <p class="text-sm text-gray-500 mt-1">Linked as&nbsp;<?= htmlspecialchars($project['github_username']) ?></p>
+
+                                                <div class="flex flex-wrap gap-1 mt-3">
+                                                    <?php
+                                                    $tasks = $projectTasks[$project['id']] ?? [];
+                                                    foreach ($tasks as $task):
+                                                        $color = $taskModel->getStatusColor($task);
+                                                        $isAutorepeat = $taskModel->hasAutorepeatLabel($task);
+                                                    ?>
+                                                        <div class="relative group">
+                                                            <a href="project.php?id=<?= $project['id'] ?>"
+                                                               class="status-square <?= $color ?> <?= $isAutorepeat ? 'auto-repeat-tag' : '' ?>">
+                                                            </a>
+                                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">
+                                                                #<?= htmlspecialchars($task['issue_number']) ?>: <?= htmlspecialchars(mb_substr($task['title'], 0, 30)) ?><?= mb_strlen($task['title']) > 30 ? '...' : '' ?>
+                                                            </div>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+
                                                 <div class="mt-4">
                                                     <a href="project.php?id=<?= $project['id'] ?>" class="text-blue-600 hover:underline text-sm font-medium">View Project Details &rarr;</a>
                                                 </div>
