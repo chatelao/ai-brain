@@ -19,6 +19,19 @@ class Task
         return $stmt->fetchAll();
     }
 
+    public function findByUserProjects(int $userId): array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT t.*, p.github_repo
+             FROM tasks t
+             JOIN projects p ON t.project_id = p.id
+             WHERE p.user_id = ?
+             ORDER BY t.created_at DESC"
+        );
+        $stmt->execute([$userId]);
+        return $stmt->fetchAll();
+    }
+
     public function getRunningAutorepeatTasks(int $userId): array
     {
         $stmt = $this->db->getConnection()->prepare(
@@ -127,5 +140,42 @@ class Task
     {
         $logger = new Logger($this->db);
         return $logger->getLogsByTaskId($taskId);
+    }
+
+    public function getStatusColor(array $task): string
+    {
+        $githubData = json_decode($task['github_data'] ?? '{}', true);
+        $state = $githubData['state'] ?? 'open';
+
+        if ($state === 'closed') {
+            return 'purple';
+        }
+
+        if ($task['status'] === 'failed') {
+            return 'red';
+        }
+
+        if ($task['status'] === 'in_progress') {
+            return 'yellow';
+        }
+
+        if ($task['status'] === 'completed') {
+            return 'green';
+        }
+
+        return 'grey';
+    }
+
+    public function hasAutorepeatLabel(array $task): bool
+    {
+        $githubData = json_decode($task['github_data'] ?? '{}', true);
+        $labels = $githubData['labels'] ?? [];
+        foreach ($labels as $label) {
+            $name = strtolower($label['name'] ?? '');
+            if ($name === 'autorepeat' || $name === 'auto-repeat') {
+                return true;
+            }
+        }
+        return false;
     }
 }
