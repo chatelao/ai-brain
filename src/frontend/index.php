@@ -35,8 +35,8 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_repo'
         die("CSRF token validation failed.");
     }
     $repo = trim($_POST['github_repo']);
-    $accountId = (int)$_POST['github_account_id'];
-    if (!empty($repo) && $accountId > 0) {
+    $accountId = $_POST['github_account_id'];
+    if (!empty($repo) && !empty($accountId)) {
         try {
             $projectModel->create($user['user_id'], $accountId, $repo);
             header('Location: index.php?success=project_created');
@@ -52,7 +52,7 @@ if ($user && isset($_GET['delete_project'])) {
     if (!$auth->validateCsrfToken($_GET['csrf_token'] ?? null)) {
         die("CSRF token validation failed.");
     }
-    $projectModel->delete((int)$_GET['delete_project'], $user['user_id']);
+    $projectModel->delete($_GET['delete_project'], $user['user_id']);
     header('Location: index.php?success=project_deleted');
     exit;
 }

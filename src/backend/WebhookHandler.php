@@ -16,7 +16,7 @@ class WebhookHandler
         return hash_equals($hash, $signature);
     }
 
-    public function handle(int $projectId, array $event, ?GitHubService $githubService = null): bool
+    public function handle(string $projectId, array $event, ?GitHubService $githubService = null): bool
     {
         $action = $event['action'] ?? '';
         $issue = $event['issue'] ?? null;

@@ -29,7 +29,7 @@ if (!$auth->isLoggedIn()) {
 $user = $userModel->findById($auth->getUserId());
 $julesService = new JulesService(null, $user['jules_api_key'] ?? null);
 $telegramChatId = $userModel->getTelegramChatId($user['user_id']);
-$projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$projectId = $_GET['id'] ?? '';
 $project = $projectModel->findById($projectId);
 
 if (!$project || $project['user_id'] !== $user['user_id']) {
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
         die("CSRF token validation failed.");
     }
 
-    $taskId = (int)$_POST['task_id'];
+    $taskId = $_POST['task_id'];
     $task = $taskModel->findById($taskId);
 
     if ($task && $task['project_id'] === $project['project_id']) {
@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'
         die("CSRF token validation failed.");
     }
 
-    $templateId = (int)$_POST['template_id'];
+    $templateId = $_POST['template_id'];
     $params = $_POST['params'] ?? [];
 
     $template = $templateModel->findById($templateId);

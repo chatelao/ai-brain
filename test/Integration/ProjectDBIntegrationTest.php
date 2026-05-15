@@ -21,7 +21,7 @@ class ProjectDBIntegrationTest extends TestCase
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $this->pdo->exec("CREATE TABLE users (
-            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT PRIMARY KEY,
             google_id VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
@@ -30,8 +30,8 @@ class ProjectDBIntegrationTest extends TestCase
         )");
 
         $this->pdo->exec("CREATE TABLE user_github_accounts (
-            github_account_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INT NOT NULL,
+            github_account_id TEXT PRIMARY KEY,
+            user_id TEXT,
             github_username VARCHAR(255) NOT NULL,
             github_token VARCHAR(255) NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -40,9 +40,9 @@ class ProjectDBIntegrationTest extends TestCase
         )");
 
         $this->pdo->exec("CREATE TABLE projects (
-            project_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INT NOT NULL,
-            github_account_id INT NOT NULL,
+            project_id TEXT PRIMARY KEY,
+            user_id TEXT,
+            github_account_id TEXT,
             github_repo VARCHAR(255) NOT NULL,
             webhook_secret VARCHAR(255),
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -59,19 +59,21 @@ class ProjectDBIntegrationTest extends TestCase
 
     private function setupUserAndAccount()
     {
-        $this->userModel->createOrUpdate([
+        $user = $this->userModel->createOrUpdate([
             'google_id' => 'google-123',
             'name' => 'Test User',
             'email' => 'test@example.com'
         ]);
-        $this->userModel->addGitHubAccount(1, 'token-123', 'github-user');
-        return 1; // github_account_id
+        $this->userModel->addGitHubAccount($user['user_id'], 'token-123', 'github-user');
+        $accounts = $this->userModel->getGitHubAccounts($user['user_id']);
+        return ['user_id' => $user['user_id'], 'account_id' => $accounts[0]['github_account_id']];
     }
 
     public function testCreateProject()
     {
-        $accountId = $this->setupUserAndAccount();
-        $userId = 1;
+        $setup = $this->setupUserAndAccount();
+        $accountId = $setup['account_id'];
+        $userId = $setup['user_id'];
         $repo = 'owner/repo';
 
         $result = $this->projectModel->create($userId, $accountId, $repo);
@@ -86,8 +88,9 @@ class ProjectDBIntegrationTest extends TestCase
 
     public function testFindByRepo()
     {
-        $accountId = $this->setupUserAndAccount();
-        $userId = 1;
+        $setup = $this->setupUserAndAccount();
+        $accountId = $setup['account_id'];
+        $userId = $setup['user_id'];
         $repo = 'owner/repo';
         $this->projectModel->create($userId, $accountId, $repo);
 
@@ -99,8 +102,9 @@ class ProjectDBIntegrationTest extends TestCase
 
     public function testDeleteProject()
     {
-        $accountId = $this->setupUserAndAccount();
-        $userId = 1;
+        $setup = $this->setupUserAndAccount();
+        $accountId = $setup['account_id'];
+        $userId = $setup['user_id'];
         $repo = 'owner/repo';
         $this->projectModel->create($userId, $accountId, $repo);
         $projects = $this->projectModel->findByUserId($userId);
@@ -115,20 +119,20 @@ class ProjectDBIntegrationTest extends TestCase
 
     public function testCreateProjectWithUnauthorizedAccount()
     {
-        $this->setupUserAndAccount(); // Sets up User 1 and Account 1
+        $setup = $this->setupUserAndAccount(); // Sets up User 1 and Account 1
 
         // Setup User 2
-        $this->userModel->createOrUpdate([
+        $user2 = $this->userModel->createOrUpdate([
             'google_id' => 'google-456',
             'name' => 'User 2',
             'email' => 'user2@example.com'
         ]);
-        $userId2 = 2;
+        $userId2 = $user2['user_id'];
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage("Invalid GitHub account selected.");
 
         // User 2 tries to use Account 1
-        $this->projectModel->create($userId2, 1, 'user2/repo');
+        $this->projectModel->create($userId2, $setup['account_id'], 'user2/repo');
     }
 }

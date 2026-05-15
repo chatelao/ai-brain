@@ -51,7 +51,7 @@ class MigrationServiceTest extends TestCase
 
     public function testApplyPatches(): void
     {
-        file_put_contents($this->patchesDir . '001_test.sql', "CREATE TABLE test_table (id INTEGER PRIMARY KEY);");
+        file_put_contents($this->patchesDir . '001_test.sql', "CREATE TABLE test_table (id TEXT PRIMARY KEY);");
         file_put_contents($this->patchesDir . '002_test.sql', "INSERT INTO test_table (id) VALUES (1);");
 
         $migrationService = new MigrationService($this->db, $this->patchesDir);
@@ -72,7 +72,7 @@ class MigrationServiceTest extends TestCase
 
     public function testDoNotReapplyPatches(): void
     {
-        file_put_contents($this->patchesDir . '001_test.sql', "CREATE TABLE test_table (id INTEGER PRIMARY KEY);");
+        file_put_contents($this->patchesDir . '001_test.sql', "CREATE TABLE test_table (id TEXT PRIMARY KEY);");
 
         $migrationService = new MigrationService($this->db, $this->patchesDir);
         $migrationService->migrate();

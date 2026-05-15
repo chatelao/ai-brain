@@ -25,7 +25,7 @@ class AdminDashboardIntegrationTest extends TestCase
         $this->pdo->exec("DROP TABLE IF EXISTS users");
         $this->pdo->exec("DROP TABLE IF EXISTS projects");
         $this->pdo->exec("CREATE TABLE users (
-            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT PRIMARY KEY,
             google_id VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
@@ -34,9 +34,9 @@ class AdminDashboardIntegrationTest extends TestCase
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
         $this->pdo->exec("CREATE TABLE projects (
-            project_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            github_account_id INTEGER NOT NULL,
+            project_id TEXT PRIMARY KEY,
+            user_id TEXT,
+            github_account_id TEXT,
             github_repo VARCHAR(255) NOT NULL,
             webhook_secret VARCHAR(255),
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -68,7 +68,8 @@ class AdminDashboardIntegrationTest extends TestCase
         ]);
 
         // Add project for user 2
-        $this->pdo->exec("INSERT INTO projects (user_id, github_account_id, github_repo) VALUES ({$user2['user_id']}, 1, 'repo1')");
+        $stmt = $this->pdo->prepare("INSERT INTO projects (project_id, user_id, github_account_id, github_repo) VALUES (?, ?, ?, ?)");
+        $stmt->execute(['p1', $user2['user_id'], '1', 'repo1']);
 
         $allUsers = $userModel->getAllUsersWithProjectCount();
 

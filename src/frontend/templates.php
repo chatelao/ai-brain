@@ -50,13 +50,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_template'])) {
         die("CSRF token validation failed.");
     }
 
-    $id = (int)$_POST['template_id'];
+    $id = $_POST['template_id'];
     $name = trim($_POST['name']);
     $title = trim($_POST['title_template']);
     $body = trim($_POST['body_template']);
     $parameterConfig = $_POST['parameter_config'] ?? null;
 
-    if ($id > 0 && !empty($name) && !empty($title)) {
+    if (!empty($id) && !empty($name) && !empty($title)) {
         try {
             $templateModel->update($id, $user['user_id'], $name, $title, $body, $parameterConfig);
             $successMessage = "Template updated successfully.";
@@ -73,7 +73,7 @@ if (isset($_GET['delete_template'])) {
     if (!$auth->validateCsrfToken($_GET['csrf_token'] ?? null)) {
         die("CSRF token validation failed.");
     }
-    $templateModel->delete((int)$_GET['delete_template'], $user['user_id']);
+    $templateModel->delete($_GET['delete_template'], $user['user_id']);
     $successMessage = "Template deleted successfully.";
 }
 

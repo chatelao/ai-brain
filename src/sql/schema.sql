@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id CHAR(36) PRIMARY KEY,
     google_id VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS user_github_accounts (
-    github_account_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    github_account_id CHAR(36) PRIMARY KEY,
+    user_id CHAR(36) NOT NULL,
     github_username VARCHAR(255) NOT NULL,
     github_token VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -21,9 +21,9 @@ CREATE TABLE IF NOT EXISTS user_github_accounts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS projects (
-    project_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    github_account_id INT NOT NULL,
+    project_id CHAR(36) PRIMARY KEY,
+    user_id CHAR(36) NOT NULL,
+    github_account_id CHAR(36) NOT NULL,
     github_repo VARCHAR(255) NOT NULL,
     webhook_secret VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -32,8 +32,8 @@ CREATE TABLE IF NOT EXISTS projects (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS tasks (
-    task_id INT AUTO_INCREMENT PRIMARY KEY,
-    project_id INT NOT NULL,
+    task_id CHAR(36) PRIMARY KEY,
+    project_id CHAR(36) NOT NULL,
     issue_number INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     body TEXT,
@@ -47,8 +47,8 @@ CREATE TABLE IF NOT EXISTS tasks (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS task_logs (
-    task_log_id INT AUTO_INCREMENT PRIMARY KEY,
-    task_id INT NOT NULL,
+    task_log_id CHAR(36) PRIMARY KEY,
+    task_id CHAR(36) NOT NULL,
     level VARCHAR(20) DEFAULT 'info',
     message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -62,16 +62,16 @@ CREATE TABLE IF NOT EXISTS rate_limits (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS user_telegram_accounts (
-    telegram_account_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    telegram_account_id CHAR(36) PRIMARY KEY,
+    user_id CHAR(36) NOT NULL,
     telegram_chat_id BIGINT UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS issue_templates (
-    issue_template_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    issue_template_id CHAR(36) PRIMARY KEY,
+    user_id CHAR(36) NOT NULL,
     name VARCHAR(255) NOT NULL,
     title_template VARCHAR(255) NOT NULL,
     body_template TEXT,

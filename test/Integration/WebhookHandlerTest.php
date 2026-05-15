@@ -19,9 +19,9 @@ class WebhookHandlerTest extends TestCase
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $this->pdo->exec("CREATE TABLE tasks (
-            task_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            project_id INT NOT NULL,
-            issue_number INT NOT NULL,
+            task_id TEXT PRIMARY KEY,
+            project_id TEXT,
+            issue_number INT,
             title VARCHAR(255) NOT NULL,
             body TEXT,
             status TEXT DEFAULT 'pending',

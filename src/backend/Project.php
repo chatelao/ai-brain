@@ -4,6 +4,7 @@ namespace App;
 
 use PDO;
 use Exception;
+use Ramsey\Uuid\Uuid;
 
 class Project
 {
@@ -11,7 +12,7 @@ class Project
     {
     }
 
-    public function create(int $userId, int $githubAccountId, string $githubRepo): bool
+    public function create(string $userId, string $githubAccountId, string $githubRepo): bool
     {
         // Verify that the github account belongs to the user
         $stmt = $this->db->getConnection()->prepare(
@@ -22,11 +23,12 @@ class Project
             throw new Exception("Invalid GitHub account selected.");
         }
 
+        $projectId = Uuid::uuid4()->toString();
         $webhookSecret = bin2hex(random_bytes(16));
         $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO projects (user_id, github_account_id, github_repo, webhook_secret) VALUES (?, ?, ?, ?)"
+            "INSERT INTO projects (project_id, user_id, github_account_id, github_repo, webhook_secret) VALUES (?, ?, ?, ?, ?)"
         );
-        return $stmt->execute([$userId, $githubAccountId, $githubRepo, $webhookSecret]);
+        return $stmt->execute([$projectId, $userId, $githubAccountId, $githubRepo, $webhookSecret]);
     }
 
     public function findByRepo(string $githubRepo): array
@@ -41,7 +43,7 @@ class Project
         return $stmt->fetchAll();
     }
 
-    public function findByUserId(int $userId): array
+    public function findByUserId(string $userId): array
     {
         $stmt = $this->db->getConnection()->prepare(
             "SELECT p.*, a.github_username
@@ -54,7 +56,7 @@ class Project
         return $stmt->fetchAll();
     }
 
-    public function findById(int $id): ?array
+    public function findById(string $id): ?array
     {
         $stmt = $this->db->getConnection()->prepare(
             "SELECT p.*, a.github_token, a.github_username
@@ -67,7 +69,7 @@ class Project
         return $project ?: null;
     }
 
-    public function delete(int $id, int $userId): bool
+    public function delete(string $id, string $userId): bool
     {
         $stmt = $this->db->getConnection()->prepare(
             "DELETE FROM projects WHERE project_id = ? AND user_id = ?"

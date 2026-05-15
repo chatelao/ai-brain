@@ -20,7 +20,7 @@ $pdo = $db->getConnection();
 
 // Create schema for SQLite in-memory
 $pdo->exec("CREATE TABLE IF NOT EXISTS users (
-    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT PRIMARY KEY,
     google_id VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -32,8 +32,8 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS users (
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS user_github_accounts (
-    github_account_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INT NOT NULL,
+    github_account_id TEXT PRIMARY KEY,
+    user_id TEXT,
     github_username VARCHAR(255) NOT NULL,
     github_token VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -42,9 +42,9 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS user_github_accounts (
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS projects (
-    project_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INT NOT NULL,
-    github_account_id INT NOT NULL,
+    project_id TEXT PRIMARY KEY,
+    user_id TEXT,
+    github_account_id TEXT,
     github_repo VARCHAR(255) NOT NULL,
     webhook_secret VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -53,9 +53,9 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS projects (
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
-    task_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INT NOT NULL,
-    issue_number INT NOT NULL,
+    task_id TEXT PRIMARY KEY,
+    project_id TEXT,
+    issue_number INT,
     title VARCHAR(255) NOT NULL,
     body TEXT,
     status TEXT DEFAULT 'pending',
@@ -67,25 +67,25 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS user_telegram_accounts (
-    telegram_account_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INT NOT NULL,
+    telegram_account_id TEXT PRIMARY KEY,
+    user_id TEXT,
     telegram_chat_id BIGINT UNIQUE NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS task_logs (
-    task_log_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    task_id INT NOT NULL,
+    task_log_id TEXT PRIMARY KEY,
+    task_id TEXT,
     level VARCHAR(20) DEFAULT 'info',
-    message TEXT NOT NULL,
+    message TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (task_id) REFERENCES tasks(task_id) ON DELETE CASCADE
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS issue_templates (
-    issue_template_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INT NOT NULL,
+    issue_template_id TEXT PRIMARY KEY,
+    user_id TEXT,
     name VARCHAR(255) NOT NULL,
     title_template VARCHAR(255) NOT NULL,
     body_template TEXT,

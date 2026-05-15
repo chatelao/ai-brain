@@ -27,7 +27,7 @@ class UserTest extends TestCase
     {
         $stmt = $this->createMock(PDOStatement::class);
         $stmt->expects($this->once())->method('execute')->with(['google-123']);
-        $stmt->method('fetch')->willReturn(['user_id' => 1, 'name' => 'Test User']);
+        $stmt->method('fetch')->willReturn(['user_id' => 'u1', 'name' => 'Test User']);
 
         $this->pdo->method('prepare')->with($this->stringContains('SELECT * FROM users WHERE google_id = ?'))
             ->willReturn($stmt);
@@ -39,13 +39,13 @@ class UserTest extends TestCase
     public function testFindById()
     {
         $stmt = $this->createMock(PDOStatement::class);
-        $stmt->expects($this->once())->method('execute')->with([1]);
-        $stmt->method('fetch')->willReturn(['user_id' => 1, 'name' => 'Test User']);
+        $stmt->expects($this->once())->method('execute')->with(['u1']);
+        $stmt->method('fetch')->willReturn(['user_id' => 'u1', 'name' => 'Test User']);
 
         $this->pdo->method('prepare')->with($this->stringContains('SELECT * FROM users WHERE user_id = ?'))
             ->willReturn($stmt);
 
-        $user = $this->userModel->findById(1);
+        $user = $this->userModel->findById('u1');
         $this->assertEquals('Test User', $user['name']);
     }
 
@@ -61,15 +61,13 @@ class UserTest extends TestCase
 
         // 3. Mock findById call
         $stmtFindById = $this->createMock(PDOStatement::class);
-        $stmtFindById->method('fetch')->willReturn(['user_id' => 1, 'google_id' => 'g1', 'name' => 'N', 'email' => 'e']);
+        $stmtFindById->method('fetch')->willReturn(['user_id' => 'u1', 'google_id' => 'g1', 'name' => 'N', 'email' => 'e']);
 
         $this->pdo->method('prepare')->willReturnMap([
             ['SELECT * FROM users WHERE google_id = ?', $stmtFind],
-            ['INSERT INTO users (google_id, name, email, avatar, role) VALUES (?, ?, ?, ?, ?)', $stmtInsert],
+            ['INSERT INTO users (user_id, google_id, name, email, avatar, role) VALUES (?, ?, ?, ?, ?, ?)', $stmtInsert],
             ['SELECT * FROM users WHERE user_id = ?', $stmtFindById]
         ]);
-
-        $this->pdo->method('lastInsertId')->willReturn("1");
 
         $data = ['google_id' => 'g1', 'name' => 'N', 'email' => 'e'];
         $user = $this->userModel->createOrUpdate($data);
@@ -88,14 +86,14 @@ class UserTest extends TestCase
             ->with($this->stringContains('UPDATE users SET telegram_link_token = ? WHERE user_id = ?'))
             ->willReturn($stmt);
 
-        $token = $this->userModel->generateTelegramLinkToken(1);
+        $token = $this->userModel->generateTelegramLinkToken('u1');
         $this->assertNotEmpty($token);
     }
 
     public function testLinkTelegramAccountSuccess()
     {
         $stmtFind = $this->createMock(PDOStatement::class);
-        $stmtFind->method('fetch')->willReturn(['user_id' => 1]);
+        $stmtFind->method('fetch')->willReturn(['user_id' => 'u1']);
 
         $stmtInsert = $this->createMock(PDOStatement::class);
         $stmtInsert->method('execute')->willReturn(true);
@@ -105,7 +103,7 @@ class UserTest extends TestCase
 
         $this->pdo->method('prepare')->willReturnMap([
             ['SELECT user_id FROM users WHERE telegram_link_token = ?', $stmtFind],
-            ['INSERT INTO user_telegram_accounts (user_id, telegram_chat_id) VALUES (?, ?)', $stmtInsert],
+            ['INSERT INTO user_telegram_accounts (telegram_account_id, user_id, telegram_chat_id) VALUES (?, ?, ?)', $stmtInsert],
             ['UPDATE users SET telegram_link_token = NULL WHERE user_id = ?', $stmtUpdate]
         ]);
 

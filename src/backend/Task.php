@@ -3,6 +3,7 @@
 namespace App;
 
 use PDO;
+use Ramsey\Uuid\Uuid;
 
 class Task
 {
@@ -10,7 +11,7 @@ class Task
     {
     }
 
-    public function findByProjectId(int $projectId): array
+    public function findByProjectId(string $projectId): array
     {
         $stmt = $this->db->getConnection()->prepare(
             "SELECT * FROM tasks WHERE project_id = ? ORDER BY created_at DESC"
@@ -19,7 +20,7 @@ class Task
         return $stmt->fetchAll();
     }
 
-    public function findByUserProjects(int $userId): array
+    public function findByUserProjects(string $userId): array
     {
         $stmt = $this->db->getConnection()->prepare(
             "SELECT t.*, p.github_repo
@@ -32,7 +33,7 @@ class Task
         return $stmt->fetchAll();
     }
 
-    public function getRunningAutorepeatTasks(int $userId): array
+    public function getRunningAutorepeatTasks(string $userId): array
     {
         $stmt = $this->db->getConnection()->prepare(
             "SELECT t.*, p.github_repo
@@ -62,7 +63,7 @@ class Task
         });
     }
 
-    public function findById(int $id): ?array
+    public function findById(string $id): ?array
     {
         $stmt = $this->db->getConnection()->prepare(
             "SELECT * FROM tasks WHERE task_id = ?"
@@ -72,7 +73,7 @@ class Task
         return $task ?: null;
     }
 
-    public function updateStatus(int $id, string $status): bool
+    public function updateStatus(string $id, string $status): bool
     {
         $stmt = $this->db->getConnection()->prepare(
             "UPDATE tasks SET status = ? WHERE task_id = ?"
@@ -80,7 +81,7 @@ class Task
         return $stmt->execute([$status, $id]);
     }
 
-    public function updateAgentResponse(int $id, string $response, string $status = 'completed'): bool
+    public function updateAgentResponse(string $id, string $response, string $status = 'completed'): bool
     {
         $stmt = $this->db->getConnection()->prepare(
             "UPDATE tasks SET agent_response = ?, status = ? WHERE task_id = ?"
@@ -90,10 +91,12 @@ class Task
 
     public function create(array $data): bool
     {
+        $taskId = Uuid::uuid4()->toString();
         $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO tasks (project_id, issue_number, title, body, github_data, status) VALUES (?, ?, ?, ?, ?, ?)"
+            "INSERT INTO tasks (task_id, project_id, issue_number, title, body, github_data, status) VALUES (?, ?, ?, ?, ?, ?, ?)"
         );
         return $stmt->execute([
+            $taskId,
             $data['project_id'],
             $data['issue_number'],
             $data['title'],
@@ -103,21 +106,22 @@ class Task
         ]);
     }
 
-    public function upsert(int $projectId, array $issue): bool
+    public function upsert(string $projectId, array $issue): bool
     {
+        $taskId = Uuid::uuid4()->toString();
         $connection = $this->db->getConnection();
         $driver = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
 
         if ($driver === 'sqlite') {
-            $sql = "INSERT INTO tasks (project_id, issue_number, title, body, github_data, status)
-                    VALUES (?, ?, ?, ?, ?, ?)
+            $sql = "INSERT INTO tasks (task_id, project_id, issue_number, title, body, github_data, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(project_id, issue_number) DO UPDATE SET
                         title = excluded.title,
                         body = excluded.body,
                         github_data = excluded.github_data";
         } else {
-            $sql = "INSERT INTO tasks (project_id, issue_number, title, body, github_data, status)
-                    VALUES (?, ?, ?, ?, ?, ?)
+            $sql = "INSERT INTO tasks (task_id, project_id, issue_number, title, body, github_data, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE
                         title = VALUES(title),
                         body = VALUES(body),
@@ -127,6 +131,7 @@ class Task
         $stmt = $connection->prepare($sql);
 
         return $stmt->execute([
+            $taskId,
             $projectId,
             $issue['number'],
             $issue['title'],
@@ -136,7 +141,7 @@ class Task
         ]);
     }
 
-    public function getLogs(int $taskId): array
+    public function getLogs(string $taskId): array
     {
         $logger = new Logger($this->db);
         return $logger->getLogsByTaskId($taskId);

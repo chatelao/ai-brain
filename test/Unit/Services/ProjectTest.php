@@ -26,17 +26,17 @@ class ProjectTest extends TestCase
     public function testCreateSuccess()
     {
         $stmtCheck = $this->createMock(PDOStatement::class);
-        $stmtCheck->method('fetch')->willReturn(['github_account_id' => 1]);
+        $stmtCheck->method('fetch')->willReturn(['github_account_id' => 'a1']);
 
         $stmtInsert = $this->createMock(PDOStatement::class);
         $stmtInsert->method('execute')->willReturn(true);
 
         $this->pdo->method('prepare')->willReturnMap([
             ['SELECT github_account_id FROM user_github_accounts WHERE github_account_id = ? AND user_id = ?', $stmtCheck],
-            ['INSERT INTO projects (user_id, github_account_id, github_repo, webhook_secret) VALUES (?, ?, ?, ?)', $stmtInsert]
+            ['INSERT INTO projects (project_id, user_id, github_account_id, github_repo, webhook_secret) VALUES (?, ?, ?, ?, ?)', $stmtInsert]
         ]);
 
-        $result = $this->projectModel->create(1, 1, 'owner/repo');
+        $result = $this->projectModel->create('u1', 'a1', 'owner/repo');
         $this->assertTrue($result);
     }
 
@@ -50,18 +50,18 @@ class ProjectTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage("Invalid GitHub account selected.");
 
-        $this->projectModel->create(1, 1, 'owner/repo');
+        $this->projectModel->create('u1', 'a1', 'owner/repo');
     }
 
     public function testFindById()
     {
         $stmt = $this->createMock(PDOStatement::class);
-        $stmt->method('fetch')->willReturn(['project_id' => 1, 'github_repo' => 'owner/repo']);
+        $stmt->method('fetch')->willReturn(['project_id' => 'p1', 'github_repo' => 'owner/repo']);
 
         $this->pdo->method('prepare')->with($this->stringContains('SELECT p.*, a.github_token, a.github_username'))
             ->willReturn($stmt);
 
-        $project = $this->projectModel->findById(1);
+        $project = $this->projectModel->findById('p1');
         $this->assertEquals('owner/repo', $project['github_repo']);
     }
 }

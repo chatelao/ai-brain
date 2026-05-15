@@ -20,7 +20,7 @@ $pdo = $db->getConnection();
 
 // Create schema for SQLite in-memory
 $pdo->exec("CREATE TABLE IF NOT EXISTS users (
-    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT PRIMARY KEY,
     google_id VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -32,8 +32,8 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS users (
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS user_github_accounts (
-    github_account_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INT NOT NULL,
+    github_account_id TEXT PRIMARY KEY,
+    user_id TEXT,
     github_username VARCHAR(255) NOT NULL,
     github_token VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -42,9 +42,9 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS user_github_accounts (
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS projects (
-    project_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INT NOT NULL,
-    github_account_id INT NOT NULL,
+    project_id TEXT PRIMARY KEY,
+    user_id TEXT,
+    github_account_id TEXT,
     github_repo VARCHAR(255) NOT NULL,
     webhook_secret VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

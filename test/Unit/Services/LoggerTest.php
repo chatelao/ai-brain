@@ -22,8 +22,8 @@ class LoggerTest extends TestCase
     private function createSchema(): void
     {
         $pdo = $this->db->getConnection();
-        $pdo->exec("CREATE TABLE tasks (task_id INTEGER PRIMARY KEY, project_id INTEGER, issue_number INTEGER, title TEXT, status TEXT)");
-        $pdo->exec("CREATE TABLE task_logs (task_log_id INTEGER PRIMARY KEY, task_id INTEGER, level TEXT, message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+        $pdo->exec("CREATE TABLE tasks (task_id TEXT PRIMARY KEY, project_id TEXT, issue_number INT, title TEXT, status TEXT)");
+        $pdo->exec("CREATE TABLE task_logs (task_log_id TEXT PRIMARY KEY, task_id TEXT, level TEXT, message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
     }
 
     public function testLogAndGetLogs(): void

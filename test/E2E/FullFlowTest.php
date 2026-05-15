@@ -29,7 +29,7 @@ class FullFlowTest extends TestCase
         $this->pdo = new PDO('sqlite:test_e2e.sqlite');
         $this->pdo->exec("DROP TABLE IF EXISTS users");
         $this->pdo->exec("CREATE TABLE users (
-            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT PRIMARY KEY,
             google_id VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,

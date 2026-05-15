@@ -3,6 +3,7 @@
 namespace App;
 
 use PDO;
+use Ramsey\Uuid\Uuid;
 
 class IssueTemplate
 {
@@ -10,15 +11,16 @@ class IssueTemplate
     {
     }
 
-    public function create(int $userId, string $name, string $title, ?string $body, ?string $parameterConfig = null): bool
+    public function create(string $userId, string $name, string $title, ?string $body, ?string $parameterConfig = null): bool
     {
+        $templateId = Uuid::uuid4()->toString();
         $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO issue_templates (user_id, name, title_template, body_template, parameter_config) VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO issue_templates (issue_template_id, user_id, name, title_template, body_template, parameter_config) VALUES (?, ?, ?, ?, ?, ?)"
         );
-        return $stmt->execute([$userId, $name, $title, $body, $parameterConfig]);
+        return $stmt->execute([$templateId, $userId, $name, $title, $body, $parameterConfig]);
     }
 
-    public function findByUserId(int $userId): array
+    public function findByUserId(string $userId): array
     {
         $stmt = $this->db->getConnection()->prepare(
             "SELECT * FROM issue_templates WHERE user_id = ? ORDER BY created_at DESC"
@@ -33,7 +35,7 @@ class IssueTemplate
         return $templates;
     }
 
-    public function findById(int $id): ?array
+    public function findById(string $id): ?array
     {
         $stmt = $this->db->getConnection()->prepare(
             "SELECT * FROM issue_templates WHERE issue_template_id = ?"
@@ -49,7 +51,7 @@ class IssueTemplate
         return null;
     }
 
-    public function delete(int $id, int $userId): bool
+    public function delete(string $id, string $userId): bool
     {
         $stmt = $this->db->getConnection()->prepare(
             "DELETE FROM issue_templates WHERE issue_template_id = ? AND user_id = ?"
@@ -57,7 +59,7 @@ class IssueTemplate
         return $stmt->execute([$id, $userId]);
     }
 
-    public function update(int $id, int $userId, string $name, string $title, ?string $body, ?string $parameterConfig = null): bool
+    public function update(string $id, string $userId, string $name, string $title, ?string $body, ?string $parameterConfig = null): bool
     {
         $stmt = $this->db->getConnection()->prepare(
             "UPDATE issue_templates SET name = ?, title_template = ?, body_template = ?, parameter_config = ? WHERE issue_template_id = ? AND user_id = ?"

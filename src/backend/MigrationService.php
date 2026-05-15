@@ -4,6 +4,7 @@ namespace App;
 
 use PDO;
 use Exception;
+use Ramsey\Uuid\Uuid;
 
 class MigrationService
 {
@@ -51,8 +52,8 @@ class MigrationService
                 // so we might need to split it if it becomes an issue.
                 $connection->exec($sql);
 
-                $stmt = $connection->prepare("INSERT INTO migrations (patch_name) VALUES (?)");
-                $stmt->execute([$patchName]);
+                $stmt = $connection->prepare("INSERT INTO migrations (migration_id, patch_name) VALUES (?, ?)");
+                $stmt->execute([Uuid::uuid4()->toString(), $patchName]);
 
                 $connection->commit();
                 $logs[] = "Successfully applied patch: $patchName";
@@ -75,7 +76,7 @@ class MigrationService
     private function ensureMigrationsTableExists(PDO $connection): void
     {
         $sql = "CREATE TABLE IF NOT EXISTS migrations (
-            migration_id INT AUTO_INCREMENT PRIMARY KEY,
+            migration_id CHAR(36) PRIMARY KEY,
             patch_name VARCHAR(255) UNIQUE NOT NULL,
             applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
@@ -83,7 +84,7 @@ class MigrationService
         // Check if we are using SQLite
         if ($connection->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
             $sql = "CREATE TABLE IF NOT EXISTS migrations (
-                migration_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                migration_id TEXT PRIMARY KEY,
                 patch_name TEXT UNIQUE NOT NULL,
                 applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );";

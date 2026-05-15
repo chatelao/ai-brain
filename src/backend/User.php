@@ -3,6 +3,7 @@
 namespace App;
 
 use PDO;
+use Ramsey\Uuid\Uuid;
 
 class User
 {
@@ -18,7 +19,7 @@ class User
         return $user ?: null;
     }
 
-    public function findById(int $id): ?array
+    public function findById(string $id): ?array
     {
         $stmt = $this->db->getConnection()->prepare("SELECT * FROM users WHERE user_id = ?");
         $stmt->execute([$id]);
@@ -43,44 +44,46 @@ class User
             ]);
             return array_merge($user, $data);
         } else {
+            $userId = Uuid::uuid4()->toString();
             $stmt = $this->db->getConnection()->prepare(
-                "INSERT INTO users (google_id, name, email, avatar, role) VALUES (?, ?, ?, ?, ?)"
+                "INSERT INTO users (user_id, google_id, name, email, avatar, role) VALUES (?, ?, ?, ?, ?, ?)"
             );
             $stmt->execute([
+                $userId,
                 $data['google_id'],
                 $data['name'],
                 $data['email'],
                 $data['avatar'] ?? null,
                 $data['role'] ?? 'user'
             ]);
-            $id = $this->db->getConnection()->lastInsertId();
-            return $this->findById((int)$id);
+            return $this->findById($userId);
         }
     }
 
-    public function addGitHubAccount(int $userId, string $token, string $username): bool
+    public function addGitHubAccount(string $userId, string $token, string $username): bool
     {
+        $githubAccountId = Uuid::uuid4()->toString();
         // Check database type first
         $dbType = $this->db->getConnection()->getAttribute(PDO::ATTR_DRIVER_NAME);
 
         if ($dbType === 'sqlite') {
             $stmt = $this->db->getConnection()->prepare(
-                "INSERT INTO user_github_accounts (user_id, github_token, github_username)
-                 VALUES (?, ?, ?)
+                "INSERT INTO user_github_accounts (github_account_id, user_id, github_token, github_username)
+                 VALUES (?, ?, ?, ?)
                  ON CONFLICT(user_id, github_username) DO UPDATE SET github_token = excluded.github_token"
             );
-            return $stmt->execute([$userId, $token, $username]);
+            return $stmt->execute([$githubAccountId, $userId, $token, $username]);
         }
 
         $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO user_github_accounts (user_id, github_token, github_username)
-             VALUES (?, ?, ?)
+            "INSERT INTO user_github_accounts (github_account_id, user_id, github_token, github_username)
+             VALUES (?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE github_token = ?"
         );
-        return $stmt->execute([$userId, $token, $username, $token]);
+        return $stmt->execute([$githubAccountId, $userId, $token, $username, $token]);
     }
 
-    public function getGitHubAccounts(int $userId): array
+    public function getGitHubAccounts(string $userId): array
     {
         $stmt = $this->db->getConnection()->prepare(
             "SELECT * FROM user_github_accounts WHERE user_id = ?"
@@ -102,7 +105,7 @@ class User
         return $stmt->fetchAll();
     }
 
-    public function generateTelegramLinkToken(int $userId): string
+    public function generateTelegramLinkToken(string $userId): string
     {
         $token = bin2hex(random_bytes(16));
         $stmt = $this->db->getConnection()->prepare(
@@ -124,10 +127,11 @@ class User
             return false;
         }
 
+        $telegramAccountId = Uuid::uuid4()->toString();
         $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO user_telegram_accounts (user_id, telegram_chat_id) VALUES (?, ?)"
+            "INSERT INTO user_telegram_accounts (telegram_account_id, user_id, telegram_chat_id) VALUES (?, ?, ?)"
         );
-        $success = $stmt->execute([$user['user_id'], $chatId]);
+        $success = $stmt->execute([$telegramAccountId, $user['user_id'], $chatId]);
 
         if ($success) {
             // Clear the token after successful linking
@@ -140,7 +144,7 @@ class User
         return $success;
     }
 
-    public function getTelegramChatId(int $userId): ?int
+    public function getTelegramChatId(string $userId): ?int
     {
         $stmt = $this->db->getConnection()->prepare(
             "SELECT telegram_chat_id FROM user_telegram_accounts WHERE user_id = ?"
@@ -150,7 +154,7 @@ class User
         return $result ? (int)$result['telegram_chat_id'] : null;
     }
 
-    public function updateJulesApiKey(int $userId, ?string $apiKey): bool
+    public function updateJulesApiKey(string $userId, ?string $apiKey): bool
     {
         $stmt = $this->db->getConnection()->prepare(
             "UPDATE users SET jules_api_key = ? WHERE user_id = ?"

@@ -29,7 +29,9 @@ class UserGitHubAccountTest extends TestCase
         $stmt = $this->createMock(PDOStatement::class);
         $stmt->expects($this->once())
              ->method('execute')
-             ->with([1, 'token123', 'user123', 'token123'])
+             ->with($this->callback(function($params) {
+                 return count($params) === 5 && $params[1] === 'u1' && $params[2] === 'token123' && $params[3] === 'user123' && $params[4] === 'token123';
+             }))
              ->willReturn(true);
 
         $this->pdo->expects($this->once())
@@ -37,7 +39,7 @@ class UserGitHubAccountTest extends TestCase
                   ->with($this->stringContains("INSERT INTO user_github_accounts"))
                   ->willReturn($stmt);
 
-        $result = $this->userModel->addGitHubAccount(1, 'token123', 'user123');
+        $result = $this->userModel->addGitHubAccount('u1', 'token123', 'user123');
         $this->assertTrue($result);
     }
 
@@ -46,12 +48,12 @@ class UserGitHubAccountTest extends TestCase
         $stmt = $this->createMock(PDOStatement::class);
         $stmt->expects($this->once())
              ->method('execute')
-             ->with([1]);
+             ->with(['u1']);
         $stmt->expects($this->once())
              ->method('fetchAll')
              ->willReturn([
-                 ['user_id' => 1, 'user_id' => 1, 'github_username' => 'user1', 'github_token' => 'token1'],
-                 ['user_id' => 2, 'user_id' => 1, 'github_username' => 'user2', 'github_token' => 'token2']
+                 ['github_account_id' => 'a1', 'user_id' => 'u1', 'github_username' => 'user1', 'github_token' => 'token1'],
+                 ['github_account_id' => 'a2', 'user_id' => 'u1', 'github_username' => 'user2', 'github_token' => 'token2']
              ]);
 
         $this->pdo->expects($this->once())
@@ -59,7 +61,7 @@ class UserGitHubAccountTest extends TestCase
                   ->with($this->stringContains("SELECT * FROM user_github_accounts"))
                   ->willReturn($stmt);
 
-        $accounts = $this->userModel->getGitHubAccounts(1);
+        $accounts = $this->userModel->getGitHubAccounts('u1');
         $this->assertCount(2, $accounts);
         $this->assertEquals('user1', $accounts[0]['github_username']);
         $this->assertEquals('user2', $accounts[1]['github_username']);

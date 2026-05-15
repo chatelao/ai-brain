@@ -60,7 +60,7 @@ class Auth
         session_destroy();
     }
 
-    public function getUserId(): ?int
+    public function getUserId(): ?string
     {
         return $_SESSION['user_id'] ?? null;
     }

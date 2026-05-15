@@ -37,11 +37,11 @@ class DashboardTest extends TestCase
     {
         $auth = $this->createMock(Auth::class);
         $auth->method('isLoggedIn')->willReturn(true);
-        $auth->method('getUserId')->willReturn(1);
+        $auth->method('getUserId')->willReturn('u1');
 
         $userModel = $this->createMock(User::class);
-        $userModel->method('findById')->with(1)->willReturn([
-            'id' => 1,
+        $userModel->method('findById')->with('u1')->willReturn([
+            'id' => 'u1',
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'avatar' => null
