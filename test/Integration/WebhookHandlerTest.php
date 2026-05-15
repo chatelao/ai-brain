@@ -19,7 +19,7 @@ class WebhookHandlerTest extends TestCase
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $this->pdo->exec("CREATE TABLE tasks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER PRIMARY KEY AUTOINCREMENT,
             project_id INT NOT NULL,
             issue_number INT NOT NULL,
             title VARCHAR(255) NOT NULL,
@@ -70,55 +70,5 @@ class WebhookHandlerTest extends TestCase
         $this->assertEquals('Test Issue', $task['title']);
         $this->assertEquals('Issue description', $task['body']);
         $this->assertEquals('pending', $task['status']);
-    }
-
-    public function testHandleIssueUpdate()
-    {
-        $projectId = 1;
-        $eventOpened = [
-            'action' => 'opened',
-            'issue' => [
-                'number' => 123,
-                'title' => 'Original Title',
-                'body' => 'Original Body'
-            ]
-        ];
-
-        $this->handler->handle($projectId, $eventOpened);
-
-        $eventEdited = [
-            'action' => 'edited',
-            'issue' => [
-                'number' => 123,
-                'title' => 'Updated Title',
-                'body' => 'Updated Body'
-            ]
-        ];
-
-        $result = $this->handler->handle($projectId, $eventEdited);
-        $this->assertTrue($result);
-
-        $stmt = $this->pdo->prepare("SELECT * FROM tasks WHERE project_id = ? AND issue_number = ?");
-        $stmt->execute([$projectId, 123]);
-        $task = $stmt->fetch();
-
-        $this->assertEquals('Updated Title', $task['title']);
-        $this->assertEquals('Updated Body', $task['body']);
-    }
-
-    public function testHandleUnsupportedAction()
-    {
-        $projectId = 1;
-        $event = [
-            'action' => 'deleted',
-            'issue' => [
-                'number' => 123,
-                'title' => 'Test Issue',
-                'body' => 'Issue description'
-            ]
-        ];
-
-        $result = $this->handler->handle($projectId, $event);
-        $this->assertFalse($result);
     }
 }

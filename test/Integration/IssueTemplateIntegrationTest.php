@@ -20,16 +20,16 @@ class IssueTemplateIntegrationTest extends TestCase
         $this->db = new Database(null, ':memory:');
         $pdo = $this->db->getConnection();
 
-        $pdo->exec("CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, google_id TEXT, name TEXT, email TEXT)");
+        $pdo->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY AUTOINCREMENT, google_id TEXT, name TEXT, email TEXT)");
         $pdo->exec("CREATE TABLE issue_templates (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            issue_template_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
             name TEXT,
             title_template TEXT,
             body_template TEXT,
             parameter_config TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id)
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
         )");
 
         $pdo->exec("INSERT INTO users (google_id, name, email) VALUES ('123', 'Test User', 'test@example.com')");

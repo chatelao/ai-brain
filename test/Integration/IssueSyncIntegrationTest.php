@@ -19,7 +19,7 @@ class IssueSyncIntegrationTest extends TestCase
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $this->pdo->exec("CREATE TABLE tasks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER PRIMARY KEY AUTOINCREMENT,
             project_id INT NOT NULL,
             issue_number INT NOT NULL,
             title VARCHAR(255) NOT NULL,

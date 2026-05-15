@@ -50,8 +50,8 @@ class UserGitHubAccountTest extends TestCase
         $stmt->expects($this->once())
              ->method('fetchAll')
              ->willReturn([
-                 ['id' => 1, 'user_id' => 1, 'github_username' => 'user1', 'github_token' => 'token1'],
-                 ['id' => 2, 'user_id' => 1, 'github_username' => 'user2', 'github_token' => 'token2']
+                 ['user_id' => 1, 'user_id' => 1, 'github_username' => 'user1', 'github_token' => 'token1'],
+                 ['user_id' => 2, 'user_id' => 1, 'github_username' => 'user2', 'github_token' => 'token2']
              ]);
 
         $this->pdo->expects($this->once())

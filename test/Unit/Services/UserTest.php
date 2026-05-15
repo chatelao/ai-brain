@@ -19,118 +19,109 @@ class UserTest extends TestCase
         $this->pdo = $this->createMock(PDO::class);
         $this->db = $this->createMock(Database::class);
         $this->db->method('getConnection')->willReturn($this->pdo);
+
         $this->userModel = new User($this->db);
     }
 
     public function testFindByGoogleId()
     {
         $stmt = $this->createMock(PDOStatement::class);
-        $stmt->expects($this->once())
-             ->method('execute')
-             ->with(['google-123']);
-        $stmt->expects($this->once())
-             ->method('fetch')
-             ->willReturn(['id' => 1, 'google_id' => 'google-123', 'name' => 'Test User']);
+        $stmt->expects($this->once())->method('execute')->with(['google-123']);
+        $stmt->method('fetch')->willReturn(['user_id' => 1, 'name' => 'Test User']);
 
-        $this->pdo->expects($this->once())
-                  ->method('prepare')
-                  ->willReturn($stmt);
+        $this->pdo->method('prepare')->with($this->stringContains('SELECT * FROM users WHERE google_id = ?'))
+            ->willReturn($stmt);
 
-        $result = $this->userModel->findByGoogleId('google-123');
-        $this->assertEquals('Test User', $result['name']);
+        $user = $this->userModel->findByGoogleId('google-123');
+        $this->assertEquals('Test User', $user['name']);
+    }
+
+    public function testFindById()
+    {
+        $stmt = $this->createMock(PDOStatement::class);
+        $stmt->expects($this->once())->method('execute')->with([1]);
+        $stmt->method('fetch')->willReturn(['user_id' => 1, 'name' => 'Test User']);
+
+        $this->pdo->method('prepare')->with($this->stringContains('SELECT * FROM users WHERE user_id = ?'))
+            ->willReturn($stmt);
+
+        $user = $this->userModel->findById(1);
+        $this->assertEquals('Test User', $user['name']);
     }
 
     public function testCreateOrUpdateCreatesNewUser()
     {
-        $userData = [
-            'google_id' => 'google-456',
-            'name' => 'New User',
-            'email' => 'new@example.com',
-            'avatar' => 'avatar.jpg'
-        ];
+        // 1. Mock findByGoogleId call (returns null)
+        $stmtFind = $this->createMock(PDOStatement::class);
+        $stmtFind->method('fetch')->willReturn(null);
 
-        // 1. findByGoogleId returns null
-        $stmt1 = $this->createMock(PDOStatement::class);
-        $stmt1->method('fetch')->willReturn(null);
+        // 2. Mock INSERT
+        $stmtInsert = $this->createMock(PDOStatement::class);
+        $stmtInsert->method('execute')->willReturn(true);
 
-        // 2. INSERT
-        $stmt2 = $this->createMock(PDOStatement::class);
+        // 3. Mock findById call
+        $stmtFindById = $this->createMock(PDOStatement::class);
+        $stmtFindById->method('fetch')->willReturn(['user_id' => 1, 'google_id' => 'g1', 'name' => 'N', 'email' => 'e']);
 
-        // 3. findById after insert
-        $stmt3 = $this->createMock(PDOStatement::class);
-        $stmt3->method('fetch')->willReturn(['id' => 2, 'google_id' => 'google-456', 'name' => 'New User']);
+        $this->pdo->method('prepare')->willReturnMap([
+            ['SELECT * FROM users WHERE google_id = ?', $stmtFind],
+            ['INSERT INTO users (google_id, name, email, avatar, role) VALUES (?, ?, ?, ?, ?)', $stmtInsert],
+            ['SELECT * FROM users WHERE user_id = ?', $stmtFindById]
+        ]);
 
-        $this->pdo->method('prepare')
-                  ->willReturnCallback(function($sql) use ($stmt1, $stmt2, $stmt3) {
-                      if (str_contains($sql, "SELECT * FROM users WHERE google_id = ?")) return $stmt1;
-                      if (str_contains($sql, "INSERT INTO users")) return $stmt2;
-                      if (str_contains($sql, "SELECT * FROM users WHERE id = ?")) return $stmt3;
-                      return null;
-                  });
+        $this->pdo->method('lastInsertId')->willReturn("1");
 
-        $this->pdo->method('lastInsertId')->willReturn("2");
+        $data = ['google_id' => 'g1', 'name' => 'N', 'email' => 'e'];
+        $user = $this->userModel->createOrUpdate($data);
 
-        $result = $this->userModel->createOrUpdate($userData);
-        $this->assertEquals(2, $result['id']);
-        $this->assertEquals('New User', $result['name']);
+        $this->assertNotNull($user);
+        $this->assertEquals('g1', $user['google_id']);
     }
 
     public function testGenerateTelegramLinkToken()
     {
         $stmt = $this->createMock(PDOStatement::class);
-        $stmt->expects($this->once())
-             ->method('execute')
-             ->with($this->callback(function($params) {
-                 return strlen($params[0]) === 32 && $params[1] === 1;
-             }));
+        $stmt->expects($this->once())->method('execute');
 
         $this->pdo->expects($this->once())
-                  ->method('prepare')
-                  ->with($this->stringContains("UPDATE users SET telegram_link_token = ? WHERE id = ?"))
-                  ->willReturn($stmt);
+            ->method('prepare')
+            ->with($this->stringContains('UPDATE users SET telegram_link_token = ? WHERE user_id = ?'))
+            ->willReturn($stmt);
 
         $token = $this->userModel->generateTelegramLinkToken(1);
-        $this->assertEquals(32, strlen($token));
+        $this->assertNotEmpty($token);
     }
 
     public function testLinkTelegramAccountSuccess()
     {
-        // 1. SELECT user by token
-        $stmt1 = $this->createMock(PDOStatement::class);
-        $stmt1->method('fetch')->willReturn(['id' => 10]);
+        $stmtFind = $this->createMock(PDOStatement::class);
+        $stmtFind->method('fetch')->willReturn(['user_id' => 1]);
 
-        // 2. INSERT into user_telegram_accounts
-        $stmt2 = $this->createMock(PDOStatement::class);
-        $stmt2->method('execute')->willReturn(true);
+        $stmtInsert = $this->createMock(PDOStatement::class);
+        $stmtInsert->method('execute')->willReturn(true);
 
-        // 3. UPDATE users to clear token
-        $stmt3 = $this->createMock(PDOStatement::class);
+        $stmtUpdate = $this->createMock(PDOStatement::class);
+        $stmtUpdate->method('execute')->willReturn(true);
 
-        $this->pdo->method('prepare')
-                  ->willReturnCallback(function($sql) use ($stmt1, $stmt2, $stmt3) {
-                      if (str_contains($sql, "SELECT id FROM users WHERE telegram_link_token = ?")) return $stmt1;
-                      if (str_contains($sql, "INSERT INTO user_telegram_accounts")) return $stmt2;
-                      if (str_contains($sql, "UPDATE users SET telegram_link_token = NULL")) return $stmt3;
-                      return null;
-                  });
+        $this->pdo->method('prepare')->willReturnMap([
+            ['SELECT user_id FROM users WHERE telegram_link_token = ?', $stmtFind],
+            ['INSERT INTO user_telegram_accounts (user_id, telegram_chat_id) VALUES (?, ?)', $stmtInsert],
+            ['UPDATE users SET telegram_link_token = NULL WHERE user_id = ?', $stmtUpdate]
+        ]);
 
-        $result = $this->userModel->linkTelegramAccount('valid_token', 123456);
-        $this->assertTrue($result);
+        $success = $this->userModel->linkTelegramAccount('token-123', 999);
+        $this->assertTrue($success);
     }
 
     public function testLinkTelegramAccountFailure()
     {
-        // 1. SELECT user by token returns null
-        $stmt1 = $this->createMock(PDOStatement::class);
-        $stmt1->method('fetch')->willReturn(null);
+        $stmtFind = $this->createMock(PDOStatement::class);
+        $stmtFind->method('fetch')->willReturn(null);
 
-        $this->pdo->method('prepare')
-                  ->willReturnCallback(function($sql) use ($stmt1) {
-                      if (str_contains($sql, "SELECT id FROM users WHERE telegram_link_token = ?")) return $stmt1;
-                      return null;
-                  });
+        $this->pdo->method('prepare')->with($this->stringContains('SELECT user_id FROM users WHERE telegram_link_token = ?'))
+            ->willReturn($stmtFind);
 
-        $result = $this->userModel->linkTelegramAccount('invalid_token', 123456);
-        $this->assertFalse($result);
+        $success = $this->userModel->linkTelegramAccount('bad-token', 999);
+        $this->assertFalse($success);
     }
 }

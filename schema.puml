@@ -4,7 +4,7 @@ hide circle
 skinparam linetype ortho
 
 entity "users" {
-  * <color:grey><i>id</i></color> : INT <<PK>>
+  * <color:grey><i>user_id</i></color> : INT <<PK>>
   --
   * <color:grey>google_id</color> : VARCHAR(255) <<UNIQUE>>
   * name : VARCHAR(255)
@@ -16,7 +16,7 @@ entity "users" {
 }
 
 entity "user_github_accounts" {
-  * <color:grey><i>id</i></color> : INT <<PK>>
+  * <color:grey><i>github_account_id</i></color> : INT <<PK>>
   --
   * <color:grey><i>user_id</i></color> : INT <<FK>>
   * <color:grey>github_username</color> : VARCHAR(255)
@@ -25,7 +25,7 @@ entity "user_github_accounts" {
 }
 
 entity "projects" {
-  * <color:grey><i>id</i></color> : INT <<PK>>
+  * <color:grey><i>project_id</i></color> : INT <<PK>>
   --
   * <color:grey><i>user_id</i></color> : INT <<FK>>
   * <color:grey><i>github_account_id</i></color> : INT <<FK>>
@@ -35,7 +35,7 @@ entity "projects" {
 }
 
 entity "tasks" {
-  * <color:grey><i>id</i></color> : INT <<PK>>
+  * <color:grey><i>task_id</i></color> : INT <<PK>>
   --
   * <color:grey><i>project_id</i></color> : INT <<FK>>
   * <color:grey>issue_number</color> : INT
@@ -49,7 +49,7 @@ entity "tasks" {
 }
 
 entity "task_logs" {
-  * <color:grey><i>id</i></color> : INT <<PK>>
+  * <color:grey><i>task_log_id</i></color> : INT <<PK>>
   --
   * <color:grey><i>task_id</i></color> : INT <<FK>>
   level : VARCHAR(20)
@@ -65,7 +65,7 @@ entity "rate_limits" {
 }
 
 entity "user_telegram_accounts" {
-  * <color:grey><i>id</i></color> : INT <<PK>>
+  * <color:grey><i>telegram_account_id</i></color> : INT <<PK>>
   --
   * <color:grey><i>user_id</i></color> : INT <<FK>>
   * <color:grey>telegram_chat_id</color> : BIGINT <<UNIQUE>>
@@ -73,7 +73,7 @@ entity "user_telegram_accounts" {
 }
 
 entity "issue_templates" {
-  * <color:grey><i>id</i></color> : INT <<PK>>
+  * <color:grey><i>issue_template_id</i></color> : INT <<PK>>
   --
   * <color:grey><i>user_id</i></color> : INT <<FK>>
   * <color:grey>name</color> : VARCHAR(255)

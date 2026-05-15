@@ -21,7 +21,7 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_jules
         die("CSRF token validation failed.");
     }
     $apiKey = trim($_POST['jules_api_key']);
-    if ($userModel->updateJulesApiKey($user['id'], $apiKey)) {
+    if ($userModel->updateJulesApiKey($user['user_id'], $apiKey)) {
         header('Location: index.php?success=key_updated');
         exit;
     } else {
@@ -38,7 +38,7 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_repo'
     $accountId = (int)$_POST['github_account_id'];
     if (!empty($repo) && $accountId > 0) {
         try {
-            $projectModel->create($user['id'], $accountId, $repo);
+            $projectModel->create($user['user_id'], $accountId, $repo);
             header('Location: index.php?success=project_created');
             exit;
         } catch (Exception $e) {
@@ -52,19 +52,19 @@ if ($user && isset($_GET['delete_project'])) {
     if (!$auth->validateCsrfToken($_GET['csrf_token'] ?? null)) {
         die("CSRF token validation failed.");
     }
-    $projectModel->delete((int)$_GET['delete_project'], $user['id']);
+    $projectModel->delete((int)$_GET['delete_project'], $user['user_id']);
     header('Location: index.php?success=project_deleted');
     exit;
 }
 
-$projects = $user ? $projectModel->findByUserId($user['id']) : [];
-$githubAccounts = $user ? $userModel->getGitHubAccounts($user['id']) : [];
+$projects = $user ? $projectModel->findByUserId($user['user_id']) : [];
+$githubAccounts = $user ? $userModel->getGitHubAccounts($user['user_id']) : [];
 $taskModel = new Task($db);
-$autorepeatTasks = $user ? $taskModel->getRunningAutorepeatTasks($user['id']) : [];
+$autorepeatTasks = $user ? $taskModel->getRunningAutorepeatTasks($user['user_id']) : [];
 
 $projectTasks = [];
 if ($user) {
-    $allTasks = $taskModel->findByUserProjects($user['id']);
+    $allTasks = $taskModel->findByUserProjects($user['user_id']);
     foreach ($allTasks as $task) {
         $projectTasks[$task['project_id']][] = $task;
     }
@@ -251,7 +251,7 @@ $errorMessage = $errorMessage ?? null;
                                                             <?= htmlspecialchars($project['github_repo']) ?>
                                                         </a>
                                                     </h5>
-                                                    <a href="?delete_project=<?= $project['id'] ?>&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-red-600 hover:text-red-800" onclick="return confirm('Are you sure?')">
+                                                    <a href="?delete_project=<?= $project['project_id'] ?>&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-red-600 hover:text-red-800" onclick="return confirm('Are you sure?')">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                     </a>
                                                 </div>
@@ -259,13 +259,13 @@ $errorMessage = $errorMessage ?? null;
 
                                                 <div class="flex flex-wrap gap-1 mt-3">
                                                     <?php
-                                                    $tasks = $projectTasks[$project['id']] ?? [];
+                                                    $tasks = $projectTasks[$project['project_id']] ?? [];
                                                     foreach ($tasks as $task):
                                                         $color = $taskModel->getStatusColor($task);
                                                         $isAutorepeat = $taskModel->hasAutorepeatLabel($task);
                                                     ?>
                                                         <div class="relative group">
-                                                            <a href="project.php?id=<?= $project['id'] ?>"
+                                                            <a href="project.php?id=<?= $project['project_id'] ?>"
                                                                class="status-square <?= $color ?> <?= $isAutorepeat ? 'auto-repeat-tag' : '' ?>">
                                                             </a>
                                                             <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">
@@ -276,7 +276,7 @@ $errorMessage = $errorMessage ?? null;
                                                 </div>
 
                                                 <div class="mt-4">
-                                                    <a href="project.php?id=<?= $project['id'] ?>" class="text-blue-600 hover:underline text-sm font-medium">View Project Details &rarr;</a>
+                                                    <a href="project.php?id=<?= $project['project_id'] ?>" class="text-blue-600 hover:underline text-sm font-medium">View Project Details &rarr;</a>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
@@ -292,7 +292,7 @@ $errorMessage = $errorMessage ?? null;
                                                         <label class="block mb-1 text-xs font-medium text-gray-900">GitHub Account</label>
                                                         <select name="github_account_id" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                                                             <?php foreach ($githubAccounts as $account): ?>
-                                                                <option value="<?= $account['id'] ?>"><?= htmlspecialchars($account['github_username']) ?></option>
+                                                                <option value="<?= $account['github_account_id'] ?>"><?= htmlspecialchars($account['github_username']) ?></option>
                                                             <?php endforeach; ?>
                                                         </select>
                                                     </div>

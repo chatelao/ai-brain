@@ -75,7 +75,7 @@ class MigrationService
     private function ensureMigrationsTableExists(PDO $connection): void
     {
         $sql = "CREATE TABLE IF NOT EXISTS migrations (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            migration_id INT AUTO_INCREMENT PRIMARY KEY,
             patch_name VARCHAR(255) UNIQUE NOT NULL,
             applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
@@ -83,7 +83,7 @@ class MigrationService
         // Check if we are using SQLite
         if ($connection->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
             $sql = "CREATE TABLE IF NOT EXISTS migrations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                migration_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 patch_name TEXT UNIQUE NOT NULL,
                 applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );";

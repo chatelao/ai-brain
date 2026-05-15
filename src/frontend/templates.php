@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_template'])) {
 
     if (!empty($name) && !empty($title)) {
         try {
-            $templateModel->create($user['id'], $name, $title, $body, $parameterConfig);
+            $templateModel->create($user['user_id'], $name, $title, $body, $parameterConfig);
             $successMessage = "Template created successfully.";
         } catch (Exception $e) {
             $errorMessage = $e->getMessage();
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_template'])) {
 
     if ($id > 0 && !empty($name) && !empty($title)) {
         try {
-            $templateModel->update($id, $user['id'], $name, $title, $body, $parameterConfig);
+            $templateModel->update($id, $user['user_id'], $name, $title, $body, $parameterConfig);
             $successMessage = "Template updated successfully.";
         } catch (Exception $e) {
             $errorMessage = $e->getMessage();
@@ -73,11 +73,11 @@ if (isset($_GET['delete_template'])) {
     if (!$auth->validateCsrfToken($_GET['csrf_token'] ?? null)) {
         die("CSRF token validation failed.");
     }
-    $templateModel->delete((int)$_GET['delete_template'], $user['id']);
+    $templateModel->delete((int)$_GET['delete_template'], $user['user_id']);
     $successMessage = "Template deleted successfully.";
 }
 
-$templates = $templateModel->findByUserId($user['id']);
+$templates = $templateModel->findByUserId($user['user_id']);
 
 ?>
 <!DOCTYPE html>
@@ -93,7 +93,7 @@ $templates = $templateModel->findByUserId($user['id']);
 <body class="bg-gray-100 font-sans leading-normal tracking-normal" x-data="{
     editing: false,
     template: {
-        id: '',
+        issue_template_id: '',
         name: '',
         title_template: '',
         body_template: '',
@@ -108,7 +108,7 @@ $templates = $templateModel->findByUserId($user['id']);
     },
     cancelEdit() {
         this.editing = false;
-        this.template = { id: '', name: '', title_template: '', body_template: '', parameter_config: {} };
+        this.template = { issue_template_id: '', name: '', title_template: '', body_template: '', parameter_config: {} };
     },
     get placeholders() {
         const combined = this.template.title_template + ' ' + this.template.body_template;
@@ -201,7 +201,7 @@ $templates = $templateModel->findByUserId($user['id']);
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <button @click="editTemplate(<?= htmlspecialchars(json_encode($template)) ?>)" class="text-blue-600 hover:text-blue-800 font-medium mr-3">Edit</button>
-                                                    <a href="?delete_template=<?= $template['id'] ?>&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-red-600 hover:text-red-800 font-medium" onclick="return confirm('Are you sure?')">Delete</a>
+                                                    <a href="?delete_template=<?= $template['issue_template_id'] ?>&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-red-600 hover:text-red-800 font-medium" onclick="return confirm('Are you sure?')">Delete</a>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -214,7 +214,7 @@ $templates = $templateModel->findByUserId($user['id']);
                             <h3 class="text-lg font-bold text-gray-900 mb-4" x-text="editing ? 'Edit Template' : 'Create New Template'">Create New Template</h3>
                             <form method="POST">
                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                <input type="hidden" name="template_id" x-model="template.id">
+                                <input type="hidden" name="template_id" x-model="template.issue_template_id">
                                 <div class="mb-4">
                                     <label class="block mb-2 text-sm font-medium text-gray-900">Template Name</label>
                                     <input type="text" name="name" x-model="template.name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Bug Report" required>

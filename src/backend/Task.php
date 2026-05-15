@@ -24,7 +24,7 @@ class Task
         $stmt = $this->db->getConnection()->prepare(
             "SELECT t.*, p.github_repo
              FROM tasks t
-             JOIN projects p ON t.project_id = p.id
+             JOIN projects p ON t.project_id = p.project_id
              WHERE p.user_id = ?
              ORDER BY t.created_at DESC"
         );
@@ -37,7 +37,7 @@ class Task
         $stmt = $this->db->getConnection()->prepare(
             "SELECT t.*, p.github_repo
              FROM tasks t
-             JOIN projects p ON t.project_id = p.id
+             JOIN projects p ON t.project_id = p.project_id
              WHERE p.user_id = ?
              ORDER BY t.created_at DESC"
         );
@@ -65,7 +65,7 @@ class Task
     public function findById(int $id): ?array
     {
         $stmt = $this->db->getConnection()->prepare(
-            "SELECT * FROM tasks WHERE id = ?"
+            "SELECT * FROM tasks WHERE task_id = ?"
         );
         $stmt->execute([$id]);
         $task = $stmt->fetch();
@@ -75,7 +75,7 @@ class Task
     public function updateStatus(int $id, string $status): bool
     {
         $stmt = $this->db->getConnection()->prepare(
-            "UPDATE tasks SET status = ? WHERE id = ?"
+            "UPDATE tasks SET status = ? WHERE task_id = ?"
         );
         return $stmt->execute([$status, $id]);
     }
@@ -83,7 +83,7 @@ class Task
     public function updateAgentResponse(int $id, string $response, string $status = 'completed'): bool
     {
         $stmt = $this->db->getConnection()->prepare(
-            "UPDATE tasks SET agent_response = ?, status = ? WHERE id = ?"
+            "UPDATE tasks SET agent_response = ?, status = ? WHERE task_id = ?"
         );
         return $stmt->execute([$response, $status, $id]);
     }
