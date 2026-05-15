@@ -44,4 +44,12 @@ class IssueTemplate
         );
         return $stmt->execute([$id, $userId]);
     }
+
+    public function update(int $id, int $userId, string $name, string $title, ?string $body): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE issue_templates SET name = ?, title_template = ?, body_template = ? WHERE id = ? AND user_id = ?"
+        );
+        return $stmt->execute([$name, $title, $body, $id, $userId]);
+    }
 }

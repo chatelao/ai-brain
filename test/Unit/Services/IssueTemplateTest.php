@@ -71,4 +71,20 @@ class IssueTemplateTest extends TestCase
         $templatesAfter = $this->templateModel->findByUserId($userId);
         $this->assertCount(0, $templatesAfter);
     }
+
+    public function testUpdateTemplate()
+    {
+        $userId = 1;
+        $this->templateModel->create($userId, 'Original Name', 'Original Title', 'Original Body');
+        $templates = $this->templateModel->findByUserId($userId);
+        $id = $templates[0]['id'];
+
+        $result = $this->templateModel->update($id, $userId, 'Updated Name', 'Updated Title', 'Updated Body');
+        $this->assertTrue($result);
+
+        $template = $this->templateModel->findById($id);
+        $this->assertEquals('Updated Name', $template['name']);
+        $this->assertEquals('Updated Title', $template['title_template']);
+        $this->assertEquals('Updated Body', $template['body_template']);
+    }
 }
