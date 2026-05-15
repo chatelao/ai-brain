@@ -101,8 +101,6 @@ This is the recommended method if you have terminal access to your server.
 5. **Set Permissions:**
    Ensure the web server user (e.g., `www-data`) has write access if necessary (though the current architecture mostly uses DB).
 
----
-
 ## b) Installation with SFTP
 
 Use this method if you only have SFTP access and cannot run commands on the server.
