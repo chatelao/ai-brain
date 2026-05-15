@@ -30,10 +30,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_template'])) {
     $name = trim($_POST['name']);
     $title = trim($_POST['title_template']);
     $body = trim($_POST['body_template']);
+    $aliases = trim($_POST['parameter_aliases'] ?? '');
+
+    $parameterConfig = null;
+    if (!empty($aliases)) {
+        $aliasArray = array_map('trim', explode(',', $aliases));
+        $parameterConfig = json_encode(['aliases' => $aliasArray]);
+    }
 
     if (!empty($name) && !empty($title)) {
         try {
-            $templateModel->create($user['id'], $name, $title, $body);
+            $templateModel->create($user['id'], $name, $title, $body, $parameterConfig);
             $successMessage = "Template created successfully.";
         } catch (Exception $e) {
             $errorMessage = $e->getMessage();
@@ -108,7 +115,7 @@ $templates = $templateModel->findByUserId($user['id']);
 
                     <div class="mb-4">
                         <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Issue Templates</h1>
-                        <p class="text-sm text-gray-500 mt-1">Create reusable templates for GitHub issues. Use <strong>%1</strong> and <strong>%2</strong> as placeholders for dynamic content.</p>
+                        <p class="text-sm text-gray-500 mt-1">Create reusable templates for GitHub issues. Use <strong>%1</strong>, <strong>%2</strong>, etc. as placeholders for dynamic content.</p>
                     </div>
 
                     <?php if ($errorMessage): ?>
@@ -145,6 +152,14 @@ $templates = $templateModel->findByUserId($user['id']);
                                             <tr class="bg-white border-b">
                                                 <td class="px-6 py-4 font-medium text-gray-900">
                                                     <?= htmlspecialchars($template['name']) ?>
+                                                    <?php if ($template['parameter_config']): ?>
+                                                        <?php $config = json_decode($template['parameter_config'], true); ?>
+                                                        <?php if (!empty($config['aliases'])): ?>
+                                                            <div class="text-xs text-gray-400 mt-1">
+                                                                Aliases: <?= htmlspecialchars(implode(', ', $config['aliases'])) ?>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    <?php endif; ?>
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <?= htmlspecialchars($template['title_template']) ?>
@@ -174,6 +189,11 @@ $templates = $templateModel->findByUserId($user['id']);
                                 <div class="mb-4">
                                     <label class="block mb-2 text-sm font-medium text-gray-900">Body Template</label>
                                     <textarea name="body_template" rows="6" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Description of the bug: %1&#10;Expected behavior: %2"></textarea>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block mb-2 text-sm font-medium text-gray-900">Parameter Aliases (optional, comma-separated)</label>
+                                    <input type="text" name="parameter_aliases" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Description, Expected">
+                                    <p class="mt-1 text-xs text-gray-500">Aliases for %1, %2, etc. in order.</p>
                                 </div>
                                 <button type="submit" name="create_template" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none">Create Template</button>
                             </form>

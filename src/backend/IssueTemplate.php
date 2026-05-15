@@ -10,12 +10,12 @@ class IssueTemplate
     {
     }
 
-    public function create(int $userId, string $name, string $title, ?string $body): bool
+    public function create(int $userId, string $name, string $title, ?string $body, ?string $parameterConfig = null): bool
     {
         $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO issue_templates (user_id, name, title_template, body_template) VALUES (?, ?, ?, ?)"
+            "INSERT INTO issue_templates (user_id, name, title_template, body_template, parameter_config) VALUES (?, ?, ?, ?, ?)"
         );
-        return $stmt->execute([$userId, $name, $title, $body]);
+        return $stmt->execute([$userId, $name, $title, $body, $parameterConfig]);
     }
 
     public function findByUserId(int $userId): array

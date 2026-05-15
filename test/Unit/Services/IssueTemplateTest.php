@@ -25,6 +25,7 @@ class IssueTemplateTest extends TestCase
             name TEXT,
             title_template TEXT,
             body_template TEXT,
+            parameter_config TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )");
@@ -37,13 +38,25 @@ class IssueTemplateTest extends TestCase
     public function testCreateAndFindTemplate()
     {
         $userId = 1;
-        $result = $this->templateModel->create($userId, 'Bug Template', 'Bug: %1', 'Details: %2');
+        $config = json_encode(['aliases' => ['Feature', 'Description']]);
+        $result = $this->templateModel->create($userId, 'Bug Template', 'Bug: %1', 'Details: %2', $config);
         $this->assertTrue($result);
 
         $templates = $this->templateModel->findByUserId($userId);
         $this->assertCount(1, $templates);
         $this->assertEquals('Bug Template', $templates[0]['name']);
         $this->assertEquals('Bug: %1', $templates[0]['title_template']);
+        $this->assertEquals($config, $templates[0]['parameter_config']);
+    }
+
+    public function testCreateWithManyParameters()
+    {
+        $userId = 1;
+        $result = $this->templateModel->create($userId, 'Complex', '%1 %2 %3 %4 %5', 'Body');
+        $this->assertTrue($result);
+
+        $templates = $this->templateModel->findByUserId($userId);
+        $this->assertEquals('%1 %2 %3 %4 %5', $templates[0]['title_template']);
     }
 
     public function testFindById()

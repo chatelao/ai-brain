@@ -27,6 +27,7 @@ class IssueTemplateIntegrationTest extends TestCase
             name TEXT,
             title_template TEXT,
             body_template TEXT,
+            parameter_config TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )");

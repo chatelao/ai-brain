@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS issue_templates (
     name VARCHAR(255) NOT NULL,
     title_template VARCHAR(255) NOT NULL,
     body_template TEXT,
+    parameter_config JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

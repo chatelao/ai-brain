@@ -115,14 +115,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'
     }
 
     $templateId = (int)$_POST['template_id'];
-    $val1 = $_POST['val1'] ?? '';
-    $val2 = $_POST['val2'] ?? '';
-
     $template = $templateModel->findById($templateId);
     if ($template && $template['user_id'] === $user['id']) {
         try {
-            $title = str_replace(['%1', '%2'], [$val1, $val2], $template['title_template']);
-            $body = str_replace(['%1', '%2'], [$val1, $val2], $template['body_template']);
+            $title = $template['title_template'];
+            $body = $template['body_template'];
+
+            // Replace all %N placeholders
+            preg_match_all('/%(\d+)/', $title . $body, $matches);
+            if (!empty($matches[1])) {
+                $replacements = [];
+                $placeholders = array_unique($matches[1]);
+                foreach ($placeholders as $num) {
+                    $replacements['%' . $num] = $_POST['val' . $num] ?? '';
+                }
+                // Use strtr for single-pass replacement and to handle overlapping placeholders correctly (e.g., %1 vs %11)
+                $title = strtr($title, $replacements);
+                $body = strtr($body, $replacements);
+            }
 
             $githubToken = $project['github_token'] ?? null;
             if (!$githubToken) {
@@ -284,26 +294,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                 <?php if (empty($templates)): ?>
                                     <p class="text-sm text-gray-500 italic">No templates available. <a href="templates.php" class="text-blue-600 hover:underline">Create one first.</a></p>
                                 <?php else: ?>
-                                    <form method="POST">
-                                        <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                        <div class="mb-4">
-                                            <label class="block mb-2 text-sm font-medium text-gray-900">Select Template</label>
-                                            <select name="template_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                                                <?php foreach ($templates as $tmpl): ?>
-                                                    <option value="<?= $tmpl['id'] ?>"><?= htmlspecialchars($tmpl['name']) ?></option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                        </div>
-                                        <div class="mb-4">
-                                            <label class="block mb-2 text-sm font-medium text-gray-900">%1 value</label>
-                                            <input type="text" name="val1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                        </div>
-                                        <div class="mb-4">
-                                            <label class="block mb-2 text-sm font-medium text-gray-900">%2 value</label>
-                                            <input type="text" name="val2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                        </div>
-                                        <button type="submit" name="create_from_template" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none">Create Issue</button>
-                                    </form>
+                                    <div x-data="{
+                                        selectedTemplate: null,
+                                        templates: <?= htmlspecialchars(json_encode(array_map(function($t) {
+                                            preg_match_all('/%(\d+)/', $t['title_template'] . $t['body_template'], $matches);
+                                            $nums = !empty($matches[1]) ? array_unique($matches[1]) : [];
+                                            sort($nums);
+                                            $config = json_decode($t['parameter_config'] ?? '{}', true);
+                                            $aliases = $config['aliases'] ?? [];
+
+                                            $parameters = [];
+                                            foreach ($nums as $n) {
+                                                $parameters[] = [
+                                                    'num' => $n,
+                                                    'label' => $aliases[$n-1] ?? '%' . $n . ' value'
+                                                ];
+                                            }
+
+                                            return [
+                                                'id' => $t['id'],
+                                                'name' => $t['name'],
+                                                'parameters' => $parameters
+                                            ];
+                                        }, $templates))) ?>
+                                    }">
+                                        <form method="POST">
+                                            <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                            <div class="mb-4">
+                                                <label class="block mb-2 text-sm font-medium text-gray-900">Select Template</label>
+                                                <select
+                                                    name="template_id"
+                                                    x-model="selectedTemplate"
+                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                                    required
+                                                >
+                                                    <option value="">Choose a template...</option>
+                                                    <template x-for="tmpl in templates" :key="tmpl.id">
+                                                        <option :value="tmpl.id" x-text="tmpl.name"></option>
+                                                    </template>
+                                                </select>
+                                            </div>
+
+                                            <template x-if="selectedTemplate">
+                                                <div>
+                                                    <template x-for="param in templates.find(t => t.id == selectedTemplate).parameters" :key="param.num">
+                                                        <div class="mb-4">
+                                                            <label class="block mb-2 text-sm font-medium text-gray-900" x-text="param.label"></label>
+                                                            <input type="text" :name="'val' + param.num" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                                        </div>
+                                                    </template>
+                                                    <button type="submit" name="create_from_template" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none">Create Issue</button>
+                                                </div>
+                                            </template>
+                                        </form>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         </div>
