@@ -124,7 +124,9 @@ $errorMessage = $errorMessage ?? null;
                                         <?php foreach ($autorepeatTasks as $task): ?>
                                             <tr class="bg-white border-b">
                                                 <td class="px-6 py-4 font-medium text-gray-900">
-                                                    <?= htmlspecialchars($task['github_repo']) ?>
+                                                    <a href="https://github.com/<?= htmlspecialchars($task['github_repo']) ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
+                                                        <?= htmlspecialchars($task['github_repo']) ?>
+                                                    </a>
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <a href="project.php?id=<?= $task['project_id'] ?>" class="text-blue-600 hover:underline font-semibold">
@@ -178,7 +180,11 @@ $errorMessage = $errorMessage ?? null;
                                         <?php foreach ($projects as $project): ?>
                                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                                                 <div class="flex justify-between items-start">
-                                                    <h5 class="text-lg font-bold text-gray-900 truncate"><?= htmlspecialchars($project['github_repo']) ?></h5>
+                                                    <h5 class="text-lg font-bold text-gray-900 truncate">
+                                                        <a href="https://github.com/<?= htmlspecialchars($project['github_repo']) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                                                            <?= htmlspecialchars($project['github_repo']) ?>
+                                                        </a>
+                                                    </h5>
                                                     <a href="?delete_project=<?= $project['id'] ?>&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-red-600 hover:text-red-800" onclick="return confirm('Are you sure?')">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                     </a>
