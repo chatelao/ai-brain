@@ -30,10 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_template'])) {
     $name = trim($_POST['name']);
     $title = trim($_POST['title_template']);
     $body = trim($_POST['body_template']);
+    $parameterConfig = $_POST['parameter_config'] ?? null;
 
     if (!empty($name) && !empty($title)) {
         try {
-            $templateModel->create($user['id'], $name, $title, $body);
+            $templateModel->create($user['id'], $name, $title, $body, $parameterConfig);
             $successMessage = "Template created successfully.";
         } catch (Exception $e) {
             $errorMessage = $e->getMessage();
@@ -53,10 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_template'])) {
     $name = trim($_POST['name']);
     $title = trim($_POST['title_template']);
     $body = trim($_POST['body_template']);
+    $parameterConfig = $_POST['parameter_config'] ?? null;
 
     if ($id > 0 && !empty($name) && !empty($title)) {
         try {
-            $templateModel->update($id, $user['id'], $name, $title, $body);
+            $templateModel->update($id, $user['id'], $name, $title, $body, $parameterConfig);
             $successMessage = "Template updated successfully.";
         } catch (Exception $e) {
             $errorMessage = $e->getMessage();
@@ -94,15 +96,24 @@ $templates = $templateModel->findByUserId($user['id']);
         id: '',
         name: '',
         title_template: '',
-        body_template: ''
+        body_template: '',
+        parameter_config: {}
     },
     editTemplate(t) {
         this.editing = true;
         this.template = { ...t };
+        if (!this.template.parameter_config || Array.isArray(this.template.parameter_config)) {
+            this.template.parameter_config = {};
+        }
     },
     cancelEdit() {
         this.editing = false;
-        this.template = { id: '', name: '', title_template: '', body_template: '' };
+        this.template = { id: '', name: '', title_template: '', body_template: '', parameter_config: {} };
+    },
+    get placeholders() {
+        const combined = this.template.title_template + ' ' + this.template.body_template;
+        const matches = combined.match(/%\d+/g) || [];
+        return [...new Set(matches)].sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
     }
 }">
     <nav class="bg-white border-b border-gray-200 fixed w-full z-30 top-0">
@@ -216,6 +227,20 @@ $templates = $templateModel->findByUserId($user['id']);
                                     <label class="block mb-2 text-sm font-medium text-gray-900">Body Template</label>
                                     <textarea name="body_template" x-model="template.body_template" rows="6" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Description of the bug: %1&#10;Expected behavior: %2"></textarea>
                                 </div>
+
+                                <div class="mb-4" x-show="placeholders.length > 0">
+                                    <label class="block mb-2 text-sm font-medium text-gray-900">Parameter Aliases</label>
+                                    <div class="space-y-2">
+                                        <template x-for="p in placeholders" :key="p">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-sm font-mono bg-gray-100 px-2 py-1 rounded" x-text="p"></span>
+                                                <input type="text" :placeholder="'Alias for ' + p" x-model="template.parameter_config[p]" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2">
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <input type="hidden" name="parameter_config" :value="JSON.stringify(template.parameter_config)">
+                                </div>
+
                                 <div class="flex gap-2">
                                     <button type="submit" :name="editing ? 'update_template' : 'create_template'" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none" x-text="editing ? 'Update Template' : 'Create Template'">Create Template</button>
                                     <button type="button" x-show="editing" @click="cancelEdit()" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 w-full">Cancel</button>
