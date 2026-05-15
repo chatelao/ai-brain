@@ -163,6 +163,11 @@ Use this method if you only have SFTP access and cannot run commands on the serv
    #
    SetEnv TELEGRAM_BOT_TOKEN      your_telegram_bot_token
    SetEnv TELEGRAM_WEBHOOK_SECRET your_telegram_webhook_secret
+
+   #
+   # Administration
+   #
+   SetEnv UPGRADE_ALLOWED_EMAIL   your_admin_email@example.com
    ```
 
    ---
@@ -186,6 +191,7 @@ The application requires several environment variables to be set in your web ser
 | `GOOGLE_JULES_API_KEY` | (Optional/Deprecated) Global fallback API Key for Google Jules/Gemini. Users should now set their own keys in the Dashboard. |
 | `TELEGRAM_BOT_TOKEN` | (Optional) Telegram Bot Token |
 | `TELEGRAM_WEBHOOK_SECRET` | (Optional) Secret token for Telegram webhooks |
+| `UPGRADE_ALLOWED_EMAIL` | (Required for upgrades) Email address of the admin user authorized to trigger database migrations. |
 
 
 6. **Document Root:**
