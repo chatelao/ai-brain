@@ -17,7 +17,6 @@ $db = new Database();
 $userModel = new User($db);
 $projectModel = new Project($db);
 $taskModel = new Task($db);
-$julesService = new JulesService();
 $logger = new Logger($db);
 
 if (!$auth->isLoggedIn()) {
@@ -26,6 +25,7 @@ if (!$auth->isLoggedIn()) {
 }
 
 $user = $userModel->findById($auth->getUserId());
+$julesService = new JulesService(null, $user['jules_api_key'] ?? null);
 $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $project = $projectModel->findById($projectId);
 
@@ -39,6 +39,17 @@ $templates = $templateModel->findByUserId($user['id']);
 $tasks = $taskModel->findByProjectId($projectId);
 $lastAgentResponse = null;
 $errorMessage = null;
+
+$githubToken = $project['github_token'] ?? null;
+$roadmapFiles = [];
+if ($githubToken) {
+    try {
+        $githubService = new GitHubService(null, $githubToken);
+        $roadmapFiles = $githubService->getRoadmapFiles($project['github_repo']);
+    } catch (Exception $e) {
+        // Silently fail or log roadmap fetching
+    }
+}
 
 // Handle Agent Trigger
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
@@ -249,32 +260,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                     <?php endif; ?>
 
                     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
-                        <div class="lg:col-span-1 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                            <h3 class="text-lg font-bold text-gray-900 mb-4">Create Issue from Template</h3>
-                            <?php if (empty($templates)): ?>
-                                <p class="text-sm text-gray-500 italic">No templates available. <a href="templates.php" class="text-blue-600 hover:underline">Create one first.</a></p>
-                            <?php else: ?>
-                                <form method="POST">
-                                    <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                    <div class="mb-4">
-                                        <label class="block mb-2 text-sm font-medium text-gray-900">Select Template</label>
-                                        <select name="template_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                                            <?php foreach ($templates as $tmpl): ?>
-                                                <option value="<?= $tmpl['id'] ?>"><?= htmlspecialchars($tmpl['name']) ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-                                    <div class="mb-4">
-                                        <label class="block mb-2 text-sm font-medium text-gray-900">%1 value</label>
-                                        <input type="text" name="val1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                    </div>
-                                    <div class="mb-4">
-                                        <label class="block mb-2 text-sm font-medium text-gray-900">%2 value</label>
-                                        <input type="text" name="val2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                    </div>
-                                    <button type="submit" name="create_from_template" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none">Create Issue</button>
-                                </form>
-                            <?php endif; ?>
+                        <div class="lg:col-span-1 space-y-4">
+                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">Project Overview</h3>
+                                <?php if (empty($roadmapFiles)): ?>
+                                    <p class="text-sm text-gray-500 italic">No roadmap files found in the repository.</p>
+                                <?php else: ?>
+                                    <ul class="space-y-2">
+                                        <?php foreach ($roadmapFiles as $file): ?>
+                                            <li>
+                                                <a href="<?= htmlspecialchars($file['html_url']) ?>" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-600 hover:underline flex items-center">
+                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                                    <?= htmlspecialchars($file['name']) ?>
+                                                </a>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">Create Issue from Template</h3>
+                                <?php if (empty($templates)): ?>
+                                    <p class="text-sm text-gray-500 italic">No templates available. <a href="templates.php" class="text-blue-600 hover:underline">Create one first.</a></p>
+                                <?php else: ?>
+                                    <form method="POST">
+                                        <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                        <div class="mb-4">
+                                            <label class="block mb-2 text-sm font-medium text-gray-900">Select Template</label>
+                                            <select name="template_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                                <?php foreach ($templates as $tmpl): ?>
+                                                    <option value="<?= $tmpl['id'] ?>"><?= htmlspecialchars($tmpl['name']) ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="mb-4">
+                                            <label class="block mb-2 text-sm font-medium text-gray-900">%1 value</label>
+                                            <input type="text" name="val1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                        </div>
+                                        <div class="mb-4">
+                                            <label class="block mb-2 text-sm font-medium text-gray-900">%2 value</label>
+                                            <input type="text" name="val2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                        </div>
+                                        <button type="submit" name="create_from_template" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none">Create Issue</button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
                         </div>
 
                         <div class="lg:col-span-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">

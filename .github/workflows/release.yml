@@ -24,7 +24,7 @@ jobs:
 
       - name: Create ZIP archive
         run: |
-          zip -r agent-control-php.zip . -x "*.git*" ".github/*" "test/*" "docs/*" "specification/*" "scripts/*" "phpunit.xml" ".gitignore" "Vagrantfile" "CONCEPT.md" "DESIGN.md" "GEMINI.md" "HOWTO.md" "INSTALL.md" "ROADMAP.md" ".readthedocs.yaml"
+          zip -r agent-control-php.zip . -x "*.git*" ".github/*" "test/*" "docs/*" "specification/*" "scripts/*" ".gitignore" "Vagrantfile" "CONCEPT.md" "DESIGN.md" "GEMINI.md" "HOWTO.md" "INSTALL.md" "ROADMAP.md" ".readthedocs.yaml"
 
       - name: Upload Release Asset
         env:

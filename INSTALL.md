@@ -38,7 +38,7 @@ This guide explains how to install the AI Brain application on a web server.
 1.  Visit [Google AI Studio](https://aistudio.google.com/).
 2.  Click on **Get API key** in the sidebar.
 3.  Click **Create API key** (either in a new or existing Google Cloud project).
-4.  Copy the generated key for `GOOGLE_JULES_API_KEY`.
+4.  Copy the generated key for `GOOGLE_JULES_API_KEY`. (Note: Users can also provide their own keys in the application dashboard).
 
 ### 4. Telegram Bot
 1.  Message [@BotFather](https://t.me/botfather) on Telegram.
@@ -154,9 +154,9 @@ Use this method if you only have SFTP access and cannot run commands on the serv
    SetEnv GITHUB_REDIRECT_URI     https://your-domain.com/github-callback.php
 
    #
-   # Google Jules: https://jules.google.com/settings/api
+   # Google Jules (Optional Global Fallback): https://aistudio.google.com/
    #
-   SetEnv GOOGLE_JULES_API_KEY    your_google_jules_api_key
+   # SetEnv GOOGLE_JULES_API_KEY    your_google_jules_api_key
 
    #
    # Telegram Bot: https://t.me/botfather
@@ -183,7 +183,7 @@ The application requires several environment variables to be set in your web ser
 | `GITHUB_CLIENT_ID` | GitHub OAuth App Client ID |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth App Client Secret |
 | `GITHUB_REDIRECT_URI` | `https://your-domain.com/github-callback.php` |
-| `GOOGLE_JULES_API_KEY` | (Optional) API Key for Google Jules/Gemini |
+| `GOOGLE_JULES_API_KEY` | (Optional/Deprecated) Global fallback API Key for Google Jules/Gemini. Users should now set their own keys in the Dashboard. |
 | `TELEGRAM_BOT_TOKEN` | (Optional) Telegram Bot Token |
 | `TELEGRAM_WEBHOOK_SECRET` | (Optional) Secret token for Telegram webhooks |
 
