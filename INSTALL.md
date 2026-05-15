@@ -11,26 +11,6 @@ This guide explains how to install the AI Brain application on a web server.
 - **Web Server** (Nginx recommended, or Apache)
 - **SSL Certificate** (Required for Google SSO and GitHub Webhooks)
 
-## Environment Variables
-
-The application requires several environment variables to be set in your web server configuration (e.g., via `fastcgi_param` in Nginx):
-
-| Variable | Description |
-| :--- | :--- |
-| `DB_HOST` | Database host (e.g., `localhost`) |
-| `DB_NAME` | Database name |
-| `DB_USER` | Database username |
-| `DB_PASS` | Database password |
-| `GOOGLE_CLIENT_ID` | Google OAuth 2.0 Client ID |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth 2.0 Client Secret |
-| `GOOGLE_REDIRECT_URI` | `https://your-domain.com/callback.php` |
-| `GITHUB_CLIENT_ID` | GitHub OAuth App Client ID |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth App Client Secret |
-| `GITHUB_REDIRECT_URI` | `https://your-domain.com/github-callback.php` |
-| `GOOGLE_JULES_API_KEY` | (Optional) API Key for Google Jules/Gemini |
-| `TELEGRAM_BOT_TOKEN` | (Optional) Telegram Bot Token |
-| `TELEGRAM_WEBHOOK_SECRET` | (Optional) Secret token for Telegram webhooks |
-
 ---
 
 ## Obtaining API Keys and Secrets
@@ -187,5 +167,28 @@ Use this method if you only have SFTP access and cannot run commands on the serv
    SetEnv TELEGRAM_WEBHOOK_SECRET your_telegram_webhook_secret
    ```
 
-5. **Document Root:**
+   ---
+
+   ## Environment Variables
+
+The application requires several environment variables to be set in your web server configuration (e.g., via `fastcgi_param` in Nginx):
+
+| Variable | Description |
+| :--- | :--- |
+| `DB_HOST` | Database host (e.g., `localhost`) |
+| `DB_NAME` | Database name |
+| `DB_USER` | Database username |
+| `DB_PASS` | Database password |
+| `GOOGLE_CLIENT_ID` | Google OAuth 2.0 Client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth 2.0 Client Secret |
+| `GOOGLE_REDIRECT_URI` | `https://your-domain.com/callback.php` |
+| `GITHUB_CLIENT_ID` | GitHub OAuth App Client ID |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth App Client Secret |
+| `GITHUB_REDIRECT_URI` | `https://your-domain.com/github-callback.php` |
+| `GOOGLE_JULES_API_KEY` | (Optional) API Key for Google Jules/Gemini |
+| `TELEGRAM_BOT_TOKEN` | (Optional) Telegram Bot Token |
+| `TELEGRAM_WEBHOOK_SECRET` | (Optional) Secret token for Telegram webhooks |
+
+
+6. **Document Root:**
    Ensure your hosting points the domain to the `src/frontend` folder of the uploaded files.
