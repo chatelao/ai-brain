@@ -45,6 +45,8 @@ This guide explains how to install the AI Brain application on a web server.
 2.  Use the `/newbot` command and follow the instructions to get your **Bot Token**.
 3.  For `TELEGRAM_WEBHOOK_SECRET`, generate a random, secure string (e.g., using `openssl rand -hex 32`). This is used to verify that requests to your webhook are actually coming from Telegram.
 
+---
+
 ## a) Installation with SSH
 
 This is the recommended method if you have terminal access to your server.
@@ -100,6 +102,8 @@ This is the recommended method if you have terminal access to your server.
 
 5. **Set Permissions:**
    Ensure the web server user (e.g., `www-data`) has write access if necessary (though the current architecture mostly uses DB).
+
+---
 
 ## b) Installation with SFTP
 
@@ -170,9 +174,37 @@ Use this method if you only have SFTP access and cannot run commands on the serv
    SetEnv UPGRADE_ALLOWED_EMAIL   your_admin_email@example.com
    ```
 
-   ---
+5. **Document Root:**
+   Ensure your hosting points the domain to the `src/frontend` folder of the uploaded files.
 
-   ## Environment Variables
+---
+
+## c) Automated Deployment with GitHub Actions (SFTP)
+
+If you have your own fork of this repository, you can use the included GitHub Action to automate the SFTP deployment.
+
+1. **Configure Secrets:**
+   In your GitHub repository, go to **Settings > Secrets and variables > Actions** and add the following repository secrets:
+   - `SFTP_SERVER`: Your SFTP server hostname or IP address.
+   - `SFTP_USERNAME`: Your SFTP username.
+   - `SFTP_PASSWORD`: Your SFTP password.
+
+2. **Trigger Deployment:**
+   - Go to the **Actions** tab in your GitHub repository.
+   - Select the **Manual SFTP Deploy** workflow in the sidebar.
+   - Click the **Run workflow** dropdown and then **Run workflow**.
+
+   *Note: For security, this workflow is configured to only be runnable by the repository owner.*
+
+3. **Deployment Details:**
+   The workflow will:
+   - Checkout your code.
+   - Install production dependencies via Composer.
+   - Upload the application to your server via SFTP, excluding development and documentation files.
+
+---
+
+## Environment Variables
 
 The application requires several environment variables to be set in your web server configuration (e.g., via `fastcgi_param` in Nginx):
 
@@ -192,7 +224,3 @@ The application requires several environment variables to be set in your web ser
 | `TELEGRAM_BOT_TOKEN` | (Optional) Telegram Bot Token |
 | `TELEGRAM_WEBHOOK_SECRET` | (Optional) Secret token for Telegram webhooks |
 | `UPGRADE_ALLOWED_EMAIL` | (Required for upgrades) Email address of the admin user authorized to trigger database migrations. |
-
-
-6. **Document Root:**
-   Ensure your hosting points the domain to the `src/frontend` folder of the uploaded files.
