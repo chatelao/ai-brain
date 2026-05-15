@@ -15,6 +15,20 @@ $projectModel = new Project($db);
 
 $user = $auth->isLoggedIn() ? $userModel->findById($auth->getUserId()) : null;
 
+// Handle Jules API Key Update
+if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_jules_key'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+    $apiKey = trim($_POST['jules_api_key']);
+    if ($userModel->updateJulesApiKey($user['id'], $apiKey)) {
+        header('Location: index.php?success=key_updated');
+        exit;
+    } else {
+        $errorMessage = "Failed to update Jules API Key.";
+    }
+}
+
 // Handle Project Creation
 if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_repo']) && isset($_POST['github_account_id'])) {
     if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
@@ -96,6 +110,11 @@ $errorMessage = $errorMessage ?? null;
                             <span class="font-medium">Success!</span> GitHub account linked correctly.
                         </div>
                     <?php endif; ?>
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'key_updated'): ?>
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                            <span class="font-medium">Success!</span> Jules API Key updated successfully.
+                        </div>
+                    <?php endif; ?>
                     <?php if (isset($_GET['github']) && $_GET['github'] === 'error'): ?>
                         <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
                             <span class="font-medium">Error!</span> <?= htmlspecialchars($_GET['message'] ?? 'GitHub authentication failed.') ?>
@@ -151,7 +170,18 @@ $errorMessage = $errorMessage ?? null;
                                 <p class="text-2xl font-bold leading-none text-gray-900 sm:text-3xl">Dashboard</p>
                                 <div class="mt-4">
                                     <p class="text-gray-600">You are logged in as <strong><?= htmlspecialchars($user['email']) ?></strong>.</p>
-                                    <div class="mt-4">
+
+                                    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <h4 class="text-lg font-semibold text-blue-900 mb-2">Jules API Key (Private)</h4>
+                                        <p class="text-sm text-blue-700 mb-4">Your personal Google AI (Gemini) API key. This is required for agent features and is not shared with other users.</p>
+                                        <form method="POST" class="flex gap-2">
+                                            <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                            <input type="password" name="jules_api_key" value="<?= htmlspecialchars($user['jules_api_key'] ?? '') ?>" placeholder="AI Studio API Key" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                            <button type="submit" name="update_jules_key" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Save</button>
+                                        </form>
+                                    </div>
+
+                                    <div class="mt-6">
                                         <h4 class="text-lg font-semibold text-gray-900">Linked GitHub Accounts</h4>
                                         <div class="mt-2 space-y-2">
                                             <?php if (empty($githubAccounts)): ?>

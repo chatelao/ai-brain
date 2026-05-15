@@ -17,7 +17,7 @@ class JulesService
             'base_uri' => 'https://generativelanguage.googleapis.com/',
             'timeout'  => 30.0,
         ]);
-        $this->apiKey = $apiKey ?? (getenv('GOOGLE_JULES_API_KEY') ?: '');
+        $this->apiKey = (!empty($apiKey)) ? $apiKey : (getenv('GOOGLE_JULES_API_KEY') ?: '');
     }
 
     /**
