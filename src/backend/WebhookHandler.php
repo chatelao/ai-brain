@@ -25,35 +25,8 @@ class WebhookHandler
             return false;
         }
 
-        $connection = $this->db->getConnection();
-        $driver = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
-
-        if ($driver === 'sqlite') {
-            $sql = "INSERT INTO tasks (project_id, issue_number, title, body, github_data, status)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(project_id, issue_number) DO UPDATE SET
-                        title = excluded.title,
-                        body = excluded.body,
-                        github_data = excluded.github_data";
-        } else {
-            $sql = "INSERT INTO tasks (project_id, issue_number, title, body, github_data, status)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    ON DUPLICATE KEY UPDATE
-                        title = VALUES(title),
-                        body = VALUES(body),
-                        github_data = VALUES(github_data)";
-        }
-
-        $stmt = $connection->prepare($sql);
-
-        $result = $stmt->execute([
-            $projectId,
-            $issue['number'],
-            $issue['title'],
-            $issue['body'],
-            json_encode($issue),
-            'pending'
-        ]);
+        $taskModel = new Task($this->db);
+        $result = $taskModel->upsert($projectId, $issue);
 
         if ($result && $action === 'closed' && $githubService) {
             $stateReason = $issue['state_reason'] ?? '';

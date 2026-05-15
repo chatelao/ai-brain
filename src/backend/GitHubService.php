@@ -75,4 +75,21 @@ class GitHubService
             }
         }
     }
+
+    /**
+     * @throws Exception
+     */
+    public function listIssues(string $repo, string $state = 'open'): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        return $this->client->api('issue')->all($username, $repository, [
+            'state' => $state
+        ]);
+    }
 }
