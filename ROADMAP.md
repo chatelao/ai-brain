@@ -33,3 +33,6 @@
 - [x] Implement asynchronous processing using `fastcgi_finish_request()` for immediate Telegram acknowledgement.
 - [x] Connect Telegram interactions to the Google Jules orchestration engine.
 - [x] Enable agent-to-user communication and status updates via Telegram.
+
+## Phase 6: Customization
+- [ ] Enable user-specific Telegram configuration (custom bot tokens).
