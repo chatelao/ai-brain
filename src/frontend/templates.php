@@ -43,6 +43,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_template'])) {
     }
 }
 
+// Handle Template Update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_template'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+
+    $id = (int)$_POST['template_id'];
+    $name = trim($_POST['name']);
+    $title = trim($_POST['title_template']);
+    $body = trim($_POST['body_template']);
+
+    if ($id > 0 && !empty($name) && !empty($title)) {
+        try {
+            $templateModel->update($id, $user['id'], $name, $title, $body);
+            $successMessage = "Template updated successfully.";
+        } catch (Exception $e) {
+            $errorMessage = $e->getMessage();
+        }
+    } else {
+        $errorMessage = "Name and Title Template are required.";
+    }
+}
+
 // Handle Template Deletion
 if (isset($_GET['delete_template'])) {
     if (!$auth->validateCsrfToken($_GET['csrf_token'] ?? null)) {
@@ -65,7 +88,23 @@ $templates = $templateModel->findByUserId($user['id']);
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+<body class="bg-gray-100 font-sans leading-normal tracking-normal" x-data="{
+    editing: false,
+    template: {
+        id: '',
+        name: '',
+        title_template: '',
+        body_template: ''
+    },
+    editTemplate(t) {
+        this.editing = true;
+        this.template = { ...t };
+    },
+    cancelEdit() {
+        this.editing = false;
+        this.template = { id: '', name: '', title_template: '', body_template: '' };
+    }
+}">
     <nav class="bg-white border-b border-gray-200 fixed w-full z-30 top-0">
         <div class="px-3 py-3 lg:px-5 lg:pl-3">
             <div class="flex items-center justify-between">
@@ -150,6 +189,7 @@ $templates = $templateModel->findByUserId($user['id']);
                                                     <?= htmlspecialchars($template['title_template']) ?>
                                                 </td>
                                                 <td class="px-6 py-4">
+                                                    <button @click="editTemplate(<?= htmlspecialchars(json_encode($template)) ?>)" class="text-blue-600 hover:text-blue-800 font-medium mr-3">Edit</button>
                                                     <a href="?delete_template=<?= $template['id'] ?>&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-red-600 hover:text-red-800 font-medium" onclick="return confirm('Are you sure?')">Delete</a>
                                                 </td>
                                             </tr>
@@ -160,22 +200,26 @@ $templates = $templateModel->findByUserId($user['id']);
                         </div>
 
                         <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                            <h3 class="text-lg font-bold text-gray-900 mb-4">Create New Template</h3>
+                            <h3 class="text-lg font-bold text-gray-900 mb-4" x-text="editing ? 'Edit Template' : 'Create New Template'">Create New Template</h3>
                             <form method="POST">
                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                <input type="hidden" name="template_id" x-model="template.id">
                                 <div class="mb-4">
                                     <label class="block mb-2 text-sm font-medium text-gray-900">Template Name</label>
-                                    <input type="text" name="name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Bug Report" required>
+                                    <input type="text" name="name" x-model="template.name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Bug Report" required>
                                 </div>
                                 <div class="mb-4">
                                     <label class="block mb-2 text-sm font-medium text-gray-900">Title Template</label>
-                                    <input type="text" name="title_template" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Bug: %1 in %2" required>
+                                    <input type="text" name="title_template" x-model="template.title_template" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Bug: %1 in %2" required>
                                 </div>
                                 <div class="mb-4">
                                     <label class="block mb-2 text-sm font-medium text-gray-900">Body Template</label>
-                                    <textarea name="body_template" rows="6" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Description of the bug: %1&#10;Expected behavior: %2"></textarea>
+                                    <textarea name="body_template" x-model="template.body_template" rows="6" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Description of the bug: %1&#10;Expected behavior: %2"></textarea>
                                 </div>
-                                <button type="submit" name="create_template" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none">Create Template</button>
+                                <div class="flex gap-2">
+                                    <button type="submit" :name="editing ? 'update_template' : 'create_template'" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none" x-text="editing ? 'Update Template' : 'Create Template'">Create Template</button>
+                                    <button type="button" x-show="editing" @click="cancelEdit()" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 w-full">Cancel</button>
+                                </div>
                             </form>
                         </div>
                     </div>
