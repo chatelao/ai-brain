@@ -20,6 +20,8 @@ if (!$auth->isAdmin()) {
 }
 
 $currentUser = $userModel->findById($auth->getUserId());
+$githubAccounts = $currentUser ? $userModel->getGitHubAccounts($currentUser['id']) : [];
+$telegramChatId = $currentUser ? $userModel->getTelegramChatId($currentUser['id']) : null;
 $allUsers = $userModel->getAllUsersWithProjectCount();
 
 ?>
@@ -43,8 +45,14 @@ $allUsers = $userModel->getAllUsersWithProjectCount();
                 </div>
                 <div class="flex items-center">
                     <div class="flex items-center ml-3">
+                        <?php
+                        $user = $currentUser;
+                        include '../navbar-icons.php';
+                        ?>
                         <img class="w-8 h-8 rounded-full" src="<?= htmlspecialchars($currentUser['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="user photo">
                         <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($currentUser['name']) ?> (Admin)</div>
+                        <a href="../accounts.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Accounts</a>
+                        <a href="../templates.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Templates</a>
                         <a href="../logout.php" class="ml-4 text-sm font-medium text-red-600 hover:underline">Logout</a>
                     </div>
                 </div>

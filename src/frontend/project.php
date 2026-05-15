@@ -26,6 +26,8 @@ if (!$auth->isLoggedIn()) {
 }
 
 $user = $userModel->findById($auth->getUserId());
+$githubAccounts = $user ? $userModel->getGitHubAccounts($user['id']) : [];
+$telegramChatId = $user ? $userModel->getTelegramChatId($user['id']) : null;
 $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $project = $projectModel->findById($projectId);
 
@@ -181,8 +183,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                 </div>
                 <div class="flex items-center">
                     <div class="flex items-center ml-3">
+                        <?php include 'navbar-icons.php'; ?>
                         <img class="w-8 h-8 rounded-full" src="<?= htmlspecialchars($user['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="user photo">
                         <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($user['name']) ?></div>
+                        <a href="accounts.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Accounts</a>
+                        <a href="templates.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Templates</a>
                         <a href="logout.php" class="ml-4 text-sm font-medium text-red-600 hover:underline">Logout</a>
                     </div>
                 </div>
