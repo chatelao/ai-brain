@@ -25,6 +25,8 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     avatar VARCHAR(255),
     role VARCHAR(20) DEFAULT 'user',
+    jules_api_key VARCHAR(255),
+    telegram_link_token VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )");
 

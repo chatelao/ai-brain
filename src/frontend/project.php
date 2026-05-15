@@ -10,6 +10,7 @@ use App\Task;
 use App\IssueTemplate;
 use App\JulesService;
 use App\GitHubService;
+use App\TelegramService;
 use App\Logger;
 
 $auth = new Auth();
@@ -17,6 +18,7 @@ $db = new Database();
 $userModel = new User($db);
 $projectModel = new Project($db);
 $taskModel = new Task($db);
+$telegramService = new TelegramService();
 $logger = new Logger($db);
 
 if (!$auth->isLoggedIn()) {
@@ -26,6 +28,7 @@ if (!$auth->isLoggedIn()) {
 
 $user = $userModel->findById($auth->getUserId());
 $julesService = new JulesService(null, $user['jules_api_key'] ?? null);
+$telegramChatId = $userModel->getTelegramChatId($user['id']);
 $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $project = $projectModel->findById($projectId);
 
@@ -78,6 +81,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
                 $logger->log($taskId, "Posted 'started' comment to GitHub");
             }
 
+            if ($telegramChatId) {
+                $telegramService->sendMessage($telegramChatId, "🤖 <b>Agent Started</b>\nProject: {$project['github_repo']}\nIssue: #{$task['issue_number']} {$task['title']}");
+            }
+
             $logger->log($taskId, "Calling Jules API...");
             $lastAgentResponse = $julesService->triggerAgent($task);
             $logger->log($taskId, "Received response from Jules API");
@@ -88,6 +95,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
             if ($githubService) {
                 $githubService->postComment($project['github_repo'], $task['issue_number'], "✅ Agent has completed the analysis:\n\n" . $lastAgentResponse);
                 $logger->log($taskId, "Posted 'completed' comment to GitHub");
+            }
+
+            if ($telegramChatId) {
+                $telegramService->sendMessage($telegramChatId, "✅ <b>Agent Completed</b>\nProject: {$project['github_repo']}\nIssue: #{$task['issue_number']}\n\n" . mb_substr($lastAgentResponse, 0, 1000));
             }
 
             // Refresh tasks
@@ -103,6 +114,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
                 } catch (\Exception $ge) {
                     $logger->log($taskId, "Failed to post error comment to GitHub: " . $ge->getMessage(), "error");
                 }
+            }
+
+            if ($telegramChatId) {
+                $telegramService->sendMessage($telegramChatId, "❌ <b>Agent Failed</b>\nProject: {$project['github_repo']}\nIssue: #{$task['issue_number']}\nError: " . $e->getMessage());
             }
         }
     }
