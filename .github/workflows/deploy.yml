@@ -1,0 +1,55 @@
+name: Manual SFTP Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Webserver
+    runs-on: ubuntu-latest
+    if: github.actor == github.repository_owner
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, mysql
+
+      - name: Install dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Deploy via SFTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.SFTP_SERVER }}
+          username: ${{ secrets.SFTP_USERNAME }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          protocol: sftp
+          port: 22
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/test/**
+            **/docs/**
+            **/specification/**
+            **/scripts/**
+            **/Vagrantfile
+            **/CONCEPT.md
+            **/DESIGN.md
+            **/GEMINI.md
+            **/HOWTO.md
+            **/INSTALL.md
+            **/ROADMAP.md
+            **/CONCEPT_UPGRADES.md
+            **/openapi.yaml
+            **/schema.puml
+            **/*.sqlite
+            **/.readthedocs.yaml
+            **/composer.json
+            **/composer.lock
+            **/phpunit.xml
+            **/README.md
