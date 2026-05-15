@@ -181,7 +181,7 @@ Use this method if you only have SFTP access and cannot run commands on the serv
    SetEnv GOOGLE_JULES_API_KEY    your_google_jules_api_key
 
    #
-   # Telegram Bot (https://t.me/botfather)
+   # Telegram Bot: https://t.me/botfather
    #
    SetEnv TELEGRAM_BOT_TOKEN      your_telegram_bot_token
    SetEnv TELEGRAM_WEBHOOK_SECRET your_telegram_webhook_secret
