@@ -96,16 +96,17 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS issue_templates (
 
 // Create a mock user
 $userModel = new User($db);
-$pdo->exec("INSERT OR IGNORE INTO users (user_id, google_id, name, email) VALUES (1, 'google-123', 'Test User', 'test@example.com')");
-$_SESSION['user_id'] = 1;
+$user = $userModel->createOrUpdate(['google_id' => 'google-123', 'name' => 'Test User', 'email' => 'test@example.com']);
+$_SESSION['user_id'] = $user['user_id'];
 
 // Add GitHub account
-$userModel->addGitHubAccount(1, 'mock-token', 'mock-user');
-$githubAccountId = $pdo->lastInsertId();
+$userModel->addGitHubAccount($user['user_id'], 'mock-token', 'mock-user');
+$accounts = $userModel->getGitHubAccounts($user['user_id']);
+$githubAccountId = $accounts[0]['github_account_id'];
 
 // Create a mock project
 $projectModel = new Project($db);
-$projectModel->create(1, $githubAccountId, 'owner/repo');
+$projectModel->create($user['user_id'], $githubAccountId, 'owner/repo');
 $project = $projectModel->findByRepo('owner/repo')[0];
 
 // Create some tasks
@@ -119,9 +120,12 @@ $taskModel->create([
 ]);
 
 // Add some logs to task 1
+// We need to find the task ID first
+$tasks = $taskModel->findByProjectId($project['project_id']);
+$taskId1 = $tasks[0]['task_id'];
 $logger = new \App\Logger($db);
-$logger->log(1, "Mock log entry 1 for task 101");
-$logger->log(1, "Mock error log entry 2 for task 101", "error");
+$logger->log($taskId1, "Mock log entry 1 for task 101");
+$logger->log($taskId1, "Mock error log entry 2 for task 101", "error");
 $taskModel->create([
     'project_id' => $project['project_id'],
     'issue_number' => 102,

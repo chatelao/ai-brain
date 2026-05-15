@@ -53,15 +53,19 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS projects (
 )");
 
 // Create a mock admin user
-$pdo->exec("INSERT INTO users (user_id, google_id, name, email, role) VALUES (1, 'google-admin', 'Admin User', 'admin@example.com', 'admin')");
-$pdo->exec("INSERT INTO users (user_id, google_id, name, email, role) VALUES (2, 'google-user', 'Regular User', 'user@example.com', 'user')");
+$userModel = new User($db);
+$admin = $userModel->createOrUpdate(['google_id' => 'google-admin', 'name' => 'Admin User', 'email' => 'admin@example.com', 'role' => 'admin']);
+$user = $userModel->createOrUpdate(['google_id' => 'google-user', 'name' => 'Regular User', 'email' => 'user@example.com', 'role' => 'user']);
 
-$_SESSION['user_id'] = 1;
+$_SESSION['user_id'] = $admin['user_id'];
 $_SESSION['user_role'] = 'admin';
 
 // Add projects for regular user
-$pdo->exec("INSERT INTO projects (user_id, github_account_id, github_repo) VALUES (2, 1, 'user/repo-a')");
-$pdo->exec("INSERT INTO projects (user_id, github_account_id, github_repo) VALUES (2, 1, 'user/repo-b')");
+$projectModel = new Project($db);
+$userModel->addGitHubAccount($user['user_id'], 'token', 'user');
+$accounts = $userModel->getGitHubAccounts($user['user_id']);
+$projectModel->create($user['user_id'], $accounts[0]['github_account_id'], 'user/repo-a');
+$projectModel->create($user['user_id'], $accounts[0]['github_account_id'], 'user/repo-b');
 
 // Include the admin dashboard
 include __DIR__ . '/../../src/frontend/admin/index.php';
