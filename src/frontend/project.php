@@ -129,6 +129,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'
     }
 }
 
+// Handle Sync Issues
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+
+    try {
+        $githubToken = $project['github_token'] ?? null;
+        if (!$githubToken) {
+            throw new Exception("GitHub token not found for this project.");
+        }
+
+        $githubService = new GitHubService(null, $githubToken);
+        $issues = $githubService->listIssues($project['github_repo']);
+
+        foreach ($issues as $issue) {
+            // Check if it's really an issue (not a PR)
+            if (isset($issue['pull_request'])) {
+                continue;
+            }
+            $taskModel->upsert($project['id'], $issue);
+        }
+
+        header("Location: project.php?id=$projectId&success=synced");
+        exit;
+    } catch (Exception $e) {
+        $errorMessage = "Error syncing issues: " . $e->getMessage();
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -196,6 +226,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'
                         </div>
                     <?php endif; ?>
 
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'synced'): ?>
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                            <span class="font-medium">Success!</span> Issues synced from GitHub.
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($lastAgentResponse): ?>
                         <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50" role="alert">
                             <span class="font-medium">Agent Response:</span>
@@ -235,7 +271,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'
                         </div>
 
                         <div class="lg:col-span-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                            <h3 class="text-lg font-bold text-gray-900 mb-4">Tasks synced from GitHub</h3>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-bold text-gray-900">Tasks synced from GitHub</h3>
+                                <form method="POST">
+                                    <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                    <button type="submit" name="sync_issues" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none">Sync Issues</button>
+                                </form>
+                            </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm text-left text-gray-500">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
