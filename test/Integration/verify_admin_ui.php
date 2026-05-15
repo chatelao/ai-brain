@@ -5,6 +5,7 @@ use App\Database;
 use App\Auth;
 use App\User;
 use App\Project;
+use App\Task;
 
 // Set environment for testing
 putenv('DB_NAME=:memory:');
@@ -19,7 +20,7 @@ $pdo = $db->getConnection();
 
 // Create schema for SQLite in-memory
 $pdo->exec("CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     google_id VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -31,29 +32,29 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS users (
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS user_github_accounts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    github_account_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INT NOT NULL,
     github_username VARCHAR(255) NOT NULL,
     github_token VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     UNIQUE(user_id, github_username)
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS projects (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INT NOT NULL,
     github_account_id INT NOT NULL,
     github_repo VARCHAR(255) NOT NULL,
     webhook_secret VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (github_account_id) REFERENCES user_github_accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (github_account_id) REFERENCES user_github_accounts(github_account_id) ON DELETE CASCADE
 )");
 
 // Create a mock admin user
-$pdo->exec("INSERT INTO users (id, google_id, name, email, role) VALUES (1, 'google-admin', 'Admin User', 'admin@example.com', 'admin')");
-$pdo->exec("INSERT INTO users (id, google_id, name, email, role) VALUES (2, 'google-user', 'Regular User', 'user@example.com', 'user')");
+$pdo->exec("INSERT INTO users (user_id, google_id, name, email, role) VALUES (1, 'google-admin', 'Admin User', 'admin@example.com', 'admin')");
+$pdo->exec("INSERT INTO users (user_id, google_id, name, email, role) VALUES (2, 'google-user', 'Regular User', 'user@example.com', 'user')");
 
 $_SESSION['user_id'] = 1;
 $_SESSION['user_role'] = 'admin';

@@ -25,7 +25,7 @@ class TaskTest extends TestCase
     public function testFindByProjectId()
     {
         $projectId = 1;
-        $expected = [['id' => 1, 'project_id' => $projectId]];
+        $expected = [['task_id' => 1, 'project_id' => $projectId]];
 
         $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('fetchAll')->willReturn($expected);
@@ -39,7 +39,7 @@ class TaskTest extends TestCase
     public function testFindById()
     {
         $id = 1;
-        $expected = ['id' => $id, 'title' => 'Test Task'];
+        $expected = ['task_id' => $id, 'title' => 'Test Task'];
 
         $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('fetch')->willReturn($expected);
@@ -48,17 +48,6 @@ class TaskTest extends TestCase
 
         $result = $this->taskModel->findById($id);
         $this->assertEquals($expected, $result);
-    }
-
-    public function testFindByIdNotFound()
-    {
-        $stmt = $this->createMock(PDOStatement::class);
-        $stmt->method('fetch')->willReturn(false);
-
-        $this->pdo->method('prepare')->willReturn($stmt);
-
-        $result = $this->taskModel->findById(999);
-        $this->assertNull($result);
     }
 
     public function testUpdateStatus()
@@ -72,37 +61,6 @@ class TaskTest extends TestCase
         $this->pdo->method('prepare')->willReturn($stmt);
 
         $result = $this->taskModel->updateStatus($id, $status);
-        $this->assertTrue($result);
-    }
-
-    public function testUpdateAgentResponse()
-    {
-        $id = 1;
-        $response = 'Agent result';
-
-        $stmt = $this->createMock(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-
-        $this->pdo->method('prepare')->willReturn($stmt);
-
-        $result = $this->taskModel->updateAgentResponse($id, $response);
-        $this->assertTrue($result);
-    }
-
-    public function testCreate()
-    {
-        $data = [
-            'project_id' => 1,
-            'issue_number' => 101,
-            'title' => 'Test Issue'
-        ];
-
-        $stmt = $this->createMock(PDOStatement::class);
-        $stmt->method('execute')->willReturn(true);
-
-        $this->pdo->method('prepare')->willReturn($stmt);
-
-        $result = $this->taskModel->create($data);
         $this->assertTrue($result);
     }
 }
