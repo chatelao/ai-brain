@@ -92,4 +92,43 @@ class GitHubService
             'state' => $state
         ]);
     }
+
+    /**
+     * @throws Exception
+     */
+    public function getRoadmapFiles(string $repo): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+        $roadmaps = [];
+
+        $pathsToSearch = ['.', 'docs'];
+
+        foreach ($pathsToSearch as $path) {
+            try {
+                $contents = $this->client->api('repo')->contents()->show($username, $repository, $path === '.' ? '' : $path);
+                if (is_array($contents)) {
+                    foreach ($contents as $file) {
+                        if ($file['type'] === 'file' && stripos($file['name'], 'ROADMAP') !== false) {
+                            $roadmaps[] = [
+                                'name' => ($path !== '.' ? $path . '/' : '') . $file['name'],
+                                'html_url' => $file['html_url']
+                            ];
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                // Ignore if path not found or other errors for specific paths
+                if ($e->getCode() !== 404) {
+                    // Log or handle other errors if necessary, but don't fail the whole request
+                }
+            }
+        }
+
+        return $roadmaps;
+    }
 }
