@@ -159,20 +159,28 @@ Use this method if you only have SFTP access and cannot run commands on the serv
    SetEnv DB_USER                 your_user
    SetEnv DB_PASS                 your_password
 
-   # Google OAuth (https://console.cloud.google.com/)
+   #
+   # Google OAuth: https://console.cloud.google.com/auth/clients
+   #
    SetEnv GOOGLE_CLIENT_ID        your_google_client_id
    SetEnv GOOGLE_CLIENT_SECRET    your_google_client_secret
    SetEnv GOOGLE_REDIRECT_URI     https://your-domain.com/callback.php
 
-   # GitHub OAuth (https://github.com/settings/developers)
+   #
+   # GitHub OAuth: https://github.com/settings/developers
+   #
    SetEnv GITHUB_CLIENT_ID        your_github_client_id
    SetEnv GITHUB_CLIENT_SECRET    your_github_client_secret
    SetEnv GITHUB_REDIRECT_URI     https://your-domain.com/github-callback.php
 
-   # Google Gemini (https://aistudio.google.com/)
+   #
+   # Google Jules: https://jules.google.com/settings/api
+   #
    SetEnv GOOGLE_JULES_API_KEY    your_google_jules_api_key
 
+   #
    # Telegram Bot (https://t.me/botfather)
+   #
    SetEnv TELEGRAM_BOT_TOKEN      your_telegram_bot_token
    SetEnv TELEGRAM_WEBHOOK_SECRET your_telegram_webhook_secret
    ```
