@@ -153,7 +153,9 @@ Use this method if you only have SFTP access and cannot run commands on the serv
 
    **Example `.htaccess` (Apache):**
    ```apache
+   #
    # Database Configuration
+   #
    SetEnv DB_HOST                 localhost
    SetEnv DB_NAME                 your_db_name
    SetEnv DB_USER                 your_user
