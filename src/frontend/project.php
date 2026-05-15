@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
 
     if ($task && $task['project_id'] === $project['project_id']) {
         try {
-            $logger->log($taskId, "Agent triggered by user " . $user['name']);
+            $logger->log($user['user_id'], $taskId, "Agent triggered by user " . $user['name']);
             $githubToken = $project['github_token'] ?? null;
             $githubService = null;
             if ($githubToken) {
@@ -74,27 +74,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
 
             // Update status to in_progress
             $taskModel->updateStatus($taskId, 'in_progress');
-            $logger->log($taskId, "Task status updated to in_progress");
+            $logger->log($user['user_id'], $taskId, "Task status updated to in_progress");
 
             if ($githubService) {
                 $githubService->postComment($project['github_repo'], $task['issue_number'], "🤖 Agent has started processing this issue...");
-                $logger->log($taskId, "Posted 'started' comment to GitHub");
+                $logger->log($user['user_id'], $taskId, "Posted 'started' comment to GitHub");
             }
 
             if ($telegramChatId) {
                 $telegramService->sendMessage($telegramChatId, "🤖 <b>Agent Started</b>\nProject: {$project['github_repo']}\nIssue: #{$task['issue_number']} {$task['title']}");
             }
 
-            $logger->log($taskId, "Calling Jules API...");
+            $logger->log($user['user_id'], $taskId, "Calling Jules API...");
             $lastAgentResponse = $julesService->triggerAgent($task);
-            $logger->log($taskId, "Received response from Jules API");
+            $logger->log($user['user_id'], $taskId, "Received response from Jules API");
 
             $taskModel->updateAgentResponse($taskId, $lastAgentResponse, 'completed');
-            $logger->log($taskId, "Task agent response updated and status set to completed");
+            $logger->log($user['user_id'], $taskId, "Task agent response updated and status set to completed");
 
             if ($githubService) {
                 $githubService->postComment($project['github_repo'], $task['issue_number'], "✅ Agent has completed the analysis:\n\n" . $lastAgentResponse);
-                $logger->log($taskId, "Posted 'completed' comment to GitHub");
+                $logger->log($user['user_id'], $taskId, "Posted 'completed' comment to GitHub");
             }
 
             if ($telegramChatId) {
@@ -105,14 +105,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
             $tasks = $taskModel->findByProjectId($projectId);
         } catch (\Exception $e) {
             $errorMessage = "Error triggering agent: " . $e->getMessage();
-            $logger->log($taskId, "Error: " . $e->getMessage(), "error");
+            $logger->log($user['user_id'], $taskId, "Error: " . $e->getMessage(), "error");
             $taskModel->updateStatus($taskId, 'failed');
             if (isset($githubService) && $githubService) {
                 try {
                     $githubService->postComment($project['github_repo'], $task['issue_number'], "❌ Agent failed to process this issue: " . $e->getMessage());
-                    $logger->log($taskId, "Posted 'failed' comment to GitHub");
+                    $logger->log($user['user_id'], $taskId, "Posted 'failed' comment to GitHub");
                 } catch (\Exception $ge) {
-                    $logger->log($taskId, "Failed to post error comment to GitHub: " . $ge->getMessage(), "error");
+                    $logger->log($user['user_id'], $taskId, "Failed to post error comment to GitHub: " . $ge->getMessage(), "error");
                 }
             }
 
@@ -176,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
             if (isset($issue['pull_request'])) {
                 continue;
             }
-            $taskModel->upsert($project['project_id'], $issue);
+            $taskModel->upsert($user['user_id'], $project['project_id'], $issue);
         }
 
         header("Location: project.php?id=$projectId&success=synced");
