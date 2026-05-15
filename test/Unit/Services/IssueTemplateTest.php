@@ -25,6 +25,7 @@ class IssueTemplateTest extends TestCase
             name TEXT,
             title_template TEXT,
             body_template TEXT,
+            parameter_config TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )");
@@ -86,5 +87,23 @@ class IssueTemplateTest extends TestCase
         $this->assertEquals('Updated Name', $template['name']);
         $this->assertEquals('Updated Title', $template['title_template']);
         $this->assertEquals('Updated Body', $template['body_template']);
+    }
+
+    public function testParameterConfig()
+    {
+        $userId = 1;
+        $config = json_encode(['%1' => 'Module', '%2' => 'Feature']);
+        $this->templateModel->create($userId, 'Config Template', 'Bug in %1', 'Fix %2', $config);
+
+        $templates = $this->templateModel->findByUserId($userId);
+        $this->assertCount(1, $templates);
+        $this->assertEquals(['%1' => 'Module', '%2' => 'Feature'], $templates[0]['parameter_config']);
+
+        $id = $templates[0]['id'];
+        $newConfig = json_encode(['%1' => 'New Module']);
+        $this->templateModel->update($id, $userId, 'Config Template', 'Bug in %1', 'Fix %2', $newConfig);
+
+        $template = $this->templateModel->findById($id);
+        $this->assertEquals(['%1' => 'New Module'], $template['parameter_config']);
     }
 }

@@ -130,14 +130,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'
     }
 
     $templateId = (int)$_POST['template_id'];
-    $val1 = $_POST['val1'] ?? '';
-    $val2 = $_POST['val2'] ?? '';
+    $params = $_POST['params'] ?? [];
 
     $template = $templateModel->findById($templateId);
     if ($template && $template['user_id'] === $user['id']) {
         try {
-            $title = str_replace(['%1', '%2'], [$val1, $val2], $template['title_template']);
-            $body = str_replace(['%1', '%2'], [$val1, $val2], $template['body_template']);
+            $title = strtr($template['title_template'], $params);
+            $body = strtr($template['body_template'], $params);
 
             $githubToken = $project['github_token'] ?? null;
             if (!$githubToken) {
@@ -296,7 +295,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                 <?php endif; ?>
                             </div>
 
-                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm" x-data="{
+                                templates: <?= htmlspecialchars(json_encode($templates)) ?>,
+                                selectedTemplateId: '<?= $templates[0]['id'] ?? '' ?>',
+                                get selectedTemplate() {
+                                    return this.templates.find(t => t.id == this.selectedTemplateId);
+                                },
+                                get placeholders() {
+                                    if (!this.selectedTemplate) return [];
+                                    const combined = this.selectedTemplate.title_template + ' ' + this.selectedTemplate.body_template;
+                                    const matches = combined.match(/%\d+/g) || [];
+                                    return [...new Set(matches)].sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
+                                }
+                            }">
                                 <h3 class="text-lg font-bold text-gray-900 mb-4">Create Issue from Template</h3>
                                 <?php if (empty($templates)): ?>
                                     <p class="text-sm text-gray-500 italic">No templates available. <a href="templates.php" class="text-blue-600 hover:underline">Create one first.</a></p>
@@ -305,20 +316,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                         <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                         <div class="mb-4">
                                             <label class="block mb-2 text-sm font-medium text-gray-900">Select Template</label>
-                                            <select name="template_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                            <select name="template_id" x-model="selectedTemplateId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                                                 <?php foreach ($templates as $tmpl): ?>
                                                     <option value="<?= $tmpl['id'] ?>"><?= htmlspecialchars($tmpl['name']) ?></option>
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
-                                        <div class="mb-4">
-                                            <label class="block mb-2 text-sm font-medium text-gray-900">%1 value</label>
-                                            <input type="text" name="val1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                        </div>
-                                        <div class="mb-4">
-                                            <label class="block mb-2 text-sm font-medium text-gray-900">%2 value</label>
-                                            <input type="text" name="val2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                        </div>
+
+                                        <template x-for="p in placeholders" :key="p">
+                                            <div class="mb-4">
+                                                <label class="block mb-2 text-sm font-medium text-gray-900" x-text="(selectedTemplate.parameter_config[p] || p) + ' value'"></label>
+                                                <input type="text" :name="'params[' + p + ']'" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                            </div>
+                                        </template>
+
                                         <div class="flex items-center mb-4">
                                             <input id="add_jules_label" name="add_jules_label" type="checkbox" value="1" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" checked>
                                             <label for="add_jules_label" class="ms-2 text-sm font-medium text-gray-900">Add "Jules" label</label>

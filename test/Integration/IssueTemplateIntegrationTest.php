@@ -27,6 +27,7 @@ class IssueTemplateIntegrationTest extends TestCase
             name TEXT,
             title_template TEXT,
             body_template TEXT,
+            parameter_config TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )");
@@ -42,10 +43,9 @@ class IssueTemplateIntegrationTest extends TestCase
         $this->templateModel->create($userId, 'Bug Template', 'Bug: %1 in %2', 'Found %1');
         $template = $this->templateModel->findByUserId($userId)[0];
 
-        $val1 = 'Crash';
-        $val2 = 'Login';
-        $renderedTitle = str_replace(['%1', '%2'], [$val1, $val2], $template['title_template']);
-        $renderedBody = str_replace(['%1', '%2'], [$val1, $val2], $template['body_template']);
+        $params = ['%1' => 'Crash', '%2' => 'Login'];
+        $renderedTitle = strtr($template['title_template'], $params);
+        $renderedBody = strtr($template['body_template'], $params);
 
         $this->assertEquals('Bug: Crash in Login', $renderedTitle);
         $this->assertEquals('Found Crash', $renderedBody);
