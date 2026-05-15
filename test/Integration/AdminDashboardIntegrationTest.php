@@ -25,7 +25,7 @@ class AdminDashboardIntegrationTest extends TestCase
         $this->pdo->exec("DROP TABLE IF EXISTS users");
         $this->pdo->exec("DROP TABLE IF EXISTS projects");
         $this->pdo->exec("CREATE TABLE users (
-            user_user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             google_id VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
@@ -34,9 +34,9 @@ class AdminDashboardIntegrationTest extends TestCase
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
         $this->pdo->exec("CREATE TABLE projects (
-            user_user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_user_user_id INTEGER NOT NULL,
-            github_account_user_user_id INTEGER NOT NULL,
+            project_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            github_account_id INTEGER NOT NULL,
             github_repo VARCHAR(255) NOT NULL,
             webhook_secret VARCHAR(255),
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
