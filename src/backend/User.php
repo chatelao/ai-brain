@@ -157,4 +157,12 @@ class User
         );
         return $stmt->execute([$apiKey, $userId]);
     }
+
+    public function updateTelegramConfig(int $userId, ?string $botToken, ?string $webhookSecret): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE users SET telegram_bot_token = ?, telegram_webhook_secret = ? WHERE user_id = ?"
+        );
+        return $stmt->execute([$botToken, $webhookSecret, $userId]);
+    }
 }

@@ -7,8 +7,13 @@ class TelegramWebhookHandler
     public function __construct(
         private User $userModel,
         private TelegramService $telegramService,
-        private string $webhookSecret
+        private ?string $webhookSecret
     ) {
+    }
+
+    public function setWebhookSecret(?string $webhookSecret): void
+    {
+        $this->webhookSecret = $webhookSecret;
     }
 
     public function verifySecret(string $providedSecret): bool

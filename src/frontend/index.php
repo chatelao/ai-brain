@@ -29,6 +29,21 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_jules
     }
 }
 
+// Handle Telegram Config Update
+if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_telegram_config'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+    $botToken = trim($_POST['telegram_bot_token']);
+    $webhookSecret = trim($_POST['telegram_webhook_secret']);
+    if ($userModel->updateTelegramConfig($user['user_id'], $botToken, $webhookSecret)) {
+        header('Location: index.php?success=telegram_updated');
+        exit;
+    } else {
+        $errorMessage = "Failed to update Telegram configuration.";
+    }
+}
+
 // Handle Project Creation
 if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_repo']) && isset($_POST['github_account_id'])) {
     if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
@@ -150,6 +165,11 @@ $errorMessage = $errorMessage ?? null;
                             <span class="font-medium">Success!</span> Jules API Key updated successfully.
                         </div>
                     <?php endif; ?>
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'telegram_updated'): ?>
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                            <span class="font-medium">Success!</span> Telegram configuration updated successfully.
+                        </div>
+                    <?php endif; ?>
                     <?php if (isset($_GET['github']) && $_GET['github'] === 'error'): ?>
                         <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
                             <span class="font-medium">Error!</span> <?= htmlspecialchars($_GET['message'] ?? 'GitHub authentication failed.') ?>
@@ -208,14 +228,31 @@ $errorMessage = $errorMessage ?? null;
                                 <div class="mt-4">
                                     <p class="text-gray-600">You are logged in as <strong><?= htmlspecialchars($user['email']) ?></strong>.</p>
 
-                                    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                        <h4 class="text-lg font-semibold text-blue-900 mb-2">Jules API Key (Private)</h4>
-                                        <p class="text-sm text-blue-700 mb-4">Your personal Google AI (Gemini) API key. This is required for agent features and is not shared with other users.</p>
-                                        <form method="POST" class="flex gap-2">
-                                            <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                            <input type="password" name="jules_api_key" value="<?= htmlspecialchars($user['jules_api_key'] ?? '') ?>" placeholder="AI Studio API Key" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                            <button type="submit" name="update_jules_key" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Save</button>
-                                        </form>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                                        <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                            <h4 class="text-lg font-semibold text-blue-900 mb-2">Jules API Key (Private)</h4>
+                                            <p class="text-sm text-blue-700 mb-4">Your personal Google AI (Gemini) API key. This is required for agent features and is not shared with other users.</p>
+                                            <form method="POST" class="flex gap-2">
+                                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                                <input type="password" name="jules_api_key" value="<?= htmlspecialchars($user['jules_api_key'] ?? '') ?>" placeholder="AI Studio API Key" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                                <button type="submit" name="update_jules_key" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Save</button>
+                                            </form>
+                                        </div>
+
+                                        <div class="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                                            <h4 class="text-lg font-semibold text-purple-900 mb-2">Telegram Custom Bot</h4>
+                                            <p class="text-sm text-purple-700 mb-4">Optional: Use your own Telegram Bot. Configure the webhook to:<br>
+                                                <code class="bg-white px-1 rounded text-xs font-mono">https://<?= $_SERVER['HTTP_HOST'] ?? 'your-domain.com' ?>/telegram-webhook.php?user_id=<?= $user['user_id'] ?></code>
+                                            </p>
+                                            <form method="POST" class="space-y-2">
+                                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                                <input type="password" name="telegram_bot_token" value="<?= htmlspecialchars($user['telegram_bot_token'] ?? '') ?>" placeholder="Custom Bot Token" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5">
+                                                <div class="flex gap-2">
+                                                    <input type="password" name="telegram_webhook_secret" value="<?= htmlspecialchars($user['telegram_webhook_secret'] ?? '') ?>" placeholder="Webhook Secret (X-Telegram-Bot-Api-Secret-Token)" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5">
+                                                    <button type="submit" name="update_telegram_config" class="text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Save</button>
+                                                </div>
+                                            </form>
+                                        </div>
                                     </div>
 
 

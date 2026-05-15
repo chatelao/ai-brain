@@ -35,4 +35,5 @@
 - [x] Enable agent-to-user communication and status updates via Telegram.
 
 ## Phase 6: Customization
-- [ ] Enable user-specific Telegram configuration (custom bot tokens).
+- [x] Enable user-specific Telegram configuration (custom bot tokens and webhook secrets).
+- [ ] Implement per-project agent behavior configuration.
