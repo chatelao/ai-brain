@@ -24,10 +24,10 @@ jobs:
 
       - name: Create ZIP archive
         run: |
-          zip -r agent-control-php.zip . -x "*.git*" ".github/*" "test/*" "docs/*" "specification/*" "scripts/*" ".gitignore" "Vagrantfile" "CONCEPT.md" "DESIGN.md" "GEMINI.md" "HOWTO.md" "INSTALL.md" "ROADMAP.md" ".readthedocs.yaml"
+          zip -r agent-control-php-${{ github.event.release.tag_name }}.zip . -x "*.git*" ".github/*" "test/*" "docs/*" "specification/*" "scripts/*" ".gitignore" "Vagrantfile" "CONCEPT.md" "DESIGN.md" "GEMINI.md" "HOWTO.md" "INSTALL.md" "ROADMAP.md" ".readthedocs.yaml"
 
       - name: Upload Release Asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ github.event.release.tag_name }} agent-control-php.zip
+          gh release upload ${{ github.event.release.tag_name }} agent-control-php-${{ github.event.release.tag_name }}.zip
