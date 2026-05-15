@@ -17,7 +17,6 @@ $db = new Database();
 $userModel = new User($db);
 $projectModel = new Project($db);
 $taskModel = new Task($db);
-$julesService = new JulesService();
 $logger = new Logger($db);
 
 if (!$auth->isLoggedIn()) {
@@ -26,6 +25,7 @@ if (!$auth->isLoggedIn()) {
 }
 
 $user = $userModel->findById($auth->getUserId());
+$julesService = new JulesService(null, $user['jules_api_key'] ?? null);
 $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $project = $projectModel->findById($projectId);
 

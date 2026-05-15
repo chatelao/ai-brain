@@ -149,4 +149,12 @@ class User
         $result = $stmt->fetch();
         return $result ? (int)$result['telegram_chat_id'] : null;
     }
+
+    public function updateJulesApiKey(int $userId, ?string $apiKey): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE users SET jules_api_key = ? WHERE id = ?"
+        );
+        return $stmt->execute([$apiKey, $userId]);
+    }
 }
