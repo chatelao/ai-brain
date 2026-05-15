@@ -25,6 +25,9 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     avatar VARCHAR(255),
+    role VARCHAR(20) DEFAULT 'user',
+    jules_api_key VARCHAR(255),
+    telegram_link_token VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )");
 
@@ -61,6 +64,14 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(project_id, issue_number)
+)");
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS user_telegram_accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INT NOT NULL,
+    telegram_chat_id BIGINT UNIQUE NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS task_logs (
