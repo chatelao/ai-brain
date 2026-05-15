@@ -129,8 +129,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'
                 throw new Exception("GitHub token not found for this project.");
             }
 
+            $labels = isset($_POST['add_jules_label']) ? ['Jules'] : [];
+
             $githubService = new GitHubService(null, $githubToken);
-            $githubService->createIssue($project['github_repo'], $title, $body, []);
+            $githubService->createIssue($project['github_repo'], $title, $body, $labels);
 
             header("Location: project.php?id=$projectId&success=issue_created");
             exit;
@@ -301,6 +303,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                         <div class="mb-4">
                                             <label class="block mb-2 text-sm font-medium text-gray-900">%2 value</label>
                                             <input type="text" name="val2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                        </div>
+                                        <div class="flex items-center mb-4">
+                                            <input id="add_jules_label" name="add_jules_label" type="checkbox" value="1" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" checked>
+                                            <label for="add_jules_label" class="ms-2 text-sm font-medium text-gray-900">Add "Jules" label</label>
                                         </div>
                                         <button type="submit" name="create_from_template" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none">Create Issue</button>
                                     </form>
