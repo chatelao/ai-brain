@@ -6,11 +6,13 @@ use App\Database;
 use App\Auth;
 use App\User;
 use App\Task;
+use App\WebhookLogger;
 
 $auth = new Auth();
 $db = new Database();
 $userModel = new User($db);
 $taskModel = new Task($db);
+$webhookLogger = new WebhookLogger($db);
 
 if (!$auth->isLoggedIn()) {
     header('Location: login.php');
@@ -49,6 +51,7 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_teleg
 }
 
 $githubAccounts = $user ? $userModel->getGitHubAccounts($user['user_id']) : [];
+$webhookLogs = $user ? $webhookLogger->getLogsByUser($user['user_id']) : [];
 $errorMessage = $errorMessage ?? null;
 
 ?>
@@ -61,6 +64,7 @@ $errorMessage = $errorMessage ?? null;
     <title>Account Settings - Agent Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak] { display: none !important; }</style>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
     <nav class="bg-white border-b border-gray-200 fixed w-full z-30 top-0">
@@ -108,10 +112,21 @@ $errorMessage = $errorMessage ?? null;
                         </ol>
                     </nav>
 
-                    <div class="mb-4">
+                    <div class="mb-4 flex justify-between items-center">
                         <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Account Settings</h1>
                     </div>
 
+                    <div class="mb-4 border-b border-gray-200" x-data="{ activeTab: '<?= htmlspecialchars($_GET['tab'] ?? 'general', ENT_QUOTES, 'UTF-8') ?>' }">
+                        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+                            <li class="mr-2">
+                                <button @click="activeTab = 'general'" :class="activeTab === 'general' ? 'text-blue-600 border-blue-600' : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'" class="inline-block p-4 border-b-2 rounded-t-lg">General</button>
+                            </li>
+                            <li class="mr-2">
+                                <button @click="activeTab = 'logging'" :class="activeTab === 'logging' ? 'text-blue-600 border-blue-600' : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'" class="inline-block p-4 border-b-2 rounded-t-lg">Logging</button>
+                            </li>
+                        </ul>
+
+                        <div x-show="activeTab === 'general'" class="pt-4">
                     <?php if (isset($_GET['success']) && $_GET['success'] === 'key_updated'): ?>
                         <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
                             <span class="font-medium">Success!</span> Jules API Key updated successfully.
@@ -179,6 +194,63 @@ $errorMessage = $errorMessage ?? null;
                             </div>
                         </div>
                     </div>
+                    </div> <!-- End General Tab -->
+
+                    <div x-show="activeTab === 'logging'" class="pt-4" x-cloak>
+                        <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Webhook Call Logs (Last 5 per endpoint)</h3>
+                            <?php if (empty($webhookLogs)): ?>
+                                <p class="text-sm text-gray-500 italic">No webhook calls logged yet.</p>
+                            <?php else: ?>
+                                <div class="relative overflow-x-auto">
+                                    <table class="w-full text-sm text-left text-gray-500">
+                                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3">Time</th>
+                                                <th scope="col" class="px-6 py-3">Endpoint</th>
+                                                <th scope="col" class="px-6 py-3">Status</th>
+                                                <th scope="col" class="px-6 py-3">Details</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($webhookLogs as $log): ?>
+                                                <tr class="bg-white border-b hover:bg-gray-50" x-data="{ open: false }">
+                                                    <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($log['created_at']) ?></td>
+                                                    <td class="px-6 py-4 uppercase font-mono text-xs"><?= htmlspecialchars($log['endpoint']) ?></td>
+                                                    <td class="px-6 py-4">
+                                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium <?= $log['status_code'] >= 200 && $log['status_code'] < 300 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
+                                                            <?= (int)$log['status_code'] ?>
+                                                        </span>
+                                                        <?php if ($log['error_message']): ?>
+                                                            <div class="text-xs text-red-600 mt-1"><?= htmlspecialchars($log['error_message']) ?></div>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <button @click="open = !open" class="text-blue-600 hover:underline">View Payload</button>
+                                                        <div x-show="open" class="mt-2 p-2 bg-gray-900 text-green-400 rounded text-xs overflow-auto max-w-lg max-h-64" @click.away="open = false" x-cloak>
+                                                            <div class="mb-2 border-b border-gray-700 pb-1 text-gray-400">Headers:</div>
+                                                            <?php
+                                                            $headers = json_decode($log['headers'] ?? '{}', true);
+                                                            $headersJson = $headers ? json_encode($headers, JSON_PRETTY_PRINT) : ($log['headers'] ?? '');
+                                                            ?>
+                                                            <pre><?= htmlspecialchars($headersJson) ?></pre>
+                                                            <div class="mt-4 mb-2 border-b border-gray-700 pb-1 text-gray-400">Payload:</div>
+                                                            <?php
+                                                            $payload = json_decode($log['payload'] ?? '{}', true);
+                                                            $payloadJson = $payload ? json_encode($payload, JSON_PRETTY_PRINT) : ($log['payload'] ?? '');
+                                                            ?>
+                                                            <pre><?= htmlspecialchars($payloadJson) ?></pre>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    </div> <!-- End Tab Content Wrapper -->
                 </div>
             </main>
         </div>
