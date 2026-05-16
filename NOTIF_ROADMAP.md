@@ -1,12 +1,12 @@
 # Roadmap: Notification System Implementation
 
 ## Phase 1: Core Infrastructure
-- [ ] Create database migration for `notifications` table.
-- [ ] Create database migration for `user_notification_settings` table.
-- [ ] Create database migration for `project_notification_settings` table.
-- [ ] Create database migration for `task_notification_settings` table.
-- [ ] Implement `App\NotificationService` core logic (persistence and dispatching).
-- [ ] Implement unit tests for `NotificationService`.
+- [x] Create database migration for `notifications` table.
+- [x] Create database migration for `user_notification_settings` table.
+- [x] Create database migration for `project_notification_settings` table.
+- [x] Create database migration for `task_notification_settings` table.
+- [x] Implement `App\NotificationService` core logic (persistence and dispatching).
+- [x] Implement unit tests for `NotificationService`.
 
 ## Phase 2: In-App Inbox & Deep Linking
 - [ ] Implement In-App Inbox UI (notification bell in `navbar.php`).
