@@ -220,6 +220,37 @@ class Task
         return null;
     }
 
+    public function extractPrUrl(string $text): ?string
+    {
+        if (preg_match('/https:\/\/github\.com\/[^\/]+\/[^\/]+\/pull\/\d+/', $text, $matches)) {
+            return $matches[0];
+        }
+        return null;
+    }
+
+    public function getTargetUrl(array $task, ?string $repo = null): string
+    {
+        $issueUrl = "https://github.com/" . ($repo ?? $task['github_repo']) . "/issues/" . $task['issue_number'];
+        $status = $task['status'] ?? 'pending';
+
+        if ($status === 'completed') {
+            return $task['pr_url'] ?: $issueUrl;
+        }
+
+        if ($status === 'in_progress') {
+            return $task['jules_url'] ?: $issueUrl;
+        }
+
+        if ($status === 'failed') {
+            if (!empty($task['pr_url'])) {
+                return $task['pr_url'];
+            }
+            return $task['jules_url'] ?: $issueUrl;
+        }
+
+        return $issueUrl;
+    }
+
     public function refreshJulesStatus(int $userId, GitHubService $githubService, JulesService $julesService): void
     {
         $stmt = $this->db->getConnection()->prepare(
@@ -262,29 +293,46 @@ class Task
             }
 
             $sessionId = $task['jules_session_id'];
+            $prUrl = $task['pr_url'];
 
-            if (!$sessionId) {
+            if (!$sessionId || !$prUrl) {
                 try {
                     $comments = $githubService->getIssueComments($task['github_repo'], $task['issue_number']);
-                    // Reverse to find the latest "on it" comment
-                    $julesComments = array_reverse(array_filter($comments, function($c) {
-                        $login = strtolower($c['user']['login'] ?? '');
-                        return ($login === 'google-labs-jules[bot]' || $login === 'jules') &&
-                               stripos($c['body'] ?? '', 'on it') !== false;
-                    }));
 
-                    foreach ($julesComments as $comment) {
-                        $sessionId = $this->extractSessionId($comment['body'] ?? '');
-                        if ($sessionId) {
-                            $updateStmt = $this->db->getConnection()->prepare(
-                                "UPDATE tasks SET jules_session_id = ? WHERE task_id = ?"
-                            );
-                            $updateStmt->execute([$sessionId, $task['task_id']]);
-                            break;
+                    if (!$sessionId) {
+                        // Reverse to find the latest "on it" comment
+                        $julesComments = array_reverse(array_filter($comments, function($c) {
+                            $login = strtolower($c['user']['login'] ?? '');
+                            return ($login === 'google-labs-jules[bot]' || $login === 'jules') &&
+                                stripos($c['body'] ?? '', 'on it') !== false;
+                        }));
+
+                        foreach ($julesComments as $comment) {
+                            $sessionId = $this->extractSessionId($comment['body'] ?? '');
+                            if ($sessionId) {
+                                $updateStmt = $this->db->getConnection()->prepare(
+                                    "UPDATE tasks SET jules_session_id = ? WHERE task_id = ?"
+                                );
+                                $updateStmt->execute([$sessionId, $task['task_id']]);
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!$prUrl) {
+                        foreach ($comments as $comment) {
+                            $prUrl = $this->extractPrUrl($comment['body'] ?? '');
+                            if ($prUrl) {
+                                $updateStmt = $this->db->getConnection()->prepare(
+                                    "UPDATE tasks SET pr_url = ? WHERE task_id = ?"
+                                );
+                                $updateStmt->execute([$prUrl, $task['task_id']]);
+                                break;
+                            }
                         }
                     }
                 } catch (\Exception $e) {
-                    continue;
+                    // Log error if needed
                 }
             }
 
@@ -293,6 +341,7 @@ class Task
                 if ($julesData) {
                     $newStatus = $julesData['status'];
                     $mappedStatus = $task['status'];
+                    $julesUrl = $julesData['url'] ?? null;
 
                     if (in_array($newStatus, ['in-progress', 'coding', 'testing', 'researching', 'planning'])) {
                         $mappedStatus = 'in_progress';
@@ -303,9 +352,9 @@ class Task
                     }
 
                     $updateStmt = $this->db->getConnection()->prepare(
-                        "UPDATE tasks SET jules_status = ?, status = ?, last_synced_at = ? WHERE task_id = ?"
+                        "UPDATE tasks SET jules_status = ?, status = ?, jules_url = ?, last_synced_at = ? WHERE task_id = ?"
                     );
-                    $updateStmt->execute([$newStatus, $mappedStatus, date('Y-m-d H:i:s'), $task['task_id']]);
+                    $updateStmt->execute([$newStatus, $mappedStatus, $julesUrl, date('Y-m-d H:i:s'), $task['task_id']]);
                 }
             } else {
                 // Still update last_synced_at even if no sessionId or apiKey to avoid constant retries

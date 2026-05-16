@@ -425,7 +425,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                         <?php foreach ($tasks as $task): ?>
                                             <tr class="bg-white border-b">
                                                 <td class="px-6 py-4">
-                                                    <div class="text-base font-semibold text-gray-900">#<?= htmlspecialchars($task['issue_number']) ?> <?= htmlspecialchars($task['title']) ?></div>
+                                                    <div class="text-base text-gray-900">
+                                                        <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task, $project['github_repo'])) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                                                            #<?= htmlspecialchars($task['issue_number']) ?> <?= htmlspecialchars($task['title']) ?>
+                                                        </a>
+                                                    </div>
                                                     <div class="text-xs text-gray-500"><?= htmlspecialchars(mb_substr($task['body'] ?? '', 0, 100)) ?>...</div>
                                                 </td>
                                                 <td class="px-6 py-4">
