@@ -56,9 +56,15 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     </div>
 
     <!-- Jules Status -->
-    <div class="flex items-center <?= $totalTasks > 0 ? 'text-black' : 'text-gray-300' ?>" title="Jules Tasks: Completed / Total">
+    <div class="flex items-center <?= $totalTasks > 0 ? 'text-black' : 'text-gray-300' ?>"
+         title="Jules Tasks: Completed / Total <?= (isset($user['jules_quota_limit']) && $user['jules_quota_limit'] > 0) ? '| Daily session limit: (' . $user['jules_quota_usage'] . '/' . $user['jules_quota_limit'] . ')' : '' ?>">
         <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 5.586 3.004 3.004 0 0 0 5.193 2.019A4 4 0 0 1 12 18c.35 0 .692.045 1.02.13a3.004 3.004 0 0 0 5.193-2.019 4 4 0 0 0 .52-5.586 4 4 0 0 0-2.526-5.77A3 3 0 1 0 12 5M9 14.5a2.5 2.5 0 0 0 2.46-2.019M15 14.5a2.5 2.5 0 0 1-2.46-2.019"/></svg>
-        <span class="text-xs font-bold"><?= $completedTasks ?>/<?= $totalTasks ?></span>
+        <span class="text-xs font-bold">
+            <?= $completedTasks ?>/<?= $totalTasks ?>
+            <?php if (isset($user['jules_quota_limit']) && $user['jules_quota_limit'] > 0): ?>
+                <span class="ml-1 text-gray-500 font-normal">(<?= htmlspecialchars($user['jules_quota_usage']) ?>/<?= htmlspecialchars($user['jules_quota_limit']) ?>)</span>
+            <?php endif; ?>
+        </span>
     </div>
 
     <!-- Telegram Status -->
