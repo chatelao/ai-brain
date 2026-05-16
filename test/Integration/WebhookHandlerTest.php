@@ -72,4 +72,35 @@ class WebhookHandlerTest extends TestCase
         $this->assertEquals('Issue description', $task['body']);
         $this->assertEquals('pending', $task['status']);
     }
+
+    public function testHandleAutorepeat()
+    {
+        $project = ['user_id' => 1, 'project_id' => 1];
+        $event = [
+            'action' => 'closed',
+            'issue' => [
+                'number' => 123,
+                'title' => 'Autorepeat Issue',
+                'body' => 'Description',
+                'state_reason' => 'completed',
+                'labels' => [
+                    ['name' => 'autorepeat']
+                ]
+            ],
+            'repository' => [
+                'full_name' => 'owner/repo'
+            ]
+        ];
+
+        $githubService = $this->createMock(\App\GitHubService::class);
+        $githubService->expects($this->once())
+            ->method('createIssue')
+            ->with('owner/repo', 'Autorepeat Issue', 'Description', ['autorepeat']);
+        $githubService->expects($this->once())
+            ->method('removeLabel')
+            ->with('owner/repo', 123, 'autorepeat');
+
+        $result = $this->handler->handle($project, $event, $githubService);
+        $this->assertTrue($result);
+    }
 }

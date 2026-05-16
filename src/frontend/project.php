@@ -390,6 +390,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                 <?php endif; ?>
                             </div>
 
+                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">Webhook Configuration</h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 uppercase">Payload URL</label>
+                                        <div class="mt-1 flex">
+                                            <input type="text" readonly value="<?= ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https') . '://' . $_SERVER['HTTP_HOST'] ?>/webhook.php" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-full p-2" id="webhook-url">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 uppercase">Secret</label>
+                                        <div class="mt-1 flex">
+                                            <input type="text" readonly value="<?= htmlspecialchars($project['webhook_secret']) ?>" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-full p-2" id="webhook-secret">
+                                        </div>
+                                    </div>
+                                    <p class="text-[10px] text-gray-500">
+                                        Configure this in your GitHub Repository <b>Settings > Webhooks</b>.
+                                        Set Content type to <b>application/json</b> and select <b>Issues</b> events.
+                                    </p>
+                                </div>
+                            </div>
+
                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm" x-data="{
                                 templates: <?= htmlspecialchars(json_encode($templates)) ?>,
                                 selectedTemplateId: '<?= $templates[0]['issue_template_id'] ?? '' ?>',
