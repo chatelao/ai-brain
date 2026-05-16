@@ -1,0 +1,66 @@
+name: Apply DB Patch
+
+on:
+  workflow_dispatch:
+    inputs:
+      patch:
+        description: 'Select patch to apply'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - 001_add_parameter_config_to_issue_templates.sql
+          - 002_rename_id_columns.sql
+          - 003_add_user_id_to_tasks_and_logs.sql
+          - 004_add_telegram_bot_config_to_users.sql
+          - 005_add_jules_session_columns_to_tasks.sql
+          - 005_change_task_status_to_varchar.sql
+      web_url:
+        description: 'Base URL of the application'
+        required: true
+        default: ''
+
+jobs:
+  apply-patch:
+    name: Apply DB Patch
+    runs-on: ubuntu-latest
+    if: github.actor == github.repository_owner
+    steps:
+      - name: Install SSHPass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Extract DB_UPGRADE_SECRET and Trigger Upgrade
+        run: |
+          # 1. Extract secret via SSH
+          SECRET=$(sshpass -p "${{ secrets.SFTP_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SFTP_USERNAME }}@${{ secrets.SFTP_SERVER }} "grep 'SetEnv DB_UPGRADE_SECRET' ${{ secrets.SFTP_PATH }}/.htaccess | awk '{print \$3}'")
+
+          if [ -z "$SECRET" ]; then
+            echo "Error: DB_UPGRADE_SECRET not found in .htaccess"
+            exit 1
+          fi
+
+          # 2. Determine Web URL
+          WEB_URL="${{ github.event.inputs.web_url }}"
+          if [ -z "$WEB_URL" ]; then
+            WEB_URL="https://${{ secrets.SFTP_SERVER }}"
+          fi
+
+          echo "Triggering upgrade at $WEB_URL/upgrade.php"
+
+          # 3. Trigger Upgrade via Curl
+          RESPONSE=$(curl -s -X POST \
+            -F "secret=$SECRET" \
+            -F "patch=${{ github.event.inputs.patch }}" \
+            -F "run_migrations=1" \
+            "$WEB_URL/upgrade.php")
+
+          echo "Response from server:"
+          echo "$RESPONSE"
+
+          if echo "$RESPONSE" | grep -q "ERROR"; then
+            echo "Migration failed!"
+            exit 1
+          fi
+
+          echo "Migration triggered successfully."

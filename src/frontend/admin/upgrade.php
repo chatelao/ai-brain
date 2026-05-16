@@ -12,32 +12,53 @@ $auth = new Auth();
 $db = new Database();
 $userModel = new User($db);
 
-if (!$auth->isLoggedIn()) {
-    header('Location: ../login.php');
-    exit;
+// Check for secret bypass
+$providedSecret = $_REQUEST['secret'] ?? null;
+$configuredSecret = getenv('DB_UPGRADE_SECRET');
+$isSecretValid = !empty($configuredSecret) && $providedSecret === $configuredSecret;
+
+if (!$isSecretValid) {
+    if (!$auth->isLoggedIn()) {
+        header('Location: ../login.php');
+        exit;
+    }
+
+    if (!$auth->isAdmin()) {
+        die("Access denied. Admin privileges required.");
+    }
+
+    $currentUser = $userModel->findById($auth->getUserId());
+    $user = $currentUser;
+    $taskModel = new Task($db);
+    $allowedUpgradeEmail = getenv('UPGRADE_ALLOWED_EMAIL');
+
+    // Security check: only a specifically allowed admin can trigger upgrades
+    if (empty($allowedUpgradeEmail) || $currentUser['email'] !== $allowedUpgradeEmail) {
+        die("Access denied. You are not authorized to trigger system upgrades. Please check UPGRADE_ALLOWED_EMAIL configuration.");
+    }
+} else {
+    // For secret valid case, we still might need $currentUser for the template
+    // but the template might fail if we don't have it.
+    // However, if it's an automated call, the HTML output might not be strictly necessary
+    // but we should try to make it work.
+    $currentUser = ['name' => 'System (Secret Auth)', 'email' => 'system', 'avatar' => ''];
 }
 
-if (!$auth->isAdmin()) {
-    die("Access denied. Admin privileges required.");
-}
-
-$currentUser = $userModel->findById($auth->getUserId());
-$user = $currentUser;
-$taskModel = new Task($db);
-$allowedUpgradeEmail = getenv('UPGRADE_ALLOWED_EMAIL');
-
-// Security check: only a specifically allowed admin can trigger upgrades
-if (empty($allowedUpgradeEmail) || $currentUser['email'] !== $allowedUpgradeEmail) {
-    die("Access denied. You are not authorized to trigger system upgrades. Please check UPGRADE_ALLOWED_EMAIL configuration.");
-}
+$migrationService = new MigrationService($db);
+$status = $migrationService->getMigrationStatus();
+$pendingPatches = $status['pending'];
 
 $logs = [];
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_upgrade'])) {
-    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? '')) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['trigger_upgrade']) || $isSecretValid)) {
+    if (!$isSecretValid && !$auth->validateCsrfToken($_POST['csrf_token'] ?? '')) {
         $logs[] = "ERROR: Invalid CSRF token.";
     } else {
-        $migrationService = new MigrationService($db);
-        $logs = $migrationService->migrate();
+        $patch = $_POST['patch'] ?? 'all';
+        if ($patch === 'all') {
+            $logs = $migrationService->migrate();
+        } else {
+            $logs = $migrationService->applyPatch($patch);
+        }
     }
 }
 
@@ -103,8 +124,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_upgrade'])) {
                                 <h3 class="text-base font-normal text-gray-500">Apply Database Patches</h3>
                                 <p class="text-sm text-gray-500 mb-4">This will scan the <code>src/sql/patches/</code> directory and apply any missing SQL patches to the database.</p>
 
-                                <form method="POST">
+                                <form method="POST" class="space-y-4">
                                     <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+
+                                    <div>
+                                        <label for="patch" class="block text-sm font-medium text-gray-700">Select Patch</label>
+                                        <select id="patch" name="patch" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border">
+                                            <option value="all">Apply All Pending Patches</option>
+                                            <?php foreach ($pendingPatches as $patch): ?>
+                                                <option value="<?= htmlspecialchars($patch) ?>"><?= htmlspecialchars($patch) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+
                                     <button type="submit" name="trigger_upgrade" value="1" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 focus:outline-none">
                                         Run Migrations
                                     </button>
