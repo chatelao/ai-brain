@@ -6,11 +6,16 @@ use App\Database;
 use App\User;
 use App\TelegramService;
 use App\TelegramWebhookHandler;
+use App\WebhookLogger;
 
 $db = new Database();
 $userModel = new User($db);
+$logger = new WebhookLogger($db);
 
 $userId = isset($_GET['user_id']) ? (int)$_GET['user_id'] : null;
+$headers = getallheaders();
+$headersStr = json_encode($headers);
+$input = file_get_contents('php://input');
 $botToken = getenv('TELEGRAM_BOT_TOKEN') ?: '';
 $webhookSecret = getenv('TELEGRAM_WEBHOOK_SECRET') ?: '';
 
@@ -36,18 +41,27 @@ $handler = new TelegramWebhookHandler(
 $providedSecret = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '';
 
 if (!$handler->verifySecret($providedSecret)) {
+    if ($userId) {
+        $logger->log($userId, 'telegram', $input, $headersStr, 401, "Unauthorized");
+    }
     http_response_code(401);
     echo "Unauthorized";
     exit;
 }
 
-$input = file_get_contents('php://input');
 $update = json_decode($input, true);
 
 if (!$update) {
+    if ($userId) {
+        $logger->log($userId, 'telegram', $input, $headersStr, 400, "Invalid Request");
+    }
     http_response_code(400);
     echo "Invalid Request";
     exit;
+}
+
+if ($userId) {
+    $logger->log($userId, 'telegram', $input, $headersStr, 200);
 }
 
 // Acknowledge Telegram immediately

@@ -7,10 +7,16 @@ use App\Project;
 use App\WebhookHandler;
 use App\GitHubService;
 use App\RateLimiter;
+use App\WebhookLogger;
 
 $db = new Database();
 $rateLimiter = new RateLimiter($db);
 $ip = $rateLimiter->getIpAddress();
+$logger = new WebhookLogger($db);
+
+$headers = getallheaders();
+$headersStr = json_encode($headers);
+$payload = file_get_contents('php://input');
 
 if (!$rateLimiter->check("webhook_$ip", 100, 60)) {
     http_response_code(429);
@@ -19,7 +25,6 @@ if (!$rateLimiter->check("webhook_$ip", 100, 60)) {
 $projectModel = new Project($db);
 $handler = new WebhookHandler($db);
 
-$payload = file_get_contents('php://input');
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
 $event = $_SERVER['HTTP_X_GITHUB_EVENT'] ?? '';
 
@@ -55,6 +60,10 @@ foreach ($projects as $project) {
 }
 
 if (!$verified) {
+    // Log failure for the first project found as a fallback if we can't verify any
+    if (!empty($projects)) {
+        $logger->log($projects[0]['user_id'], 'github', $payload, $headersStr, 401, 'Invalid signature');
+    }
     http_response_code(401);
     exit('Invalid signature');
 }
@@ -65,9 +74,11 @@ if (!empty($matchingProject['github_token'])) {
 }
 
 if ($handler->handle($matchingProject, $data, $githubService)) {
+    $logger->log($matchingProject['user_id'], 'github', $payload, $headersStr, 200);
     http_response_code(200);
     echo 'OK';
 } else {
+    $logger->log($matchingProject['user_id'], 'github', $payload, $headersStr, 500, 'Failed to process event');
     http_response_code(500);
     echo 'Failed to process event';
 }
