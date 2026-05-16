@@ -21,11 +21,20 @@ class WebhookHandler
         $action = $event['action'] ?? '';
         $issue = $event['issue'] ?? null;
 
-        if (!$issue || !in_array($action, ['opened', 'reopened', 'edited', 'closed', 'labeled', 'unlabeled'])) {
+        if (!$issue) {
             return false;
         }
 
         $taskModel = new Task($this->db);
+
+        if ($action === 'deleted') {
+            return $taskModel->deleteByIssueNumber($project['project_id'], $issue['number']);
+        }
+
+        if (!in_array($action, ['opened', 'reopened', 'edited', 'closed', 'labeled', 'unlabeled'])) {
+            return false;
+        }
+
         $result = $taskModel->upsert($project['user_id'], $project['project_id'], $issue);
 
         if ($result && $action === 'closed' && $githubService) {
