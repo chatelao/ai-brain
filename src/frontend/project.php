@@ -350,7 +350,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                     <?php endif; ?>
 
                     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
-                        <div class="lg:col-span-1 space-y-4">
+                        <div class="lg:col-span-1 order-1 lg:order-2 space-y-4">
                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                                 <h3 class="text-lg font-bold text-gray-900 mb-4">Project Overview</h3>
                                 <?php if (empty($roadmapFiles)): ?>
@@ -441,7 +441,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                             </div>
                         </div>
 
-                        <div class="lg:col-span-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <div class="lg:col-span-3 order-2 lg:order-1 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center space-x-4">
                                     <h3 class="text-lg font-bold text-gray-900">Tasks synced from GitHub</h3>
