@@ -139,6 +139,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
     }
 }
 
+// Handle Quick Create Issue
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_quick_issue'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+
+    $title = $_POST['title'] ?? '';
+    if (!empty($title)) {
+        try {
+            $githubToken = $project['github_token'] ?? null;
+            if (!$githubToken) {
+                throw new Exception("GitHub token not found for this project.");
+            }
+
+            $githubService = new GitHubService(null, $githubToken);
+            $githubService->createIssue($project['github_repo'], $title, '', ['jules']);
+
+            header("Location: project.php?id=$projectId&success=quick_issue_created");
+            exit;
+        } catch (Exception $e) {
+            $errorMessage = "Error creating quick issue: " . $e->getMessage();
+        }
+    } else {
+        $errorMessage = "Issue title cannot be empty.";
+    }
+}
+
 // Handle Create Issue from Template
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'])) {
     if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
@@ -259,6 +286,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                         </h1>
                     </div>
 
+                    <div class="mb-6">
+                        <form method="POST" class="flex items-center">
+                            <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                            <input type="text" name="title" placeholder="Quick create issue title..." class="bg-white border border-gray-300 text-gray-900 text-lg rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-4" required>
+                            <button type="submit" name="create_quick_issue" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-r-lg text-lg px-8 py-4 focus:outline-none whitespace-nowrap">Submit</button>
+                        </form>
+                    </div>
+
                     <?php if ($errorMessage): ?>
                         <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
                             <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage) ?>
@@ -268,6 +303,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                     <?php if (isset($_GET['success']) && $_GET['success'] === 'issue_created'): ?>
                         <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
                             <span class="font-medium">Success!</span> Issue created from template. It may take a few seconds to appear in the list (synced via webhook).
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'quick_issue_created'): ?>
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                            <span class="font-medium">Success!</span> Quick issue created. It may take a few seconds to appear in the list (synced via webhook).
                         </div>
                     <?php endif; ?>
 
