@@ -22,6 +22,52 @@ class JulesService
 
     /**
      * @throws GuzzleException
+     */
+    public function fetchSessionStatus(string $sessionId, ?string $apiKey = null): ?array
+    {
+        $key = $apiKey ?: $this->apiKey;
+        if (empty($key)) {
+            return null;
+        }
+
+        $headers = [
+            'Accept' => 'application/json',
+        ];
+
+        // The endpoint is https://jules.googleapis.com/v1alpha/sessions/
+        // We might need a separate client or use the absolute URL
+        if (str_starts_with($key, 'AIza') || str_starts_with($key, 'AQ.')) {
+            $headers['X-Goog-Api-Key'] = $key;
+            $url = "https://jules.googleapis.com/v1alpha/sessions/{$sessionId}?key={$key}";
+        } else {
+            $headers['Authorization'] = "Bearer {$key}";
+            $url = "https://jules.googleapis.com/v1alpha/sessions/{$sessionId}";
+        }
+
+        try {
+            $response = $this->client->get($url, [
+                'headers' => $headers
+            ]);
+
+            $data = json_decode($response->getBody()->getContents(), true);
+
+            if (isset($data['state'])) {
+                return [
+                    'status' => strtolower(str_replace(['STATE_', '_'], ['', '-'], $data['state'])),
+                    'url' => $data['url'] ?? null,
+                    'title' => $data['title'] ?? null,
+                    'reason' => $data['failureReason'] ?? $data['failureMessage'] ?? $data['reason'] ?? $data['error']['message'] ?? $data['message'] ?? null
+                ];
+            }
+        } catch (GuzzleException $e) {
+            // Log or handle error
+        }
+
+        return null;
+    }
+
+    /**
+     * @throws GuzzleException
      * @throws Exception
      */
     public function triggerAgent(array $task): string

@@ -63,4 +63,12 @@ class TaskTest extends TestCase
         $result = $this->taskModel->updateStatus($id, $status);
         $this->assertTrue($result);
     }
+
+    public function testExtractSessionId()
+    {
+        $this->assertEquals('123456789012345678', $this->taskModel->extractSessionId('Check https://jules.google.com/sessions/123456789012345678 for details'));
+        $this->assertEquals('abc-def-ghi', $this->taskModel->extractSessionId('Jules started task_id: abc-def-ghi'));
+        $this->assertEquals('9876543210987654321', $this->taskModel->extractSessionId('Session ID 9876543210987654321 is active'));
+        $this->assertNull($this->taskModel->extractSessionId('No session ID here'));
+    }
 }
