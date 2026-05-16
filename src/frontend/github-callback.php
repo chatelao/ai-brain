@@ -49,10 +49,10 @@ if (isset($_GET['code']) && isset($_GET['state'])) {
             }
         }
 
-        header('Location: index.php?github=success');
+        header('Location: settings.php?github=success');
         exit;
     } catch (Exception $e) {
-        header('Location: index.php?github=error&message=' . urlencode($e->getMessage()));
+        header('Location: settings.php?github=error&message=' . urlencode($e->getMessage()));
         exit;
     }
 } else {
