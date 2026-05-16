@@ -9,6 +9,17 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:latest
+        env:
+          MARIADB_DATABASE: test_db
+          MARIADB_USER: test_user
+          MARIADB_PASSWORD: test_pass
+          MARIADB_ROOT_PASSWORD: root_pass
+        ports:
+          - 3306:3306
+        options: --health-cmd="mariadb-admin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
     - uses: actions/checkout@v4
 
@@ -43,6 +54,11 @@ jobs:
       run: ./test/install.sh
 
     - name: Run PHPUnit tests
+      env:
+        TEST_DB_HOST: 127.0.0.1
+        TEST_DB_NAME: test_db
+        TEST_DB_USER: test_user
+        TEST_DB_PASS: test_pass
       run: composer test
 
     - name: Run UI tests with screenshots

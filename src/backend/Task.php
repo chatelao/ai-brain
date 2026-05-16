@@ -221,10 +221,11 @@ class Task
              FROM tasks t
              JOIN projects p ON t.project_id = p.project_id
              WHERE t.user_id = ?
-             AND (t.last_synced_at IS NULL OR t.last_synced_at < datetime('now', '-5 minutes'))
+             AND (t.last_synced_at IS NULL OR t.last_synced_at < ?)
              AND (t.status NOT IN ('completed', 'failed') OR t.jules_status NOT IN ('completed', 'failed'))"
         );
-        $stmt->execute([$userId]);
+        $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
+        $stmt->execute([$userId, $fiveMinutesAgo]);
         $tasks = $stmt->fetchAll();
 
         $userStmt = $this->db->getConnection()->prepare("SELECT jules_api_key FROM users WHERE user_id = ?");
@@ -296,16 +297,16 @@ class Task
                     }
 
                     $updateStmt = $this->db->getConnection()->prepare(
-                        "UPDATE tasks SET jules_status = ?, status = ?, last_synced_at = datetime('now') WHERE task_id = ?"
+                        "UPDATE tasks SET jules_status = ?, status = ?, last_synced_at = ? WHERE task_id = ?"
                     );
-                    $updateStmt->execute([$newStatus, $mappedStatus, $task['task_id']]);
+                    $updateStmt->execute([$newStatus, $mappedStatus, date('Y-m-d H:i:s'), $task['task_id']]);
                 }
             } else {
                 // Still update last_synced_at even if no sessionId or apiKey to avoid constant retries
                 $updateStmt = $this->db->getConnection()->prepare(
-                    "UPDATE tasks SET last_synced_at = datetime('now') WHERE task_id = ?"
+                    "UPDATE tasks SET last_synced_at = ? WHERE task_id = ?"
                 );
-                $updateStmt->execute([$task['task_id']]);
+                $updateStmt->execute([date('Y-m-d H:i:s'), $task['task_id']]);
             }
         }
     }

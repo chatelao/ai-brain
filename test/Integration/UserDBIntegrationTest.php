@@ -6,33 +6,42 @@ use PHPUnit\Framework\TestCase;
 use App\Database;
 use App\User;
 use PDO;
+use Tests\TestDatabaseTrait;
 
 class UserDBIntegrationTest extends TestCase
 {
+    use TestDatabaseTrait;
+
     private $db;
     private $pdo;
     private $userModel;
 
     protected function setUp(): void
     {
-        $this->pdo = new PDO('sqlite::memory:');
-        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->pdo = $this->getTestPdo();
+        $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+        $this->pdo->exec("DROP TABLE IF EXISTS user_github_accounts");
+        $this->pdo->exec("DROP TABLE IF EXISTS users");
+
+        $pk = $driver === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
+        $timestamp = $driver === 'sqlite' ? 'DATETIME DEFAULT CURRENT_TIMESTAMP' : 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP';
 
         $this->pdo->exec("CREATE TABLE users (
-            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id $pk,
             google_id VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
             avatar VARCHAR(255), role VARCHAR(20) DEFAULT 'user',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            created_at $timestamp
         )");
 
         $this->pdo->exec("CREATE TABLE user_github_accounts (
-            github_account_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            github_account_id $pk,
             user_id INT NOT NULL,
             github_username VARCHAR(255) NOT NULL,
             github_token VARCHAR(255) NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            created_at $timestamp,
             FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
             UNIQUE(user_id, github_username)
         )");
