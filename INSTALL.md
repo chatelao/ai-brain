@@ -95,6 +95,10 @@ This is the recommended method if you have terminal access to your server.
            fastcgi_param DB_NAME your_db_name;
            fastcgi_param DB_USER your_user;
            fastcgi_param DB_PASS your_password;
+
+           # Enable interactive upgrade page (set to 'true' when needed, then remove or set to 'false')
+           # fastcgi_param ENABLE_UPGRADE_PAGE true;
+
            # ... add other env vars here ...
        }
    }
@@ -172,6 +176,7 @@ Use this method if you only have SFTP access and cannot run commands on the serv
    # Administration
    #
    SetEnv UPGRADE_ALLOWED_EMAIL   your_admin_email@example.com
+   # SetEnv ENABLE_UPGRADE_PAGE     true
    ```
 
 5. **Document Root:**
@@ -226,4 +231,5 @@ The application requires several environment variables to be set in your web ser
 | `GOOGLE_JULES_API_KEY` | (Optional/Deprecated) Global fallback API Key for Google Jules/Gemini. Users should now set their own keys in the Dashboard. |
 | `TELEGRAM_BOT_TOKEN` | (Optional) Telegram Bot Token |
 | `TELEGRAM_WEBHOOK_SECRET` | (Optional) Secret token for Telegram webhooks |
-| `UPGRADE_ALLOWED_EMAIL` | (Required for upgrades) Email address of the admin user authorized to trigger database migrations. |
+| `UPGRADE_ALLOWED_EMAIL` | (Required for upgrades) Email address of the admin user authorized to trigger database migrations on the Admin Dashboard. |
+| `ENABLE_UPGRADE_PAGE` | (Optional) Set to `true` to enable the interactive database upgrade page at `/upgrade.php`. Useful for initial setup or maintenance. **Disable after use for security.** |
