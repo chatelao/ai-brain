@@ -243,9 +243,9 @@ $errorMessage = $errorMessage ?? null;
 
                                                         $emoji = '⏳';
                                                         if ($state === 'closed') $emoji = '✅';
-                                                        elseif ($task['status'] === 'failed') $emoji = '❌';
-                                                        elseif ($task['status'] === 'in_progress') $emoji = '🚧';
                                                         elseif ($task['status'] === 'completed') $emoji = '✅';
+                                                        elseif ($task['status'] === 'failed') $emoji = '❌';
+                                                        elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) $emoji = '🚧';
                                                     ?>
                                                         <div class="relative group">
                                                             <a href="project.php?id=<?= $project['project_id'] ?>"
