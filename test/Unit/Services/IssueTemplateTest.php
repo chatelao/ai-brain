@@ -106,4 +106,20 @@ class IssueTemplateTest extends TestCase
         $template = $this->templateModel->findById($id);
         $this->assertEquals(['%1' => 'New Module'], $template['parameter_config']);
     }
+
+    public function testExportToSql()
+    {
+        $userId = 1;
+        $this->templateModel->create($userId, "O'Reilly Template", 'Bug: %1', 'Body with "quotes"');
+
+        $sql = $this->templateModel->exportToSql($userId);
+
+        $this->assertStringContainsString("-- Issue Templates Export for User $userId", $sql);
+        $this->assertStringContainsString("INSERT INTO issue_templates", $sql);
+        // SQLite quote for O'Reilly is O''Reilly, MySQL is 'O\'Reilly' or 'O''Reilly' depending on mode.
+        // PDO::quote for sqlite uses ''
+        $this->assertStringContainsString("'O''Reilly Template'", $sql);
+        $this->assertStringContainsString("'Bug: %1'", $sql);
+        $this->assertStringContainsString("'Body with \"quotes\"'", $sql);
+    }
 }
