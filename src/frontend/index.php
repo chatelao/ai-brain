@@ -135,17 +135,6 @@ $errorMessage = $errorMessage ?? null;
         <div id="main-content" class="relative w-full h-full overflow-y-auto bg-gray-50">
             <main>
                 <div class="px-4 pt-6">
-                    <?php if (isset($_GET['github']) && $_GET['github'] === 'success'): ?>
-                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
-                            <span class="font-medium">Success!</span> GitHub account linked correctly.
-                        </div>
-                    <?php endif; ?>
-                    <?php if (isset($_GET['github']) && $_GET['github'] === 'error'): ?>
-                        <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
-                            <span class="font-medium">Error!</span> <?= htmlspecialchars($_GET['message'] ?? 'GitHub authentication failed.') ?>
-                        </div>
-                    <?php endif; ?>
-
                     <?php if ($errorMessage): ?>
                         <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
                             <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage) ?>

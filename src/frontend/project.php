@@ -218,7 +218,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
         header("Location: project.php?id=$projectId&success=synced");
         exit;
     } catch (Exception $e) {
-        $errorMessage = "Error syncing issues: " . $e->getMessage();
+        header("Location: project.php?id=$projectId&error=" . urlencode("Error syncing issues: " . $e->getMessage()));
+        exit;
     }
 }
 
@@ -313,11 +314,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                         </div>
                     <?php endif; ?>
 
-                    <?php if (isset($_GET['success']) && $_GET['success'] === 'synced'): ?>
-                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
-                            <span class="font-medium">Success!</span> Issues synced from GitHub.
-                        </div>
-                    <?php endif; ?>
 
                     <?php if ($lastAgentResponse): ?>
                         <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50" role="alert">

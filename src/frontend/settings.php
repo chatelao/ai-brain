@@ -5,10 +5,12 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use App\Database;
 use App\Auth;
 use App\User;
+use App\Task;
 
 $auth = new Auth();
 $db = new Database();
 $userModel = new User($db);
+$taskModel = new Task($db);
 
 if (!$auth->isLoggedIn()) {
     header('Location: login.php');
@@ -70,6 +72,9 @@ $errorMessage = $errorMessage ?? null;
                     </a>
                 </div>
                 <div class="flex items-center">
+                    <?php if ($user): ?>
+                        <?php include 'navbar-icons.php'; ?>
+                    <?php endif; ?>
                     <div class="flex items-center ml-3">
                         <img class="w-8 h-8 rounded-full" src="<?= htmlspecialchars($user['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="user photo">
                         <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($user['name']) ?></div>
@@ -107,11 +112,6 @@ $errorMessage = $errorMessage ?? null;
                         <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Account Settings</h1>
                     </div>
 
-                    <?php if (isset($_GET['github']) && $_GET['github'] === 'success'): ?>
-                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
-                            <span class="font-medium">Success!</span> GitHub account linked correctly.
-                        </div>
-                    <?php endif; ?>
                     <?php if (isset($_GET['success']) && $_GET['success'] === 'key_updated'): ?>
                         <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
                             <span class="font-medium">Success!</span> Jules API Key updated successfully.
@@ -120,11 +120,6 @@ $errorMessage = $errorMessage ?? null;
                     <?php if (isset($_GET['success']) && $_GET['success'] === 'telegram_updated'): ?>
                         <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
                             <span class="font-medium">Success!</span> Telegram configuration updated successfully.
-                        </div>
-                    <?php endif; ?>
-                    <?php if (isset($_GET['github']) && $_GET['github'] === 'error'): ?>
-                        <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
-                            <span class="font-medium">Error!</span> <?= htmlspecialchars($_GET['message'] ?? 'GitHub authentication failed.') ?>
                         </div>
                     <?php endif; ?>
 
