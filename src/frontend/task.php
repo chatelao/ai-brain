@@ -7,6 +7,10 @@ use App\Auth;
 use App\User;
 use App\Project;
 use App\Task;
+use App\JulesService;
+use App\GitHubService;
+use App\TelegramService;
+use App\Logger;
 
 $auth = new Auth();
 $db = new Database();
@@ -20,6 +24,11 @@ if (!$auth->isLoggedIn()) {
 }
 
 $user = $userModel->findById($auth->getUserId());
+$julesService = new JulesService(null, $user['jules_api_key'] ?? null);
+$telegramService = new TelegramService(null, $user['telegram_bot_token'] ?? null);
+$telegramChatId = $userModel->getTelegramChatId($user['user_id']);
+$logger = new Logger($db);
+
 $taskId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $task = $taskModel->findById($taskId);
 
@@ -31,6 +40,120 @@ $project = $projectModel->findById($task['project_id']);
 
 if (!$project || $project['user_id'] !== $user['user_id']) {
     die("Access denied.");
+}
+
+$lastAgentResponse = null;
+$errorMessage = null;
+
+$triggerAgent = function($taskId) use ($taskModel, $logger, $user, $project, $julesService, $telegramService, $telegramChatId, &$lastAgentResponse, &$errorMessage, &$task) {
+    $t = $taskModel->findById($taskId);
+    if ($t && $t['project_id'] === $project['project_id']) {
+        try {
+            $logger->log($user['user_id'], $taskId, "Agent triggered by user " . $user['name']);
+            $githubToken = $project['github_token'] ?? null;
+            $githubService = null;
+            if ($githubToken) {
+                $githubService = new GitHubService(null, $githubToken);
+            }
+
+            // Update status to in_progress
+            $taskModel->updateStatus($taskId, 'in_progress');
+            $logger->log($user['user_id'], $taskId, "Task status updated to in_progress");
+
+            if ($githubService) {
+                $githubService->postComment($project['github_repo'], $t['issue_number'], "🤖 Agent has started processing this issue...");
+                $logger->log($user['user_id'], $taskId, "Posted 'started' comment to GitHub");
+            }
+
+            if ($telegramChatId) {
+                $telegramService->sendMessage($telegramChatId, "🤖 <b>Agent Started</b>\nProject: {$project['github_repo']}\nIssue: #{$t['issue_number']} {$t['title']}");
+            }
+
+            $logger->log($user['user_id'], $taskId, "Calling Jules API...");
+            $lastAgentResponse = $julesService->triggerAgent($t);
+            $logger->log($user['user_id'], $taskId, "Received response from Jules API");
+
+            $taskModel->updateAgentResponse($taskId, $lastAgentResponse, 'analyzed');
+            $logger->log($user['user_id'], $taskId, "Task agent response updated and status set to analyzed");
+
+            if ($githubService) {
+                $githubService->postComment($project['github_repo'], $t['issue_number'], "✅ Agent has completed the analysis:\n\n" . $lastAgentResponse);
+                $logger->log($user['user_id'], $taskId, "Posted 'completed' comment to GitHub");
+            }
+
+            if ($telegramChatId) {
+                $telegramService->sendMessage($telegramChatId, "✅ <b>Agent Completed</b>\nProject: {$project['github_repo']}\nIssue: #{$t['issue_number']}\n\n" . mb_substr($lastAgentResponse, 0, 1000));
+            }
+
+            // Refresh task
+            $task = $taskModel->findById($taskId);
+        } catch (\Exception $e) {
+            $errorMessage = "Error triggering agent: " . $e->getMessage();
+            $logger->log($user['user_id'], $taskId, "Error: " . $e->getMessage(), "error");
+            $taskModel->updateStatus($taskId, 'failed');
+            if (isset($githubService) && $githubService) {
+                try {
+                    $githubService->postComment($project['github_repo'], $t['issue_number'], "❌ Agent failed to process this issue: " . $e->getMessage());
+                    $logger->log($user['user_id'], $taskId, "Posted 'failed' comment to GitHub");
+                } catch (\Exception $ge) {
+                    $logger->log($user['user_id'], $taskId, "Failed to post error comment to GitHub: " . $ge->getMessage(), "error");
+                }
+            }
+
+            if ($telegramChatId) {
+                $telegramService->sendMessage($telegramChatId, "❌ <b>Agent Failed</b>\nProject: {$project['github_repo']}\nIssue: #{$t['issue_number']}\nError: " . $e->getMessage());
+            }
+            // Refresh task
+            $task = $taskModel->findById($taskId);
+        }
+    }
+};
+
+// Handle Agent Trigger
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+
+    $triggerAgent($taskId);
+}
+
+// Handle Rerun Task
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['rerun_task'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+
+    if ($task && $task['project_id'] === $project['project_id']) {
+        try {
+            $githubToken = $project['github_token'] ?? null;
+            if (!$githubToken) {
+                throw new Exception("GitHub token not found for this project.");
+            }
+
+            $githubData = json_decode($task['github_data'] ?? '{}', true);
+            $labels = array_map(fn($l) => $l['name'], $githubData['labels'] ?? []);
+
+            $githubService = new GitHubService(null, $githubToken);
+            $newIssue = $githubService->createIssue($project['github_repo'], $task['title'], $task['body'], $labels);
+
+            $taskModel->upsert($user['user_id'], $project['project_id'], $newIssue);
+            $newTask = $taskModel->findByIssueNumber($project['project_id'], $newIssue['number']);
+
+            if ($newTask) {
+                header("Location: task.php?id=" . $newTask['task_id'] . "&trigger_on_load=1");
+                exit;
+            } else {
+                throw new Exception("Failed to find the newly created task in the database.");
+            }
+        } catch (Exception $e) {
+            $errorMessage = "Error rerunning task: " . $e->getMessage();
+        }
+    }
+}
+
+if (isset($_GET['trigger_on_load']) && $_GET['trigger_on_load'] == '1') {
+    $triggerAgent($taskId);
 }
 
 $githubData = json_decode($task['github_data'] ?? '{}', true);
@@ -99,6 +222,21 @@ $logs = $taskModel->getLogs($taskId);
                             </li>
                         </ol>
                     </nav>
+
+                    <?php if ($errorMessage): ?>
+                        <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+                            <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage) ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($lastAgentResponse): ?>
+                        <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50" role="alert">
+                            <span class="font-medium">Agent Response:</span>
+                            <div class="mt-2 p-2 bg-white rounded border border-blue-200 whitespace-pre-wrap font-mono text-xs">
+                                <?= htmlspecialchars($lastAgentResponse) ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
                         <div class="lg:col-span-2 space-y-4">
@@ -185,6 +323,26 @@ $logs = $taskModel->getLogs($taskId);
                                 </ul>
 
                                 <div class="mt-6 pt-6 border-t border-gray-100">
+                                    <div class="flex flex-col space-y-2 mb-4">
+                                        <?php
+                                        $isClosed = ($githubData['state'] ?? 'open') === 'closed';
+                                        $isCompleted = ($task['status'] ?? '') === 'completed';
+                                        $isImplemented = ($task['status'] ?? '') === 'implemented';
+                                        ?>
+                                        <?php if (!$isClosed && !$isCompleted && !$isImplemented): ?>
+                                            <form method="POST" class="inline">
+                                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                                <button type="submit" name="trigger_agent" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none w-full">Run Agent</button>
+                                            </form>
+                                        <?php endif; ?>
+                                        <?php if ($isCompleted || $isImplemented): ?>
+                                            <form method="POST" class="inline">
+                                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                                <button type="submit" name="rerun_task" class="text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none w-full">Rerun</button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+
                                     <div class="text-xs text-gray-500 space-y-1">
                                         <p>Created: <?= htmlspecialchars($task['created_at']) ?></p>
                                         <p>Last Synced: <?= htmlspecialchars($task['last_synced_at'] ?? 'Never') ?></p>

@@ -460,14 +460,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                         <tr>
                                             <th scope="col" class="px-6 py-3">Issue</th>
                                             <th scope="col" class="px-6 py-3">Status</th>
-                                            <th scope="col" class="px-6 py-3">Logs</th>
-                                            <th scope="col" class="px-6 py-3">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($tasks)): ?>
                                             <tr class="bg-white border-b">
-                                                <td colspan="4" class="px-6 py-4 text-center">No tasks found. Open an issue on GitHub to see it here.</td>
+                                                <td colspan="2" class="px-6 py-4 text-center">No tasks found. Open an issue on GitHub to see it here.</td>
                                             </tr>
                                         <?php endif; ?>
                                         <?php foreach ($tasks as $task): ?>
@@ -502,46 +500,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                         ?>
                                                         <?= htmlspecialchars($task['status']) ?>
                                                     </span>
-                                                </td>
-                                                <td class="px-6 py-4">
-                                                    <div class="max-h-32 overflow-y-auto text-[10px] font-mono bg-gray-50 p-2 rounded border border-gray-100">
-                                                        <?php
-                                                        $taskLogs = $taskModel->getLogs($task['task_id']);
-                                                        if (empty($taskLogs)): ?>
-                                                            <span class="text-gray-400 italic">No logs available.</span>
-                                                        <?php else: ?>
-                                                            <?php foreach ($taskLogs as $log): ?>
-                                                                <div class="mb-1">
-                                                                    <span class="text-gray-400">[<?= htmlspecialchars(date('H:i:s', strtotime($log['created_at']))) ?>]</span>
-                                                                    <span class="<?= $log['level'] === 'error' ? 'text-red-600 font-bold' : 'text-gray-700' ?>"><?= htmlspecialchars($log['message']) ?></span>
-                                                                </div>
-                                                            <?php endforeach; ?>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4">
-                                                    <div class="flex flex-col space-y-2">
-                                                        <?php
-                                                        $githubData = json_decode($task['github_data'] ?? '{}', true);
-                                                        $isClosed = ($githubData['state'] ?? 'open') === 'closed';
-                                                        $isCompleted = ($task['status'] ?? '') === 'completed';
-                                                        $isImplemented = ($task['status'] ?? '') === 'implemented';
-                                                        ?>
-                                                        <?php if (!$isClosed && !$isCompleted && !$isImplemented): ?>
-                                                            <form method="POST" class="inline">
-                                                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                                                <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
-                                                                <button type="submit" name="trigger_agent" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Run Agent</button>
-                                                            </form>
-                                                        <?php endif; ?>
-                                                        <?php if ($isCompleted || $isImplemented): ?>
-                                                            <form method="POST" class="inline">
-                                                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                                                <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
-                                                                <button type="submit" name="rerun_task" class="text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Rerun</button>
-                                                            </form>
-                                                        <?php endif; ?>
-                                                    </div>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
