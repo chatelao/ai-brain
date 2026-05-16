@@ -468,7 +468,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                             <tr class="bg-white border-b">
                                                 <td class="px-6 py-4">
                                                     <div class="text-base text-gray-900 font-normal">
-                                                        <a href="https://github.com/<?= htmlspecialchars($project['github_repo']) ?>/issues/<?= htmlspecialchars($task['issue_number']) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">#<?= htmlspecialchars($task['issue_number']) ?></a>
+                                                        <a href="task.php?id=<?= $task['task_id'] ?>" class="hover:underline">#<?= htmlspecialchars($task['issue_number']) ?></a>
                                                         <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task, $project['github_repo'])) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
                                                             <?= htmlspecialchars($task['title']) ?>
                                                         </a>
