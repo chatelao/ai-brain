@@ -1,4 +1,4 @@
-name: Manual SFTP Deploy
+name: Manual SSH Deploy
 
 on:
   workflow_dispatch:
@@ -21,16 +21,16 @@ jobs:
       - name: Install dependencies
         run: composer install --no-dev --optimize-autoloader
 
-      - name: Deploy via SFTP
+      - name: Deploy via SSH
         uses: wlixcc/SFTP-Deploy-Action@v1.2.6
         with:
-          server: ${{ secrets.SFTP_SERVER }}
-          username: ${{ secrets.SFTP_USERNAME }}
-          password: ${{ secrets.SFTP_PASSWORD }}
-          remote_path: ${{ secrets.SFTP_PATH }}
+          server: ${{ secrets.SSH_SERVER }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          remote_path: ${{ secrets.SSH_PATH }}
           port: 22
           local_path: './'
-          sftp_only: true
+          sftp_only: false
           rsyncArgs: >-
             --exclude=.git\*
             --exclude=.github/

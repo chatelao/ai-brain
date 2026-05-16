@@ -109,27 +109,26 @@ This is the recommended method if you have terminal access to your server.
 
 ---
 
-## b) Installation with SFTP
+## b) Manual Deployment via SSH (rsync)
 
-Use this method if you only have SFTP access and cannot run commands on the server.
+Use this method if you want to deploy from your local machine via SSH.
 
 1. **Build locally:**
    On your local machine, clone the repository and run:
    ```bash
-   composer install --no-dev
+   composer install --no-dev --optimize-autoloader
    ```
 
 2. **Upload files:**
-   Using an SFTP client (like FileZilla or WinSCP), upload the following to your server.
+   Use `rsync` to upload the production files to your server:
+   ```bash
+   rsync -avz --exclude='.git*' --exclude='.github/' --exclude='test/' \
+     --exclude='docs/' --exclude='specification/' --exclude='scripts/' \
+     --exclude='Vagrantfile' --exclude='*.sqlite' \
+     ./ user@your-server:/var/www/ai-brain/
+   ```
 
-   *Note for WinSCP users:* In the connection settings (Advanced > SSH > SFTP), ensure that **"Allow SCP fallback"** (SCP-Rückgriff erlauben) is **unchecked** to strictly adhere to the project's SFTP-only policy.
-
-   - `src/`
-   - `vendor/`
-   - `composer.json`
-   - `composer.lock`
-
-   *Note: You can skip `test/`, `.github/`, `docs/`, and other non-production files.*
+   *Note: Ensure the destination path matches your server configuration.*
 
 3. **Set up the database:**
    - Use a tool like **phpMyAdmin** provided by your hosting.
@@ -187,20 +186,20 @@ Use this method if you only have SFTP access and cannot run commands on the serv
 
 ---
 
-## c) Automated Deployment with GitHub Actions (SFTP)
+## c) Automated Deployment with GitHub Actions (SSH)
 
-If you have your own fork of this repository, you can use the included GitHub Action to automate the SFTP deployment.
+If you have your own fork of this repository, you can use the included GitHub Action to automate the SSH deployment.
 
 1. **Configure Secrets:**
    In your GitHub repository, go to **Settings > Secrets and variables > Actions** and add the following repository secrets:
-   - `SFTP_SERVER`: Your SFTP server hostname or IP address.
-   - `SFTP_USERNAME`: Your SFTP username.
-   - `SFTP_PASSWORD`: Your SFTP password.
-   - `SFTP_PATH`: The target folder on the remote server.
+   - `SSH_SERVER`: Your SSH server hostname or IP address.
+   - `SSH_USERNAME`: Your SSH username.
+   - `SSH_PASSWORD`: Your SSH password.
+   - `SSH_PATH`: The target folder on the remote server.
 
 2. **Trigger Deployment:**
    - Go to the **Actions** tab in your GitHub repository.
-   - Select the **Manual SFTP Deploy** workflow in the sidebar.
+   - Select the **Manual SSH Deploy** workflow in the sidebar.
    - Click the **Run workflow** dropdown and then **Run workflow**.
 
    *Note: For security, this workflow is configured to only be runnable by the repository owner.*
@@ -209,9 +208,7 @@ If you have your own fork of this repository, you can use the included GitHub Ac
    The workflow will:
    - Checkout your code.
    - Install production dependencies via Composer.
-   - Upload the application to your server via SFTP, excluding development and documentation files.
-
-   *Note: The workflow uses `sftp_only: true` which is recommended for most SFTP-only hosting environments.*
+   - Upload the application to your server via SSH (rsync), excluding development and documentation files.
 
 ---
 
