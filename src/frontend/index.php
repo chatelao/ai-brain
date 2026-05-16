@@ -229,7 +229,7 @@ $errorMessage = $errorMessage ?? null;
                                                 </div>
                                                 <p class="text-sm text-gray-500 mt-1">Linked as&nbsp;<?= htmlspecialchars($project['github_username']) ?></p>
 
-                                                <div class="flex flex-wrap gap-1 mt-3">
+                                                <div class="flex flex-wrap gap-2 mt-3">
                                                     <?php
                                                     $tasks = $projectTasks[$project['project_id']] ?? [];
                                                     foreach ($tasks as $task):

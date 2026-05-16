@@ -1,0 +1,1 @@
+ALTER TABLE tasks MODIFY COLUMN status VARCHAR(50) DEFAULT 'pending';
