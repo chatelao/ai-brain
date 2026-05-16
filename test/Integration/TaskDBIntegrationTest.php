@@ -6,20 +6,28 @@ use PHPUnit\Framework\TestCase;
 use App\Database;
 use App\Task;
 use PDO;
+use Tests\TestDatabaseTrait;
 
 class TaskDBIntegrationTest extends TestCase
 {
+    use TestDatabaseTrait;
+
     private $db;
     private $pdo;
     private $taskModel;
 
     protected function setUp(): void
     {
-        $this->pdo = new PDO('sqlite::memory:');
-        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->pdo = $this->getTestPdo();
+        $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+        $this->pdo->exec("DROP TABLE IF EXISTS tasks");
+
+        $pk = $driver === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
+        $timestamp = $driver === 'sqlite' ? 'DATETIME DEFAULT CURRENT_TIMESTAMP' : 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP';
 
         $this->pdo->exec("CREATE TABLE tasks (
-            task_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id $pk,
             user_id INT NOT NULL,
             project_id INT NOT NULL,
             issue_number INT NOT NULL,
@@ -27,8 +35,8 @@ class TaskDBIntegrationTest extends TestCase
             body TEXT,
             status TEXT DEFAULT 'pending',
             github_data TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            created_at $timestamp,
+            updated_at $timestamp,
             UNIQUE(project_id, issue_number)
         )");
 

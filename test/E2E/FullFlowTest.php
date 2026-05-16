@@ -7,9 +7,12 @@ use GuzzleHttp\Client;
 use App\Database;
 use App\User;
 use PDO;
+use Tests\TestDatabaseTrait;
 
 class FullFlowTest extends TestCase
 {
+    use TestDatabaseTrait;
+
     private $pdo;
     private $db;
     private $serverProcess;
@@ -26,15 +29,21 @@ class FullFlowTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->pdo = new PDO('sqlite:test_e2e.sqlite');
+        $this->pdo = $this->getTestPdo();
+        $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+
         $this->pdo->exec("DROP TABLE IF EXISTS users");
+
+        $pk = $driver === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
+        $timestamp = $driver === 'sqlite' ? 'DATETIME DEFAULT CURRENT_TIMESTAMP' : 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP';
+
         $this->pdo->exec("CREATE TABLE users (
-            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id $pk,
             google_id VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
             avatar VARCHAR(255), role VARCHAR(20) DEFAULT 'user',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            created_at $timestamp
         )");
 
         // We can use environmental variables to point the app to this test DB if we were running it
@@ -42,8 +51,10 @@ class FullFlowTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (file_exists('test_e2e.sqlite')) {
-            unlink('test_e2e.sqlite');
+        if ($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            if (file_exists('test_e2e.sqlite')) {
+                unlink('test_e2e.sqlite');
+            }
         }
     }
 
