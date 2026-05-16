@@ -137,7 +137,7 @@ $errorMessage = $errorMessage ?? null;
                                     <img class="w-8 h-8 rounded-full" src="<?= htmlspecialchars($user['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="user photo">
                                 </button>
                             </div>
-                            <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($user['name']) ?></div>
+                            <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($user['name'] ?? '') ?></div>
                             <a href="templates.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Templates</a>
                             <a href="settings.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Settings</a>
                             <a href="logout.php" class="ml-4 text-sm font-medium text-red-600 hover:underline">Logout</a>
@@ -156,7 +156,7 @@ $errorMessage = $errorMessage ?? null;
                 <div class="px-4 pt-6">
                     <?php if ($errorMessage): ?>
                         <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
-                            <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage) ?>
+                            <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage ?? '') ?>
                         </div>
                     <?php endif; ?>
 
@@ -176,14 +176,14 @@ $errorMessage = $errorMessage ?? null;
                                         <?php foreach ($autorepeatTasks as $task): ?>
                                             <tr class="bg-white border-b">
                                                 <td class="px-6 py-4 font-medium text-gray-900">
-                                                    <a href="https://github.com/<?= htmlspecialchars($task['github_repo']) ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
-                                                        <?= htmlspecialchars($task['github_repo']) ?>
+                                                    <a href="https://github.com/<?= htmlspecialchars($task['github_repo'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
+                                                        <?= htmlspecialchars($task['github_repo'] ?? '') ?>
                                                     </a>
                                                 </td>
                                                 <td class="px-6 py-4 font-normal">
-                                                    <a href="https://github.com/<?= htmlspecialchars($task['github_repo']) ?>/issues/<?= htmlspecialchars($task['issue_number']) ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">#<?= htmlspecialchars($task['issue_number']) ?></a>
+                                                    <a href="https://github.com/<?= htmlspecialchars($task['github_repo'] ?? '') ?>/issues/<?= htmlspecialchars($task['issue_number'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">#<?= htmlspecialchars($task['issue_number'] ?? '') ?></a>
                                                     <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task)) ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
-                                                        <?= htmlspecialchars($task['title']) ?>
+                                                        <?= htmlspecialchars($task['title'] ?? '') ?>
                                                     </a>
                                                 </td>
                                                 <td class="px-6 py-4">
@@ -208,8 +208,8 @@ $errorMessage = $errorMessage ?? null;
                                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                                                 <div class="flex justify-between items-start">
                                                     <h5 class="text-lg font-bold text-gray-900 truncate">
-                                                        <a href="https://github.com/<?= htmlspecialchars($project['github_repo']) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
-                                                            <?= htmlspecialchars($project['github_repo']) ?>
+                                                        <a href="https://github.com/<?= htmlspecialchars($project['github_repo'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                                                            <?= htmlspecialchars($project['github_repo'] ?? '') ?>
                                                         </a>
                                                     </h5>
                                                     <a href="?delete_project=<?= $project['project_id'] ?>&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-red-600 hover:text-red-800" onclick="return confirm('Are you sure?')">
@@ -220,7 +220,7 @@ $errorMessage = $errorMessage ?? null;
                                                 $repoParts = explode('/', $project['github_repo']);
                                                 $repoOwner = $repoParts[0] ?? '';
                                                 if (strcasecmp($repoOwner, $project['github_username']) !== 0): ?>
-                                                    <p class="text-sm text-gray-500 mt-1">Linked as&nbsp;<?= htmlspecialchars($project['github_username']) ?></p>
+                                                    <p class="text-sm text-gray-500 mt-1">Linked as&nbsp;<?= htmlspecialchars($project['github_username'] ?? '') ?></p>
                                                 <?php endif; ?>
 
                                                 <div class="flex flex-wrap gap-2 mt-3">
@@ -243,7 +243,7 @@ $errorMessage = $errorMessage ?? null;
                                                                class="status-square <?= $color ?> <?= $isAutorepeat ? 'auto-repeat-tag' : '' ?>">
                                                             </a>
                                                             <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">
-                                                                #<?= htmlspecialchars($task['issue_number']) ?>: <?= $emoji ?> <?= htmlspecialchars(mb_substr($task['title'], 0, 30)) ?><?= mb_strlen($task['title']) > 30 ? '...' : '' ?>
+                                                                #<?= htmlspecialchars($task['issue_number'] ?? '') ?>: <?= $emoji ?> <?= htmlspecialchars(mb_substr($task['title'] ?? '', 0, 30)) ?><?= mb_strlen($task['title'] ?? '') > 30 ? '...' : '' ?>
                                                             </div>
                                                         </div>
                                                     <?php endforeach; ?>
@@ -266,7 +266,7 @@ $errorMessage = $errorMessage ?? null;
                                                         <label class="block mb-1 text-xs font-medium text-gray-900">GitHub Account</label>
                                                         <select name="github_account_id" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                                                             <?php foreach ($githubAccounts as $account): ?>
-                                                                <option value="<?= $account['github_account_id'] ?>"><?= htmlspecialchars($account['github_username']) ?></option>
+                                                                <option value="<?= $account['github_account_id'] ?>"><?= htmlspecialchars($account['github_username'] ?? '') ?></option>
                                                             <?php endforeach; ?>
                                                         </select>
                                                     </div>

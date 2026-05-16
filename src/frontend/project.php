@@ -272,7 +272,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                     <?php include 'navbar-icons.php'; ?>
                     <div class="flex items-center ml-3">
                         <img class="w-8 h-8 rounded-full" src="<?= htmlspecialchars($user['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="user photo">
-                        <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($user['name']) ?></div>
+                        <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($user['name'] ?? '') ?></div>
                         <a href="templates.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Templates</a>
                         <a href="settings.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Settings</a>
                         <a href="logout.php" class="ml-4 text-sm font-medium text-red-600 hover:underline">Logout</a>
@@ -297,8 +297,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                             <li>
                                 <div class="flex items-center">
                                     <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
-                                    <a href="https://github.com/<?= htmlspecialchars($project['github_repo']) ?>" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-gray-900 ml-1 md:ml-2 font-medium hover:underline">
-                                        <?= htmlspecialchars($project['github_repo']) ?>
+                                    <a href="https://github.com/<?= htmlspecialchars($project['github_repo'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-gray-900 ml-1 md:ml-2 font-medium hover:underline">
+                                        <?= htmlspecialchars($project['github_repo'] ?? '') ?>
                                     </a>
                                 </div>
                             </li>
@@ -307,8 +307,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
 
                     <div class="mb-4">
                         <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">
-                            <a href="https://github.com/<?= htmlspecialchars($project['github_repo']) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
-                                <?= htmlspecialchars($project['github_repo']) ?>
+                            <a href="https://github.com/<?= htmlspecialchars($project['github_repo'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                                <?= htmlspecialchars($project['github_repo'] ?? '') ?>
                             </a>
                         </h1>
                     </div>
@@ -323,7 +323,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
 
                     <?php if ($errorMessage): ?>
                         <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
-                            <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage) ?>
+                            <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage ?? '') ?>
                         </div>
                     <?php endif; ?>
 
@@ -344,7 +344,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                         <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50" role="alert">
                             <span class="font-medium">Agent Response:</span>
                             <div class="mt-2 p-2 bg-white rounded border border-blue-200 whitespace-pre-wrap font-mono text-xs">
-                                <?= htmlspecialchars($lastAgentResponse) ?>
+                                <?= htmlspecialchars($lastAgentResponse ?? '') ?>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -359,13 +359,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                     <ul class="space-y-2">
                                         <?php foreach ($roadmapFiles as $file): ?>
                                             <li class="flex flex-col">
-                                                <a href="<?= htmlspecialchars($file['html_url']) ?>" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-600 hover:underline flex items-center">
+                                                <a href="<?= htmlspecialchars($file['html_url'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-600 hover:underline flex items-center">
                                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                                    <?= htmlspecialchars($file['name']) ?>
+                                                    <?= htmlspecialchars($file['name'] ?? '') ?>
                                                 </a>
                                                 <?php if (!empty($file['next_task'])): ?>
                                                     <span class="text-[10px] text-gray-500 ml-6 italic">
-                                                        🚧 <?= htmlspecialchars($file['next_task']) ?>
+                                                        🚧 <?= htmlspecialchars($file['next_task'] ?? '') ?>
                                                     </span>
                                                 <?php endif; ?>
                                             </li>
@@ -386,7 +386,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                     <div>
                                         <label class="block text-xs font-medium text-gray-500 uppercase">Secret</label>
                                         <div class="mt-1 flex">
-                                            <input type="text" readonly value="<?= htmlspecialchars($project['webhook_secret']) ?>" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-full p-2" id="webhook-secret">
+                                            <input type="text" readonly value="<?= htmlspecialchars($project['webhook_secret'] ?? '') ?>" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-full p-2" id="webhook-secret">
                                         </div>
                                     </div>
                                     <p class="text-[10px] text-gray-500">
@@ -419,7 +419,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                             <label class="block mb-2 text-sm font-medium text-gray-900">Select Template</label>
                                             <select name="template_id" x-model="selectedTemplateId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                                                 <?php foreach ($templates as $tmpl): ?>
-                                                    <option value="<?= $tmpl['issue_template_id'] ?>"><?= htmlspecialchars($tmpl['name']) ?></option>
+                                                    <option value="<?= $tmpl['issue_template_id'] ?>"><?= htmlspecialchars($tmpl['name'] ?? '') ?></option>
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
@@ -474,9 +474,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                             <tr class="bg-white border-b">
                                                 <td class="px-6 py-4">
                                                     <div class="text-base text-gray-900 font-normal">
-                                                        <a href="task.php?id=<?= $task['task_id'] ?>" class="hover:underline">#<?= htmlspecialchars($task['issue_number']) ?></a>
+                                                        <a href="task.php?id=<?= $task['task_id'] ?>" class="hover:underline">#<?= htmlspecialchars($task['issue_number'] ?? '') ?></a>
                                                         <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task, $project['github_repo'])) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
-                                                            <?= htmlspecialchars($task['title']) ?>
+                                                            <?= htmlspecialchars($task['title'] ?? '') ?>
                                                         </a>
                                                     </div>
                                                     <div class="text-xs text-gray-500"><?= htmlspecialchars(mb_substr($task['body'] ?? '', 0, 100)) ?>...</div>
@@ -500,7 +500,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                         elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) echo '🚧 ';
                                                         else echo '⏳ ';
                                                         ?>
-                                                        <?= htmlspecialchars($task['status']) ?>
+                                                        <?= htmlspecialchars($task['status'] ?? '') ?>
                                                     </span>
                                                 </td>
                                                 <td class="px-6 py-4">
@@ -512,8 +512,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                         <?php else: ?>
                                                             <?php foreach ($taskLogs as $log): ?>
                                                                 <div class="mb-1">
-                                                                    <span class="text-gray-400">[<?= htmlspecialchars(date('H:i:s', strtotime($log['created_at']))) ?>]</span>
-                                                                    <span class="<?= $log['level'] === 'error' ? 'text-red-600 font-bold' : 'text-gray-700' ?>"><?= htmlspecialchars($log['message']) ?></span>
+                                                                    <span class="text-gray-400">[<?= htmlspecialchars(date('H:i:s', strtotime($log['created_at'] ?? 'now'))) ?>]</span>
+                                                                    <span class="<?= $log['level'] === 'error' ? 'text-red-600 font-bold' : 'text-gray-700' ?>"><?= htmlspecialchars($log['message'] ?? '') ?></span>
                                                                 </div>
                                                             <?php endforeach; ?>
                                                         <?php endif; ?>
