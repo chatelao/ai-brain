@@ -37,6 +37,21 @@ if (!$project || $project['user_id'] !== $user['user_id']) {
     die("Project not found or access denied.");
 }
 
+// Automatic Sync on Page Load
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['success']) && !isset($_GET['error'])) {
+    $githubToken = $project['github_token'] ?? null;
+    if ($githubToken) {
+        try {
+            $githubService = new GitHubService(null, $githubToken);
+            $taskModel->syncIssues($user['user_id'], $project['project_id'], $project['github_repo'], $githubService);
+            header("Location: project.php?id=$projectId&success=synced");
+            exit;
+        } catch (Exception $e) {
+            // Silently fail automatic sync to not disrupt the user
+        }
+    }
+}
+
 $templateModel = new IssueTemplate($db);
 $templates = $templateModel->findByUserId($user['user_id']);
 
@@ -170,15 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
         }
 
         $githubService = new GitHubService(null, $githubToken);
-        $issues = $githubService->listIssues($project['github_repo']);
-
-        foreach ($issues as $issue) {
-            // Check if it's really an issue (not a PR)
-            if (isset($issue['pull_request'])) {
-                continue;
-            }
-            $taskModel->upsert($user['user_id'], $project['project_id'], $issue);
-        }
+        $taskModel->syncIssues($user['user_id'], $project['project_id'], $project['github_repo'], $githubService);
 
         header("Location: project.php?id=$projectId&success=synced");
         exit;
