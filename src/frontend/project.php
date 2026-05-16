@@ -28,6 +28,7 @@ if (!$auth->isLoggedIn()) {
 
 $user = $userModel->findById($auth->getUserId());
 $julesService = new JulesService(null, $user['jules_api_key'] ?? null);
+$telegramService = new TelegramService(null, $user['telegram_bot_token'] ?? null);
 $telegramChatId = $userModel->getTelegramChatId($user['user_id']);
 $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $project = $projectModel->findById($projectId);

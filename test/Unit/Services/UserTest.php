@@ -124,4 +124,21 @@ class UserTest extends TestCase
         $success = $this->userModel->linkTelegramAccount('bad-token', 999);
         $this->assertFalse($success);
     }
+
+    public function testUpdateTelegramConfig()
+    {
+        $stmt = $this->createMock(PDOStatement::class);
+        $stmt->expects($this->once())
+            ->method('execute')
+            ->with(['bot-token', 'secret-123', 1])
+            ->willReturn(true);
+
+        $this->pdo->expects($this->once())
+            ->method('prepare')
+            ->with($this->stringContains('UPDATE users SET telegram_bot_token = ?, telegram_webhook_secret = ? WHERE user_id = ?'))
+            ->willReturn($stmt);
+
+        $success = $this->userModel->updateTelegramConfig(1, 'bot-token', 'secret-123');
+        $this->assertTrue($success);
+    }
 }

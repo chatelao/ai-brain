@@ -9,11 +9,28 @@ use App\TelegramWebhookHandler;
 
 $db = new Database();
 $userModel = new User($db);
-$telegramService = new TelegramService();
+
+$userId = isset($_GET['user_id']) ? (int)$_GET['user_id'] : null;
+$botToken = getenv('TELEGRAM_BOT_TOKEN') ?: '';
+$webhookSecret = getenv('TELEGRAM_WEBHOOK_SECRET') ?: '';
+
+if ($userId) {
+    $user = $userModel->findById($userId);
+    if ($user) {
+        if (!empty($user['telegram_bot_token'])) {
+            $botToken = $user['telegram_bot_token'];
+        }
+        if (!empty($user['telegram_webhook_secret'])) {
+            $webhookSecret = $user['telegram_webhook_secret'];
+        }
+    }
+}
+
+$telegramService = new TelegramService(null, $botToken);
 $handler = new TelegramWebhookHandler(
     $userModel,
     $telegramService,
-    getenv('TELEGRAM_WEBHOOK_SECRET') ?: ''
+    $webhookSecret
 );
 
 $providedSecret = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '';
