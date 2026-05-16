@@ -72,6 +72,16 @@ class Task
         return $task ?: null;
     }
 
+    public function findByIssueNumber(int $projectId, int $issueNumber): ?array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT * FROM tasks WHERE project_id = ? AND issue_number = ?"
+        );
+        $stmt->execute([$projectId, $issueNumber]);
+        $task = $stmt->fetch();
+        return $task ?: null;
+    }
+
     public function updateStatus(int $id, string $status): bool
     {
         $stmt = $this->db->getConnection()->prepare(

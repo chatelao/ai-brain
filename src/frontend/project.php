@@ -60,26 +60,8 @@ $tasks = $taskModel->findByProjectId($projectId);
 $lastAgentResponse = null;
 $errorMessage = null;
 
-$githubToken = $project['github_token'] ?? null;
-$roadmapFiles = [];
-if ($githubToken) {
-    try {
-        $githubService = new GitHubService(null, $githubToken);
-        $roadmapFiles = $githubService->getRoadmapFiles($project['github_repo']);
-    } catch (Exception $e) {
-        // Silently fail or log roadmap fetching
-    }
-}
-
-// Handle Agent Trigger
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
-    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
-        die("CSRF token validation failed.");
-    }
-
-    $taskId = (int)$_POST['task_id'];
+$triggerAgent = function($taskId) use ($taskModel, $logger, $user, $project, $julesService, $telegramService, $telegramChatId, &$lastAgentResponse, &$errorMessage, &$tasks, $projectId) {
     $task = $taskModel->findById($taskId);
-
     if ($task && $task['project_id'] === $project['project_id']) {
         try {
             $logger->log($user['user_id'], $taskId, "Agent triggered by user " . $user['name']);
@@ -136,6 +118,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
             if ($telegramChatId) {
                 $telegramService->sendMessage($telegramChatId, "❌ <b>Agent Failed</b>\nProject: {$project['github_repo']}\nIssue: #{$task['issue_number']}\nError: " . $e->getMessage());
             }
+        }
+    }
+};
+
+$githubToken = $project['github_token'] ?? null;
+$roadmapFiles = [];
+if ($githubToken) {
+    try {
+        $githubService = new GitHubService(null, $githubToken);
+        $roadmapFiles = $githubService->getRoadmapFiles($project['github_repo']);
+    } catch (Exception $e) {
+        // Silently fail or log roadmap fetching
+    }
+}
+
+// Handle Agent Trigger
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+
+    $taskId = (int)$_POST['task_id'];
+    $triggerAgent($taskId);
+}
+
+// Handle Rerun Task
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['rerun_task'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+
+    $taskId = (int)$_POST['task_id'];
+    $originalTask = $taskModel->findById($taskId);
+
+    if ($originalTask && $originalTask['project_id'] === $project['project_id']) {
+        try {
+            $githubToken = $project['github_token'] ?? null;
+            if (!$githubToken) {
+                throw new Exception("GitHub token not found for this project.");
+            }
+
+            $githubData = json_decode($originalTask['github_data'] ?? '{}', true);
+            $labels = array_map(fn($l) => $l['name'], $githubData['labels'] ?? []);
+
+            $githubService = new GitHubService(null, $githubToken);
+            $newIssue = $githubService->createIssue($project['github_repo'], $originalTask['title'], $originalTask['body'], $labels);
+
+            $taskModel->upsert($user['user_id'], $project['project_id'], $newIssue);
+            $newTask = $taskModel->findByIssueNumber($project['project_id'], $newIssue['number']);
+
+            if ($newTask) {
+                $triggerAgent($newTask['task_id']);
+            } else {
+                throw new Exception("Failed to find the newly created task in the database.");
+            }
+        } catch (Exception $e) {
+            $errorMessage = "Error rerunning task: " . $e->getMessage();
         }
     }
 }
@@ -456,11 +495,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                     </div>
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <form method="POST" class="inline">
-                                                        <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                                        <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
-                                                        <button type="submit" name="trigger_agent" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none">Run Agent</button>
-                                                    </form>
+                                                    <div class="flex flex-col space-y-2">
+                                                        <form method="POST" class="inline">
+                                                            <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                                            <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
+                                                            <button type="submit" name="trigger_agent" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Run Agent</button>
+                                                        </form>
+                                                        <?php if ($task['status'] === 'completed'): ?>
+                                                            <form method="POST" class="inline">
+                                                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                                                <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
+                                                                <button type="submit" name="rerun_task" class="text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Rerun</button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
