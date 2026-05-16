@@ -6,6 +6,7 @@ use App\Database;
 use App\Auth;
 use App\User;
 use App\IssueTemplate;
+use App\Task;
 
 $auth = new Auth();
 $db = new Database();
@@ -18,6 +19,7 @@ if (!$auth->isLoggedIn()) {
 }
 
 $user = $userModel->findById($auth->getUserId());
+$taskModel = new Task($db);
 $errorMessage = null;
 $successMessage = null;
 
@@ -125,6 +127,7 @@ $templates = $templateModel->findByUserId($user['user_id']);
                     </a>
                 </div>
                 <div class="flex items-center">
+                    <?php include 'navbar-icons.php'; ?>
                     <div class="flex items-center ml-3">
                         <img class="w-8 h-8 rounded-full" src="<?= htmlspecialchars($user['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="user photo">
                         <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($user['name']) ?></div>
