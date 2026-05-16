@@ -31,7 +31,7 @@ Stores the history of notifications for each user.
 - `type` (VARCHAR): e.g., `build_failed`, `pr_available`, `session_failed`, `task_completed`.
 - `title` (VARCHAR)
 - `message` (TEXT)
-- `data` (JSON): Additional context (e.g., `project_id`, `task_id`, `url`).
+- `data` (JSON): Additional context (e.g., `project_id`, `task_id`, `source_url`).
 - `is_read` (BOOLEAN): Default `false`.
 - `created_at` (TIMESTAMP)
 
@@ -61,6 +61,7 @@ Mute or prioritize specific tasks.
 - Notifications are fetched from the `notifications` table.
 - A notification bell in `navbar.php` displays the unread count.
 - A dropdown or dedicated page allows users to view and mark notifications as read.
+- **Deep Linking**: Each notification item in the inbox is rendered as a clickable link that directs the user to the `source_url` provided in the notification data.
 
 ### 2. Active Browser Notifications
 - Uses the `Web Notifications API`.
@@ -73,6 +74,14 @@ Mute or prioritize specific tasks.
 - Handled asynchronously to avoid blocking the main execution flow.
 
 ## Implementation Details
+
+### Deep Linking
+The `NotificationService` populates the `source_url` in the `data` payload based on the event context:
+-   **GitHub PR events**: URL of the Pull Request.
+-   **Jules Session events**: URL of the AI agent session.
+-   **Task/Issue events**: URL of the GitHub Issue.
+
+The frontend uses this URL to provide a direct "Jump to Source" action for each notification.
 
 ### Notification Service Dispatching
 ```php
