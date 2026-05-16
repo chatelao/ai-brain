@@ -207,7 +207,6 @@ $errorMessage = $errorMessage ?? null;
                         <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
                             <?php if ($user): ?>
                                 <div class="mt-4">
-                                    <h4 class="text-xl font-bold text-gray-900 mb-4">Your Projects</h4>
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         <?php foreach ($projects as $project): ?>
                                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
