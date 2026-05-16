@@ -51,7 +51,7 @@ class DashboardTest extends TestCase
 
         $this->assertStringContainsString('Logout', $output);
         $this->assertStringContainsString('John Doe', $output);
-        $this->assertStringContainsString('john@example.com', $output);
+        $this->assertStringContainsString('Total Projects', $output);
     }
 
     private function renderDashboard($auth, $userModel = null)
@@ -67,6 +67,10 @@ class DashboardTest extends TestCase
         ob_start();
         // Mimic the logic in index.php
         $user = $auth->isLoggedIn() ? $userModel->findById($auth->getUserId()) : null;
+        $projects = [];
+        $githubAccounts = [];
+        $allTasks = [];
+        $autorepeatTasks = [];
         ?>
         <nav>
             <?php if ($user): ?>
@@ -78,8 +82,12 @@ class DashboardTest extends TestCase
         </nav>
         <main>
             <?php if ($user): ?>
-                <p>Dashboard</p>
-                <p>You are logged in as <strong><?= htmlspecialchars($user['email']) ?></strong>.</p>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-xs font-medium text-blue-600 uppercase">Total Projects</p>
+                        <p class="text-xl font-bold text-blue-900"><?= count($projects) ?></p>
+                    </div>
+                </div>
             <?php else: ?>
                 <p>Please Login</p>
             <?php endif; ?>

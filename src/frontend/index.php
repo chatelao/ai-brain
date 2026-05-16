@@ -185,11 +185,24 @@ $errorMessage = $errorMessage ?? null;
 
                     <div class="grid w-full grid-cols-1 gap-4 mt-4">
                         <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
-                            <h3 class="text-base font-normal text-gray-500">Welcome to Agent Control</h3>
                             <?php if ($user): ?>
-                                <p class="text-2xl font-bold leading-none text-gray-900 sm:text-3xl">Dashboard</p>
-                                <div class="mt-4">
-                                    <p class="text-gray-600">You are logged in as <strong><?= htmlspecialchars($user['email']) ?></strong>.</p>
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <p class="text-xs font-medium text-blue-600 uppercase">Total Projects</p>
+                                        <p class="text-xl font-bold text-blue-900"><?= count($projects) ?></p>
+                                    </div>
+                                    <div class="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                                        <p class="text-xs font-medium text-purple-600 uppercase">GitHub Accounts</p>
+                                        <p class="text-xl font-bold text-purple-900"><?= count($githubAccounts) ?></p>
+                                    </div>
+                                    <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                                        <p class="text-xs font-medium text-green-600 uppercase">Total Tasks</p>
+                                        <p class="text-xl font-bold text-green-900"><?= count($allTasks) ?></p>
+                                    </div>
+                                    <div class="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                        <p class="text-xs font-medium text-orange-600 uppercase">Autorepeat Tasks</p>
+                                        <p class="text-xl font-bold text-orange-900"><?= count($autorepeatTasks) ?></p>
+                                    </div>
                                 </div>
 
                                 <div class="mt-8">
@@ -259,6 +272,7 @@ $errorMessage = $errorMessage ?? null;
                                     </div>
                                 </div>
                             <?php else: ?>
+                                <h3 class="text-base font-normal text-gray-500">Welcome to Agent Control</h3>
                                 <p class="text-2xl font-bold leading-none text-gray-900 sm:text-3xl">Please Login</p>
                                 <div class="mt-4">
                                     <p class="text-gray-600">Manage your Google Jules agents and GitHub issues seamlessly.</p>
