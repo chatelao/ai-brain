@@ -515,12 +515,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <div class="flex flex-col space-y-2">
-                                                        <form method="POST" class="inline">
-                                                            <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                                            <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
-                                                            <button type="submit" name="trigger_agent" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Run Agent</button>
-                                                        </form>
-                                                        <?php if ($task['status'] === 'completed'): ?>
+                                                        <?php
+                                                        $githubData = json_decode($task['github_data'] ?? '{}', true);
+                                                        $isClosed = ($githubData['state'] ?? 'open') === 'closed';
+                                                        $isCompleted = ($task['status'] ?? '') === 'completed';
+                                                        $isImplemented = ($task['status'] ?? '') === 'implemented';
+                                                        ?>
+                                                        <?php if (!$isClosed && !$isCompleted && !$isImplemented): ?>
+                                                            <form method="POST" class="inline">
+                                                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                                                <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
+                                                                <button type="submit" name="trigger_agent" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Run Agent</button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                        <?php if ($isCompleted || $isImplemented): ?>
                                                             <form method="POST" class="inline">
                                                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                                                 <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
