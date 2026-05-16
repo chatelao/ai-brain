@@ -58,10 +58,16 @@ if ($user) {
 $autorepeatTasks = $user ? $taskModel->getRunningAutorepeatTasks($user['user_id']) : [];
 
 $projectTasks = [];
+$activeTasksCount = 0;
 if ($user) {
     $allTasks = $taskModel->findByUserProjects($user['user_id']);
     foreach ($allTasks as $task) {
-        $projectTasks[$task['project_id']][] = $task;
+        $githubData = json_decode($task['github_data'] ?? '{}', true);
+        $state = $githubData['state'] ?? 'open';
+        if ($state !== 'closed' && $task['status'] !== 'completed') {
+            $projectTasks[$task['project_id']][] = $task;
+            $activeTasksCount++;
+        }
     }
 }
 
@@ -195,8 +201,8 @@ $errorMessage = $errorMessage ?? null;
                                         <p class="text-xl font-bold text-purple-900"><?= count($githubAccounts) ?></p>
                                     </div>
                                     <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
-                                        <p class="text-xs font-medium text-green-600 uppercase">Total Tasks</p>
-                                        <p class="text-xl font-bold text-green-900"><?= count($allTasks) ?></p>
+                                        <p class="text-xs font-medium text-green-600 uppercase">Active Tasks</p>
+                                        <p class="text-xl font-bold text-green-900"><?= $activeTasksCount ?></p>
                                     </div>
                                     <div class="p-4 bg-orange-50 border border-orange-200 rounded-lg">
                                         <p class="text-xs font-medium text-orange-600 uppercase">Autorepeat Tasks</p>

@@ -117,11 +117,27 @@ class WebhookHandlerTest extends TestCase
         $this->assertTrue($this->handler->handle($project, $event, $githubService));
     }
 
-    public function testHandleUnsupportedAction()
+    public function testHandleDeletedIssue()
     {
         $project = ['user_id' => 1, 'project_id' => 1];
         $event = [
             'action' => 'deleted',
+            'issue' => ['number' => 123]
+        ];
+
+        $stmt = $this->createMock(PDOStatement::class);
+        $stmt->method('execute')->willReturn(true);
+
+        $this->pdo->method('prepare')->with($this->stringContains('DELETE FROM tasks'))->willReturn($stmt);
+
+        $this->assertTrue($this->handler->handle($project, $event));
+    }
+
+    public function testHandleUnsupportedAction()
+    {
+        $project = ['user_id' => 1, 'project_id' => 1];
+        $event = [
+            'action' => 'unknown_action',
             'issue' => ['number' => 123]
         ];
 

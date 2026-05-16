@@ -82,6 +82,14 @@ class Task
         return $task ?: null;
     }
 
+    public function deleteByIssueNumber(int $projectId, int $issueNumber): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "DELETE FROM tasks WHERE project_id = ? AND issue_number = ?"
+        );
+        return $stmt->execute([$projectId, $issueNumber]);
+    }
+
     public function updateStatus(int $id, string $status): bool
     {
         $stmt = $this->db->getConnection()->prepare(
@@ -116,7 +124,7 @@ class Task
 
     public function syncIssues(int $userId, int $projectId, string $repo, GitHubService $githubService): void
     {
-        $issues = $githubService->listIssues($repo);
+        $issues = $githubService->listIssues($repo, 'all');
 
         foreach ($issues as $issue) {
             // Check if it's really an issue (not a PR)
