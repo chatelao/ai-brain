@@ -81,7 +81,7 @@ $errorMessage = $errorMessage ?? null;
                     <?php endif; ?>
                     <div class="flex items-center ml-3">
                         <img class="w-8 h-8 rounded-full" src="<?= htmlspecialchars($user['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="user photo">
-                        <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($user['name']) ?></div>
+                        <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($user['name'] ?? '') ?></div>
                         <a href="templates.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Templates</a>
                         <a href="settings.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Settings</a>
                         <a href="logout.php" class="ml-4 text-sm font-medium text-red-600 hover:underline">Logout</a>
@@ -140,7 +140,7 @@ $errorMessage = $errorMessage ?? null;
 
                     <?php if ($errorMessage): ?>
                         <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
-                            <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage) ?>
+                            <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage ?? '') ?>
                         </div>
                     <?php endif; ?>
 
@@ -182,7 +182,7 @@ $errorMessage = $errorMessage ?? null;
                                         <?php foreach ($githubAccounts as $account): ?>
                                             <div class="flex items-center text-green-600">
                                                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-                                                Linked as&nbsp;<strong><?= htmlspecialchars($account['github_username']) ?></strong>
+                                                Linked as&nbsp;<strong><?= htmlspecialchars($account['github_username'] ?? '') ?></strong>
                                             </div>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
@@ -215,14 +215,14 @@ $errorMessage = $errorMessage ?? null;
                                         <tbody>
                                             <?php foreach ($webhookLogs as $log): ?>
                                                 <tr class="bg-white border-b hover:bg-gray-50" x-data="{ open: false }">
-                                                    <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($log['created_at']) ?></td>
-                                                    <td class="px-6 py-4 uppercase font-mono text-xs"><?= htmlspecialchars($log['endpoint']) ?></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($log['created_at'] ?? '') ?></td>
+                                                    <td class="px-6 py-4 uppercase font-mono text-xs"><?= htmlspecialchars($log['endpoint'] ?? '') ?></td>
                                                     <td class="px-6 py-4">
-                                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium <?= $log['status_code'] >= 200 && $log['status_code'] < 300 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
-                                                            <?= (int)$log['status_code'] ?>
+                                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium <?= ($log['status_code'] ?? 0) >= 200 && ($log['status_code'] ?? 0) < 300 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
+                                                            <?= (int)($log['status_code'] ?? 0) ?>
                                                         </span>
                                                         <?php if ($log['error_message']): ?>
-                                                            <div class="text-xs text-red-600 mt-1"><?= htmlspecialchars($log['error_message']) ?></div>
+                                                            <div class="text-xs text-red-600 mt-1"><?= htmlspecialchars($log['error_message'] ?? '') ?></div>
                                                         <?php endif; ?>
                                                     </td>
                                                     <td class="px-6 py-4">
@@ -233,13 +233,13 @@ $errorMessage = $errorMessage ?? null;
                                                             $headers = json_decode($log['headers'] ?? '{}', true);
                                                             $headersJson = $headers ? json_encode($headers, JSON_PRETTY_PRINT) : ($log['headers'] ?? '');
                                                             ?>
-                                                            <pre><?= htmlspecialchars($headersJson) ?></pre>
+                                                            <pre><?= htmlspecialchars($headersJson ?? '') ?></pre>
                                                             <div class="mt-4 mb-2 border-b border-gray-700 pb-1 text-gray-400">Payload:</div>
                                                             <?php
                                                             $payload = json_decode($log['payload'] ?? '{}', true);
                                                             $payloadJson = $payload ? json_encode($payload, JSON_PRETTY_PRINT) : ($log['payload'] ?? '');
                                                             ?>
-                                                            <pre><?= htmlspecialchars($payloadJson) ?></pre>
+                                                            <pre><?= htmlspecialchars($payloadJson ?? '') ?></pre>
                                                         </div>
                                                     </td>
                                                 </tr>
