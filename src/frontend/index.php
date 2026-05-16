@@ -173,7 +173,7 @@ $errorMessage = $errorMessage ?? null;
                                                     </a>
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <a href="project.php?id=<?= $task['project_id'] ?>" class="text-blue-600 hover:underline font-semibold">
+                                                    <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task)) ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
                                                         #<?= htmlspecialchars($task['issue_number']) ?> <?= htmlspecialchars($task['title']) ?>
                                                     </a>
                                                 </td>
