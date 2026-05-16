@@ -242,8 +242,8 @@ $errorMessage = $errorMessage ?? null;
                                                             <a href="task.php?id=<?= $task['task_id'] ?>"
                                                                class="status-square <?= $color ?> <?= $isAutorepeat ? 'auto-repeat-tag' : '' ?>">
                                                             </a>
-                                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">
-                                                                #<?= htmlspecialchars($task['issue_number']) ?>: <?= $emoji ?> <?= htmlspecialchars(mb_substr($task['title'], 0, 30)) ?><?= mb_strlen($task['title']) > 30 ? '...' : '' ?>
+                                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg w-max max-w-[90vw] break-words text-center">
+                                                                #<?= htmlspecialchars($task['issue_number']) ?>: <?= $emoji ?> <?= htmlspecialchars($task['title']) ?>
                                                             </div>
                                                         </div>
                                                     <?php endforeach; ?>
