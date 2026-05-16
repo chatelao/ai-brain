@@ -133,6 +133,7 @@ $errorMessage = $errorMessage ?? null;
                 </div>
                 <div class="flex items-center">
                     <?php if ($user): ?>
+                        <?php include 'navbar-icons.php'; ?>
                         <div class="flex items-center ml-3">
                             <div>
                                 <button type="button" class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300">

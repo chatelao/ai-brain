@@ -215,6 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                     </a>
                 </div>
                 <div class="flex items-center">
+                    <?php include 'navbar-icons.php'; ?>
                     <div class="flex items-center ml-3">
                         <img class="w-8 h-8 rounded-full" src="<?= htmlspecialchars($user['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="user photo">
                         <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($user['name']) ?></div>
