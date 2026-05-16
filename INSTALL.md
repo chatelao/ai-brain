@@ -179,6 +179,7 @@ Use this method if you want to deploy from your local machine via SSH.
    #
    SetEnv UPGRADE_ALLOWED_EMAIL   your_admin_email@example.com
    # SetEnv ENABLE_UPGRADE_PAGE     true
+   # SetEnv DB_UPGRADE_SECRET       your_secure_upgrade_secret
    ```
 
 5. **Document Root:**
@@ -233,3 +234,20 @@ The application requires several environment variables to be set in your web ser
 | `TELEGRAM_WEBHOOK_SECRET` | (Optional) Secret token for Telegram webhooks |
 | `UPGRADE_ALLOWED_EMAIL` | (Required for upgrades) Email address of the admin user authorized to trigger database migrations on the Admin Dashboard. |
 | `ENABLE_UPGRADE_PAGE` | (Optional) Set to `true` to enable the interactive database upgrade page at `/upgrade.php`. Useful for initial setup or maintenance. **Disable after use for security.** |
+| `DB_UPGRADE_SECRET` | (Optional) A secret token that allows automated database upgrades via the "Apply DB Patch" workflow. Should be set in `.htaccess` or server configuration. |
+
+---
+
+## Automated Database Upgrades
+
+If you have configured `DB_UPGRADE_SECRET` in your `.htaccess` file, you can use the **Apply DB Patch** workflow to apply pending SQL patches automatically.
+
+1. **Trigger the Workflow:**
+   - Go to the **Actions** tab in your GitHub repository.
+   - Select the **Apply DB Patch** workflow.
+   - Click **Run workflow**.
+2. **Parameters:**
+   - **Select patch to apply**: Choose 'all' to run all pending migrations, or select a specific `.sql` file.
+   - **Base URL of the application**: Enter the public URL of your application (e.g., `https://your-domain.com`).
+3. **Execution:**
+   - The workflow will SSH into your server, extract the `DB_UPGRADE_SECRET` from your `.htaccess`, and then send an authorized POST request to `/upgrade.php` to trigger the migration.

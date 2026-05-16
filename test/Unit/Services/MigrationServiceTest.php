@@ -81,4 +81,66 @@ class MigrationServiceTest extends TestCase
         $this->assertContains("Database is already up to date.", $logs);
         $this->assertNotContains("Applying patch: 001_test.sql", $logs);
     }
+
+    public function testApplySinglePatchByName(): void
+    {
+        file_put_contents($this->patchesDir . '001_test.sql', "CREATE TABLE test_table (id INTEGER PRIMARY KEY);");
+        file_put_contents($this->patchesDir . '002_test.sql', "INSERT INTO test_table (id) VALUES (1);");
+
+        $migrationService = new MigrationService($this->db, $this->patchesDir);
+
+        // Apply only the first patch
+        $logs = $migrationService->applyPatch('001_test.sql');
+
+        $this->assertContains("Applying patch: 001_test.sql", $logs);
+        $this->assertContains("Successfully applied patch: 001_test.sql", $logs);
+
+        $conn = $this->db->getConnection();
+        $stmt = $conn->query("SELECT name FROM sqlite_master WHERE type='table' AND name='test_table'");
+        $this->assertNotEmpty($stmt->fetch());
+
+        // Ensure second patch was NOT applied
+        $stmt = $conn->query("SELECT patch_name FROM migrations");
+        $applied = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $this->assertContains('001_test.sql', $applied);
+        $this->assertNotContains('002_test.sql', $applied);
+
+        // Apply the second patch
+        $logs = $migrationService->applyPatch('002_test.sql');
+        $this->assertContains("Applying patch: 002_test.sql", $logs);
+
+        $stmt = $conn->query("SELECT * FROM test_table");
+        $this->assertCount(1, $stmt->fetchAll());
+    }
+
+    public function testApplyPatchFileNotFound(): void
+    {
+        $migrationService = new MigrationService($this->db, $this->patchesDir);
+        $logs = $migrationService->applyPatch('non_existent.sql');
+        $this->assertContains("ERROR: Patch file not found: non_existent.sql", $logs);
+    }
+
+    public function testApplyPatchAlreadyApplied(): void
+    {
+        file_put_contents($this->patchesDir . '001_test.sql', "CREATE TABLE test_table (id INTEGER PRIMARY KEY);");
+        $migrationService = new MigrationService($this->db, $this->patchesDir);
+        $migrationService->applyPatch('001_test.sql');
+
+        $logs = $migrationService->applyPatch('001_test.sql');
+        $this->assertContains("Patch 001_test.sql is already applied.", $logs);
+    }
+
+    public function testApplyPatchPathTraversal(): void
+    {
+        $migrationService = new MigrationService($this->db, $this->patchesDir);
+
+        $logs = $migrationService->applyPatch('../outside.sql');
+        $this->assertContains("ERROR: Invalid patch name: ../outside.sql", $logs);
+
+        $logs = $migrationService->applyPatch('dir/patch.sql');
+        $this->assertContains("ERROR: Invalid patch name: dir/patch.sql", $logs);
+
+        $logs = $migrationService->applyPatch('patch.php');
+        $this->assertContains("ERROR: Invalid patch name: patch.php", $logs);
+    }
 }

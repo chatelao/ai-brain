@@ -67,30 +67,13 @@ class MigrationService
                 continue;
             }
 
-            $logs[] = "Applying patch: $patchName";
-            try {
-                $sql = file_get_contents($patchPath);
-                if ($sql === false) {
-                    throw new Exception("Could not read patch file: $patchName");
+            $logs = array_merge($logs, $this->applySinglePatch($connection, $patchPath));
+
+            // Check for error in logs
+            foreach ($logs as $log) {
+                if (str_starts_with($log, "ERROR")) {
+                    return $logs;
                 }
-
-                $connection->beginTransaction();
-
-                // Execute the SQL. Some drivers might not support multi-statement execute
-                // so we might need to split it if it becomes an issue.
-                $connection->exec($sql);
-
-                $stmt = $connection->prepare("INSERT INTO migrations (patch_name) VALUES (?)");
-                $stmt->execute([$patchName]);
-
-                $connection->commit();
-                $logs[] = "Successfully applied patch: $patchName";
-            } catch (Exception $e) {
-                if ($connection->inTransaction()) {
-                    $connection->rollBack();
-                }
-                $logs[] = "ERROR applying patch $patchName: " . $e->getMessage();
-                return $logs; // Stop execution on error
             }
         }
 
@@ -98,6 +81,66 @@ class MigrationService
             $logs[] = "Database is already up to date.";
         }
 
+        return $logs;
+    }
+
+    public function applyPatch(string $patchName): array
+    {
+        $logs = [];
+        $connection = $this->db->getConnection();
+        $this->ensureMigrationsTableExists($connection);
+
+        // Security check: prevent path traversal
+        if (str_contains($patchName, '/') || str_contains($patchName, '\\') || !str_ends_with($patchName, '.sql')) {
+            $logs[] = "ERROR: Invalid patch name: $patchName";
+            return $logs;
+        }
+
+        $patchPath = $this->patchesDir . $patchName;
+        if (!file_exists($patchPath)) {
+            $logs[] = "ERROR: Patch file not found: $patchName";
+            return $logs;
+        }
+
+        // Check if already applied
+        $stmt = $connection->prepare("SELECT COUNT(*) FROM migrations WHERE patch_name = ?");
+        $stmt->execute([$patchName]);
+        if ($stmt->fetchColumn() > 0) {
+            $logs[] = "Patch $patchName is already applied.";
+            return $logs;
+        }
+
+        return $this->applySinglePatch($connection, $patchPath);
+    }
+
+    private function applySinglePatch(PDO $connection, string $patchPath): array
+    {
+        $logs = [];
+        $patchName = basename($patchPath);
+        $logs[] = "Applying patch: $patchName";
+        try {
+            $sql = file_get_contents($patchPath);
+            if ($sql === false) {
+                throw new Exception("Could not read patch file: $patchName");
+            }
+
+            $connection->beginTransaction();
+
+            // Execute the SQL. Some drivers might not support multi-statement execute
+            // so we might need to split it if it becomes an issue.
+            $connection->exec($sql);
+
+            $stmt = $connection->prepare("INSERT INTO migrations (patch_name) VALUES (?)");
+            $stmt->execute([$patchName]);
+
+            $connection->commit();
+            $logs[] = "Successfully applied patch: $patchName";
+        } catch (Exception $e) {
+            if ($connection->inTransaction()) {
+                $connection->rollBack();
+            }
+            $logs[] = "ERROR applying patch $patchName: " . $e->getMessage();
+        }
         return $logs;
     }
 
