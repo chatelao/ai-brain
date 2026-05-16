@@ -14,6 +14,35 @@ class MigrationService
         $this->patchesDir = $patchesDir ?? __DIR__ . '/../sql/patches/';
     }
 
+    public function getMigrationStatus(): array
+    {
+        $connection = $this->db->getConnection();
+        $this->ensureMigrationsTableExists($connection);
+
+        $patches = glob($this->patchesDir . '*.sql');
+        sort($patches);
+
+        $stmt = $connection->query("SELECT patch_name FROM migrations");
+        $appliedPatches = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $pending = [];
+        $applied = [];
+
+        foreach ($patches as $patchPath) {
+            $patchName = basename($patchPath);
+            if (in_array($patchName, $appliedPatches)) {
+                $applied[] = $patchName;
+            } else {
+                $pending[] = $patchName;
+            }
+        }
+
+        return [
+            'applied' => $applied,
+            'pending' => $pending
+        ];
+    }
+
     public function migrate(): array
     {
         $logs = [];
