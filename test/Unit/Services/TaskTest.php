@@ -50,6 +50,21 @@ class TaskTest extends TestCase
         $this->assertEquals($expected, $result);
     }
 
+    public function testFindByIssueNumber()
+    {
+        $projectId = 1;
+        $issueNumber = 42;
+        $expected = ['task_id' => 10, 'project_id' => $projectId, 'issue_number' => $issueNumber];
+
+        $stmt = $this->createMock(PDOStatement::class);
+        $stmt->method('fetch')->willReturn($expected);
+
+        $this->pdo->method('prepare')->willReturn($stmt);
+
+        $result = $this->taskModel->findByIssueNumber($projectId, $issueNumber);
+        $this->assertEquals($expected, $result);
+    }
+
     public function testUpdateStatus()
     {
         $id = 1;
