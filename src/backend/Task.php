@@ -182,11 +182,11 @@ class Task
             return 'red';
         }
 
-        if (in_array($status, ['in_progress', 'coding', 'testing'])) {
+        if (in_array($status, ['in_progress', 'implemented', 'coding', 'testing'])) {
             return 'yellow';
         }
 
-        if (in_array($status, ['researching', 'planning', 'awaiting-plan-approval', 'awaiting-user-feedback'])) {
+        if (in_array($status, ['analyzed', 'researching', 'planning', 'awaiting-plan-approval', 'awaiting-user-feedback'])) {
             return 'blue';
         }
 
@@ -353,10 +353,12 @@ class Task
                     $mappedStatus = $task['status'];
                     $julesUrl = $julesData['url'] ?? null;
 
-                    if (in_array($newStatus, ['in-progress', 'coding', 'testing', 'researching', 'planning'])) {
+                    if (in_array($newStatus, ['coding', 'testing', 'researching', 'planning'])) {
+                        $mappedStatus = str_replace('-', '_', $newStatus);
+                    } elseif ($newStatus === 'in-progress') {
                         $mappedStatus = 'in_progress';
                     } elseif ($newStatus === 'completed' || $newStatus === 'finished') {
-                        $mappedStatus = 'completed';
+                        $mappedStatus = !empty($prUrl) ? 'completed' : 'implemented';
                     } elseif ($newStatus === 'failed' || $newStatus === 'error') {
                         $mappedStatus = 'failed';
                     }

@@ -88,8 +88,8 @@ $triggerAgent = function($taskId) use ($taskModel, $logger, $user, $project, $ju
             $lastAgentResponse = $julesService->triggerAgent($task);
             $logger->log($user['user_id'], $taskId, "Received response from Jules API");
 
-            $taskModel->updateAgentResponse($taskId, $lastAgentResponse, 'completed');
-            $logger->log($user['user_id'], $taskId, "Task agent response updated and status set to completed");
+            $taskModel->updateAgentResponse($taskId, $lastAgentResponse, 'analyzed');
+            $logger->log($user['user_id'], $taskId, "Task agent response updated and status set to analyzed");
 
             if ($githubService) {
                 $githubService->postComment($project['github_repo'], $task['issue_number'], "✅ Agent has completed the analysis:\n\n" . $lastAgentResponse);
@@ -469,11 +469,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                     <div class="text-xs text-gray-500"><?= htmlspecialchars(mb_substr($task['body'] ?? '', 0, 100)) ?>...</div>
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <span class="px-2 py-1 text-xs font-medium rounded-full <?= $task['status'] === 'completed' ? 'bg-green-100 text-green-800' : ($task['status'] === 'in_progress' ? 'bg-blue-100 text-blue-800' : ($task['status'] === 'failed' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800')) ?>">
+                                                    <?php
+                                                    $statusColor = $taskModel->getStatusColor($task);
+                                                    $bgClass = 'bg-gray-100 text-gray-800';
+                                                    if ($statusColor === 'green') $bgClass = 'bg-green-100 text-green-800';
+                                                    elseif ($statusColor === 'yellow') $bgClass = 'bg-yellow-100 text-yellow-800';
+                                                    elseif ($statusColor === 'blue') $bgClass = 'bg-blue-100 text-blue-800';
+                                                    elseif ($statusColor === 'red') $bgClass = 'bg-red-100 text-red-800';
+                                                    elseif ($statusColor === 'purple') $bgClass = 'bg-purple-100 text-purple-800';
+                                                    ?>
+                                                    <span class="px-2 py-1 text-xs font-medium rounded-full <?= $bgClass ?>">
                                                         <?php
-                                                        if ($task['status'] === 'completed') echo '✅ ';
-                                                        elseif ($task['status'] === 'in_progress') echo '🚧 ';
+                                                        $githubData = json_decode($task['github_data'] ?? '{}', true);
+                                                        if (($githubData['state'] ?? 'open') === 'closed') echo '✅ ';
+                                                        elseif ($task['status'] === 'completed') echo '✅ ';
                                                         elseif ($task['status'] === 'failed') echo '❌ ';
+                                                        elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) echo '🚧 ';
                                                         else echo '⏳ ';
                                                         ?>
                                                         <?= htmlspecialchars($task['status']) ?>
