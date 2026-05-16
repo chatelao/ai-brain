@@ -62,12 +62,44 @@ $errorMessage = null;
 
 $githubToken = $project['github_token'] ?? null;
 $roadmapFiles = [];
+$tags = [];
 if ($githubToken) {
     try {
         $githubService = new GitHubService(null, $githubToken);
         $roadmapFiles = $githubService->getRoadmapFiles($project['github_repo']);
+        $tags = $githubService->getTags($project['github_repo']);
     } catch (Exception $e) {
-        // Silently fail or log roadmap fetching
+        // Silently fail or log roadmap/tag fetching
+    }
+}
+
+// Handle Deployment Trigger
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_deploy'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+
+    $deployType = $_POST['deploy_type'] ?? 'tag';
+    $ref = ($deployType === 'tag') ? ($_POST['selected_tag'] ?? '') : ($_POST['commit_sha'] ?? '');
+
+    if (!empty($ref)) {
+        try {
+            $githubToken = $project['github_token'] ?? null;
+            if (!$githubToken) {
+                throw new Exception("GitHub token not found for this project.");
+            }
+
+            $githubService = new GitHubService(null, $githubToken);
+            // Using 'deploy.yml' as the default workflow for deployment as seen in .github/workflows/deploy.yml
+            $githubService->triggerWorkflow($project['github_repo'], 'deploy.yml', $ref);
+
+            header("Location: project.php?id=$projectId&success=deploy_triggered&ref=" . urlencode($ref));
+            exit;
+        } catch (Exception $e) {
+            $errorMessage = "Error triggering deployment: " . $e->getMessage();
+        }
+    } else {
+        $errorMessage = "Please provide a tag or commit SHA for deployment.";
     }
 }
 
@@ -319,6 +351,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                         </div>
                     <?php endif; ?>
 
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'deploy_triggered'): ?>
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                            <span class="font-medium">Success!</span> Deployment triggered for <strong><?= htmlspecialchars($_GET['ref'] ?? '') ?></strong>.
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($lastAgentResponse): ?>
                         <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50" role="alert">
                             <span class="font-medium">Agent Response:</span>
@@ -351,6 +389,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                         <?php endforeach; ?>
                                     </ul>
                                 <?php endif; ?>
+                            </div>
+
+                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm" x-data="{ deployType: 'tag' }">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">Deployment</h3>
+                                <form method="POST">
+                                    <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                    <div class="mb-4">
+                                        <label class="block mb-2 text-sm font-medium text-gray-900">Deploy via</label>
+                                        <div class="flex items-center space-x-4">
+                                            <div class="flex items-center">
+                                                <input id="deploy-tag" type="radio" name="deploy_type" value="tag" x-model="deployType" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500">
+                                                <label for="deploy-tag" class="ml-2 text-sm font-medium text-gray-900">Tag</label>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <input id="deploy-commit" type="radio" name="deploy_type" value="commit" x-model="deployType" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500">
+                                                <label for="deploy-commit" class="ml-2 text-sm font-medium text-gray-900">Commit (SHA)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4" x-show="deployType === 'tag'">
+                                        <label class="block mb-2 text-sm font-medium text-gray-900">Choose Tag</label>
+                                        <?php if (empty($tags)): ?>
+                                            <p class="text-xs text-gray-500 italic">No tags found in repository.</p>
+                                        <?php else: ?>
+                                            <select name="selected_tag" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                                <?php foreach ($tags as $tag): ?>
+                                                    <option value="<?= htmlspecialchars($tag['name']) ?>"><?= htmlspecialchars($tag['name']) ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div class="mb-4" x-show="deployType === 'commit'" x-cloak>
+                                        <label class="block mb-2 text-sm font-medium text-gray-900">Commit SHA</label>
+                                        <input type="text" name="commit_sha" placeholder="Enter commit SHA..." class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                    </div>
+
+                                    <button type="submit" name="trigger_deploy" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none">Trigger Deployment</button>
+                                </form>
                             </div>
 
                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm" x-data="{

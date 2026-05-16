@@ -161,6 +161,36 @@ class GitHubService
         return $roadmaps;
     }
 
+    /**
+     * @throws Exception
+     */
+    public function getTags(string $repo): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        return $this->client->api('repo')->tags($username, $repository);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function triggerWorkflow(string $repo, string $workflowId, string $ref, array $inputs = []): void
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        $this->client->api('repo')->workflows()->dispatches($username, $repository, $workflowId, $ref, $inputs);
+    }
+
     private function extractNextTask(string $content): ?string
     {
         $lines = explode("\n", $content);

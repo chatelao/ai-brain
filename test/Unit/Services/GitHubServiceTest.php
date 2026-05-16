@@ -96,4 +96,44 @@ class GitHubServiceTest extends TestCase
 
         $this->assertEquals(123, $result['number']);
     }
+
+    public function testGetTags(): void
+    {
+        $mockClient = $this->createMock(Client::class);
+        $mockRepo = $this->createMock(Repo::class);
+
+        $mockClient->method('api')->with('repo')->willReturn($mockRepo);
+
+        $expectedTags = [
+            ['name' => 'v1.0.0'],
+            ['name' => 'v1.1.0']
+        ];
+
+        $mockRepo->expects($this->once())
+            ->method('tags')
+            ->with('chatelao', 'ai-brain')
+            ->willReturn($expectedTags);
+
+        $service = new GitHubService($mockClient);
+        $tags = $service->getTags('chatelao/ai-brain');
+
+        $this->assertEquals($expectedTags, $tags);
+    }
+
+    public function testTriggerWorkflow(): void
+    {
+        $mockClient = $this->createMock(Client::class);
+        $mockRepo = $this->createMock(Repo::class);
+        $mockWorkflows = $this->createMock(\Github\Api\Repository\Actions\Workflows::class);
+
+        $mockClient->method('api')->with('repo')->willReturn($mockRepo);
+        $mockRepo->method('workflows')->willReturn($mockWorkflows);
+
+        $mockWorkflows->expects($this->once())
+            ->method('dispatches')
+            ->with('chatelao', 'ai-brain', 'deploy.yml', 'v1.0.0', ['env' => 'prod']);
+
+        $service = new GitHubService($mockClient);
+        $service->triggerWorkflow('chatelao/ai-brain', 'deploy.yml', 'v1.0.0', ['env' => 'prod']);
+    }
 }
