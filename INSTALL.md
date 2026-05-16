@@ -120,7 +120,10 @@ Use this method if you only have SFTP access and cannot run commands on the serv
    ```
 
 2. **Upload files:**
-   Using an SFTP client (like FileZilla or WinSCP), upload the following to your server:
+   Using an SFTP client (like FileZilla or WinSCP), upload the following to your server.
+
+   *Note for WinSCP users:* In the connection settings (Advanced > SSH > SFTP), ensure that **"Allow SCP fallback"** (SCP-Rückgriff erlauben) is **unchecked** to strictly adhere to the project's SFTP-only policy.
+
    - `src/`
    - `vendor/`
    - `composer.json`
