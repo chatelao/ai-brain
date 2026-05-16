@@ -203,6 +203,8 @@ If you have your own fork of this repository, you can use the included GitHub Ac
    - Install production dependencies via Composer.
    - Upload the application to your server via SFTP, excluding development and documentation files.
 
+   *Note: The workflow uses `sftp_only: true` which is recommended for most SFTP-only hosting environments.*
+
 ---
 
 ## Environment Variables
