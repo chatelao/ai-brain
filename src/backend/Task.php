@@ -10,26 +10,65 @@ class Task
     {
     }
 
-    public function findByProjectId(int $projectId): array
+    public function findByProjectId(int $projectId, bool $showAll = true): array
     {
-        $stmt = $this->db->getConnection()->prepare(
-            "SELECT * FROM tasks WHERE project_id = ? ORDER BY created_at DESC"
-        );
+        $sql = "SELECT * FROM tasks WHERE project_id = ?";
+        if (!$showAll) {
+            $sql .= " AND (github_state = 'open' OR status NOT IN ('completed', 'failed'))";
+        }
+        $sql .= " ORDER BY created_at DESC";
+
+        $stmt = $this->db->getConnection()->prepare($sql);
         $stmt->execute([$projectId]);
         return $stmt->fetchAll();
     }
 
-    public function findByUserProjects(int $userId): array
+    public function findActiveByProjectId(int $projectId, bool $all = false): array
     {
-        $stmt = $this->db->getConnection()->prepare(
-            "SELECT t.*, p.github_repo
+        return $this->findByProjectId($projectId, $all);
+    }
+
+    public function findByUserProjects(int $userId, bool $showAll = true): array
+    {
+        $sql = "SELECT t.*, p.github_repo
              FROM tasks t
              JOIN projects p ON t.project_id = p.project_id
-             WHERE p.user_id = ?
-             ORDER BY t.created_at DESC"
-        );
+             WHERE p.user_id = ?";
+
+        if (!$showAll) {
+            $sql .= " AND (t.github_state = 'open' OR t.status NOT IN ('completed', 'failed'))";
+        }
+
+        $sql .= " ORDER BY t.created_at DESC";
+
+        $stmt = $this->db->getConnection()->prepare($sql);
         $stmt->execute([$userId]);
         return $stmt->fetchAll();
+    }
+
+    public function findActiveByUserProjects(int $userId): array
+    {
+        return $this->findByUserProjects($userId, false);
+    }
+
+    public function getTaskCounts(int $userId): array
+    {
+        $sql = "SELECT
+                    COUNT(*) as total,
+                    SUM(CASE WHEN github_state = 'open' THEN 1 ELSE 0 END) as open_issues,
+                    SUM(CASE WHEN github_state = 'closed' OR status = 'completed' THEN 1 ELSE 0 END) as completed_tasks
+                FROM tasks
+                WHERE user_id = ?";
+
+        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt->execute([$userId]);
+        $counts = $stmt->fetch();
+
+        return [
+            'total' => (int)($counts['total'] ?? 0),
+            'open_issues' => (int)($counts['open_issues'] ?? 0),
+            'completed_tasks' => (int)($counts['completed_tasks'] ?? 0)
+        ];
     }
 
     public function getRunningAutorepeatTasks(int $userId): array
@@ -109,7 +148,7 @@ class Task
     public function create(array $data): bool
     {
         $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status) VALUES (?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
         return $stmt->execute([
             $data['user_id'],
@@ -118,7 +157,8 @@ class Task
             $data['title'],
             $data['body'] ?? '',
             $data['github_data'] ?? null,
-            $data['status'] ?? 'pending'
+            $data['status'] ?? 'pending',
+            $data['github_state'] ?? 'open'
         ]);
     }
 
@@ -141,19 +181,21 @@ class Task
         $driver = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
 
         if ($driver === 'sqlite') {
-            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(project_id, issue_number) DO UPDATE SET
                         title = excluded.title,
                         body = excluded.body,
-                        github_data = excluded.github_data";
+                        github_data = excluded.github_data,
+                        github_state = excluded.github_state";
         } else {
-            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE
                         title = VALUES(title),
                         body = VALUES(body),
-                        github_data = VALUES(github_data)";
+                        github_data = VALUES(github_data),
+                        github_state = VALUES(github_state)";
         }
 
         $stmt = $connection->prepare($sql);
@@ -165,7 +207,8 @@ class Task
             $issue['title'],
             $issue['body'],
             json_encode($issue),
-            'pending'
+            'pending',
+            $issue['state'] ?? 'open'
         ]);
     }
 

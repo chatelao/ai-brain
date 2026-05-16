@@ -4,20 +4,10 @@
 /** @var App\Task $taskModel */
 
 if ($user) {
-    $allUserTasks = $taskModel->findByUserProjects($user['user_id']);
-    $totalTasks = count($allUserTasks);
-    $openIssues = 0;
-    $completedTasks = 0;
-
-    foreach ($allUserTasks as $t) {
-        $ghData = json_decode($t['github_data'] ?? '{}', true);
-        if (($ghData['state'] ?? '') === 'open') {
-            $openIssues++;
-        }
-        if (($ghData['state'] ?? '') === 'closed' || ($t['status'] ?? '') === 'completed') {
-            $completedTasks++;
-        }
-    }
+    $counts = $taskModel->getTaskCounts($user['user_id']);
+    $totalTasks = $counts['total'];
+    $openIssues = $counts['open_issues'];
+    $completedTasks = $counts['completed_tasks'];
 
     $telegramConnected = (bool)$userModel->getTelegramChatId($user['user_id']);
 } else {
