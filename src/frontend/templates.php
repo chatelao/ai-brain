@@ -23,6 +23,18 @@ $taskModel = new Task($db);
 $errorMessage = null;
 $successMessage = null;
 
+// Handle Export
+if (isset($_GET['export']) && $_GET['export'] === 'sql') {
+    if (!$auth->validateCsrfToken($_GET['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+    $sql = $templateModel->exportToSql($user['user_id']);
+    header('Content-Type: application/sql');
+    header('Content-Disposition: attachment; filename="issue_templates_export.sql"');
+    echo $sql;
+    exit;
+}
+
 // Handle Template Creation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_template'])) {
     if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
@@ -161,9 +173,14 @@ $templates = $templateModel->findByUserId($user['user_id']);
                         </ol>
                     </nav>
 
-                    <div class="mb-4">
-                        <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Issue Templates</h1>
-                        <p class="text-sm text-gray-500 mt-1">Create reusable templates for GitHub issues. Use <strong>%1</strong> and <strong>%2</strong> as placeholders for dynamic content.</p>
+                    <div class="mb-4 flex justify-between items-end">
+                        <div>
+                            <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Issue Templates</h1>
+                            <p class="text-sm text-gray-500 mt-1">Create reusable templates for GitHub issues. Use <strong>%1</strong> and <strong>%2</strong> as placeholders for dynamic content.</p>
+                        </div>
+                        <div>
+                            <a href="?export=sql&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Export to SQL</a>
+                        </div>
                     </div>
 
                     <?php if ($errorMessage): ?>
