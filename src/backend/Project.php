@@ -11,7 +11,7 @@ class Project
     {
     }
 
-    public function create(int $userId, int $githubAccountId, string $githubRepo): bool
+    public function create(int $userId, int $githubAccountId, string $githubRepo): array
     {
         // Verify that the github account belongs to the user
         $stmt = $this->db->getConnection()->prepare(
@@ -26,7 +26,14 @@ class Project
         $stmt = $this->db->getConnection()->prepare(
             "INSERT INTO projects (user_id, github_account_id, github_repo, webhook_secret) VALUES (?, ?, ?, ?)"
         );
-        return $stmt->execute([$userId, $githubAccountId, $githubRepo, $webhookSecret]);
+        if ($stmt->execute([$userId, $githubAccountId, $githubRepo, $webhookSecret])) {
+            return [
+                'project_id' => (int)$this->db->getConnection()->lastInsertId(),
+                'webhook_secret' => $webhookSecret
+            ];
+        }
+
+        throw new Exception("Failed to create project.");
     }
 
     public function findByRepo(string $githubRepo): array

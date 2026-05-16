@@ -24,7 +24,31 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_repo'
     $accountId = (int)$_POST['github_account_id'];
     if (!empty($repo) && $accountId > 0) {
         try {
-            $projectModel->create($user['user_id'], $accountId, $repo);
+            $result = $projectModel->create($user['user_id'], $accountId, $repo);
+
+            // Register Webhook with GitHub
+            $githubAccount = null;
+            foreach ($githubAccounts as $account) {
+                if ((int)$account['github_account_id'] === $accountId) {
+                    $githubAccount = $account;
+                    break;
+                }
+            }
+
+            if ($githubAccount && !empty($githubAccount['github_token'])) {
+                $ghService = new App\GitHubService(null, $githubAccount['github_token']);
+                $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+                $host = $_SERVER['HTTP_HOST'];
+                $webhookUrl = "$protocol://$host/webhook.php?project_id=" . $result['project_id'];
+
+                try {
+                    $ghService->createWebhook($repo, $webhookUrl, $result['webhook_secret']);
+                } catch (Exception $webhookException) {
+                    // Log or handle webhook creation failure - maybe just a warning?
+                    error_log("Failed to create GitHub webhook for $repo: " . $webhookException->getMessage());
+                }
+            }
+
             header('Location: index.php?success=project_created');
             exit;
         } catch (Exception $e) {

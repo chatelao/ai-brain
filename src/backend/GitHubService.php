@@ -161,6 +161,31 @@ class GitHubService
         return $roadmaps;
     }
 
+    /**
+     * @throws Exception
+     */
+    public function createWebhook(string $repo, string $url, string $secret): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        return $this->client->api('repo')->hooks()->create($username, $repository, [
+            'name' => 'web',
+            'config' => [
+                'url' => $url,
+                'content_type' => 'json',
+                'secret' => $secret,
+                'insecure_ssl' => '0'
+            ],
+            'events' => ['issues'],
+            'active' => true,
+        ]);
+    }
+
     private function extractNextTask(string $content): ?string
     {
         $lines = explode("\n", $content);

@@ -41,7 +41,18 @@ if (empty($repoFullName)) {
     exit('Repository information missing');
 }
 
-$projects = $projectModel->findByRepo($repoFullName);
+$projectId = isset($_GET['project_id']) ? (int)$_GET['project_id'] : 0;
+
+if ($projectId > 0) {
+    $project = $projectModel->findById($projectId);
+    if (!$project || $project['github_repo'] !== $repoFullName) {
+        http_response_code(404);
+        exit('Project not found or repository mismatch');
+    }
+    $projects = [$project];
+} else {
+    $projects = $projectModel->findByRepo($repoFullName);
+}
 
 if (empty($projects)) {
     http_response_code(404);
