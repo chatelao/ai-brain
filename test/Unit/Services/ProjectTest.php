@@ -37,7 +37,9 @@ class ProjectTest extends TestCase
         ]);
 
         $result = $this->projectModel->create(1, 1, 'owner/repo');
-        $this->assertTrue($result);
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('project_id', $result);
+        $this->assertArrayHasKey('webhook_secret', $result);
     }
 
     public function testCreateFailureInvalidAccount()

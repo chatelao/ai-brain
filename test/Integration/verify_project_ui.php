@@ -107,7 +107,7 @@ $githubAccountId = $pdo->lastInsertId();
 
 // Create a mock project
 $projectModel = new Project($db);
-$projectModel->create(1, $githubAccountId, 'owner/repo');
+$result = $projectModel->create(1, $githubAccountId, 'owner/repo');
 $project = $projectModel->findByRepo('owner/repo')[0];
 
 // Create some tasks

@@ -85,7 +85,9 @@ class ProjectDBIntegrationTest extends TestCase
         $repo = 'owner/repo';
 
         $result = $this->projectModel->create($userId, $accountId, $repo);
-        $this->assertTrue($result);
+        $this->assertIsArray($result);
+        $this->assertGreaterThan(0, $result['project_id']);
+        $this->assertNotEmpty($result['webhook_secret']);
 
         $projects = $this->projectModel->findByUserId($userId);
         $this->assertCount(1, $projects);

@@ -25,7 +25,7 @@ class GitHubAuth
         $params = [
             'client_id' => $this->clientId,
             'redirect_uri' => $this->redirectUri,
-            'scope' => 'repo,user',
+            'scope' => 'repo,user,admin:repo_hook',
             'state' => bin2hex(random_bytes(16))
         ];
         $_SESSION['github_oauth_state'] = $params['state'];
