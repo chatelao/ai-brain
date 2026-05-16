@@ -14,13 +14,13 @@
 - [x] Create a dropdown/modal to view recent notifications.
 - [x] Implement "Mark as Read" functionality.
 - [x] Implement Deep Linking (using `source_url` from notification data).
-- [ ] Implement a dedicated "All Notifications" page.
+- [x] Implement a dedicated "All Notifications" page.
 
 ## Phase 3: Telegram Integration
-- [ ] Implement `TelegramChannelHandler`.
-- [ ] Integrate with existing `user_telegram_accounts` and Telegram bot configuration.
+- [x] Implement `TelegramChannelHandler`.
+- [x] Integrate with existing `user_telegram_accounts` and Telegram bot configuration.
 - [ ] Ensure asynchronous delivery to avoid blocking.
-- [ ] Test Telegram notification delivery.
+- [x] Test Telegram notification delivery.
 
 ## Phase 4: Browser Notifications
 - [ ] Implement `BrowserChannelHandler` using Web Notifications API.
@@ -29,8 +29,8 @@
 - [ ] Test browser notification delivery across different browsers.
 
 ## Phase 5: Settings & Customization
-- [ ] Update `src/frontend/settings.php` with global notification preferences.
-- [ ] Implement channel toggles (In-App, Browser, Telegram) in settings.
+- [x] Update `src/frontend/settings.php` with global notification preferences.
+- [x] Implement channel toggles (In-App, Browser, Telegram) in settings.
 - [ ] Implement global event type toggles in settings.
 - [ ] Add notification settings to the project page (`src/frontend/project.php`).
 - [ ] Implement per-task "Mute" functionality.

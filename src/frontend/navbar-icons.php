@@ -200,7 +200,7 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
                 </template>
             </div>
             <div class="p-2 border-t border-gray-100 text-center bg-gray-50">
-                <a href="#" class="text-xs text-blue-600 hover:underline">View all (Coming Soon)</a>
+                <a href="notifications.php" class="text-xs text-blue-600 hover:underline">View all</a>
             </div>
         </div>
     </div>
