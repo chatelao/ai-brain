@@ -7,7 +7,9 @@ use Exception;
 class JulesWebhookHandler
 {
     public function __construct(
-        private Database $db
+        private Database $db,
+        private ?GitHubService $githubService = null,
+        private ?TelegramService $telegramService = null
     ) {
     }
 
@@ -39,13 +41,13 @@ class JulesWebhookHandler
             return false;
         }
 
-        $githubService = null;
-        if (!empty($project['github_token'])) {
+        $githubService = $this->githubService;
+        if (!$githubService && !empty($project['github_token'])) {
             $githubService = new GitHubService(null, $project['github_token']);
         }
 
-        $telegramService = null;
-        if ($user && !empty($user['telegram_bot_token'])) {
+        $telegramService = $this->telegramService;
+        if (!$telegramService && $user && !empty($user['telegram_bot_token'])) {
             $telegramService = new TelegramService(null, $user['telegram_bot_token']);
         }
 
