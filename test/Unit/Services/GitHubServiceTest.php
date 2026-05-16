@@ -74,4 +74,26 @@ class GitHubServiceTest extends TestCase
 
         $this->assertEquals($expectedComments, $comments);
     }
+
+    public function testCreateIssue(): void
+    {
+        $mockClient = $this->createMock(Client::class);
+        $mockIssue = $this->createMock(\Github\Api\Issue::class);
+
+        $mockClient->method('api')->with('issue')->willReturn($mockIssue);
+
+        $mockIssue->expects($this->once())
+            ->method('create')
+            ->with('chatelao', 'ai-brain', [
+                'title' => 'Test Title',
+                'body' => 'Test Body',
+                'labels' => ['jules']
+            ])
+            ->willReturn(['number' => 123]);
+
+        $service = new GitHubService($mockClient);
+        $result = $service->createIssue('chatelao/ai-brain', 'Test Title', 'Test Body', ['jules']);
+
+        $this->assertEquals(123, $result['number']);
+    }
 }
