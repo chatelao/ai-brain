@@ -166,15 +166,21 @@ class Task
             return 'purple';
         }
 
-        if ($task['status'] === 'failed') {
+        $status = $task['status'] ?? 'pending';
+
+        if ($status === 'failed') {
             return 'red';
         }
 
-        if ($task['status'] === 'in_progress') {
+        if (in_array($status, ['in_progress', 'coding', 'testing'])) {
             return 'yellow';
         }
 
-        if ($task['status'] === 'completed') {
+        if (in_array($status, ['researching', 'planning', 'awaiting-plan-approval', 'awaiting-user-feedback'])) {
+            return 'blue';
+        }
+
+        if ($status === 'completed') {
             return 'green';
         }
 
