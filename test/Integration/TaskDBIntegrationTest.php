@@ -34,6 +34,7 @@ class TaskDBIntegrationTest extends TestCase
             title VARCHAR(255) NOT NULL,
             body TEXT,
             status TEXT DEFAULT 'pending',
+            github_state VARCHAR(20) DEFAULT 'open',
             github_data TEXT,
             created_at $timestamp,
             updated_at $timestamp,

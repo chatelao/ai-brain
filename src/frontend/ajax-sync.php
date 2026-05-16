@@ -58,28 +58,15 @@ try {
     $updatedUser = $userModel->findById($userId);
 
     // Calculate updated counts
-    $allUserTasks = $taskModel->findByUserProjects($userId);
-    $totalTasks = count($allUserTasks);
-    $openIssues = 0;
-    $completedTasks = 0;
-
-    foreach ($allUserTasks as $t) {
-        $ghData = json_decode($t['github_data'] ?? '{}', true);
-        if (($ghData['state'] ?? '') === 'open') {
-            $openIssues++;
-        }
-        if (($ghData['state'] ?? '') === 'closed' || ($t['status'] ?? '') === 'completed') {
-            $completedTasks++;
-        }
-    }
+    $counts = $taskModel->getTaskCounts($userId);
 
     echo json_encode([
         'status' => 'success',
         'quota_usage' => $updatedUser['jules_quota_usage'] ?? 0,
         'quota_limit' => $updatedUser['jules_quota_limit'] ?? 0,
-        'total_tasks' => $totalTasks,
-        'open_issues' => $openIssues,
-        'completed_tasks' => $completedTasks
+        'total_tasks' => $counts['total'],
+        'open_issues' => $counts['open_issues'],
+        'completed_tasks' => $counts['completed_tasks']
     ]);
 } catch (Exception $e) {
     http_response_code(500);

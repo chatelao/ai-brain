@@ -41,7 +41,8 @@ if (!$project || $project['user_id'] !== $user['user_id']) {
 $templateModel = new IssueTemplate($db);
 $templates = $templateModel->findByUserId($user['user_id']);
 
-$tasks = $taskModel->findByProjectId($projectId);
+$showAll = isset($_GET['all']) && $_GET['all'] == '1';
+$tasks = $taskModel->findByProjectId($projectId, $showAll);
 $lastAgentResponse = null;
 $errorMessage = null;
 
@@ -86,7 +87,7 @@ $triggerAgent = function($taskId) use ($taskModel, $logger, $user, $project, $ju
             }
 
             // Refresh tasks
-            $tasks = $taskModel->findByProjectId($projectId);
+            $tasks = $taskModel->findByProjectId($projectId, $showAll);
         } catch (\Exception $e) {
             $errorMessage = "Error triggering agent: " . $e->getMessage();
             $logger->log($user['user_id'], $taskId, "Error: " . $e->getMessage(), "error");
@@ -442,7 +443,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
 
                         <div class="lg:col-span-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-bold text-gray-900">Tasks synced from GitHub</h3>
+                                <div class="flex items-center space-x-4">
+                                    <h3 class="text-lg font-bold text-gray-900">Tasks synced from GitHub</h3>
+                                    <a href="?id=<?= $projectId ?>&all=<?= $showAll ? '0' : '1' ?>" class="text-xs text-blue-600 hover:underline">
+                                        <?= $showAll ? 'Show Only Active' : 'Show All' ?>
+                                    </a>
+                                </div>
                                 <form method="POST">
                                     <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                     <button type="submit" name="sync_issues" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none">Sync Issues</button>

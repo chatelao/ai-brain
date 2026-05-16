@@ -60,6 +60,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     title VARCHAR(255) NOT NULL,
     body TEXT,
     status TEXT DEFAULT 'pending',
+    github_state VARCHAR(20) DEFAULT 'open',
     github_data TEXT,
     agent_response TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

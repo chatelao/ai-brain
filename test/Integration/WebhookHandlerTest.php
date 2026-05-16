@@ -26,6 +26,7 @@ class WebhookHandlerTest extends TestCase
             title VARCHAR(255) NOT NULL,
             body TEXT,
             status TEXT DEFAULT 'pending',
+            github_state VARCHAR(20) DEFAULT 'open',
             github_data TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,

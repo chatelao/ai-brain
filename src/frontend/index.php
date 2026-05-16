@@ -76,13 +76,9 @@ $autorepeatTasks = $user ? $taskModel->getRunningAutorepeatTasks($user['user_id'
 
 $projectTasks = [];
 if ($user) {
-    $allTasks = $taskModel->findByUserProjects($user['user_id']);
-    foreach ($allTasks as $task) {
-        $githubData = json_decode($task['github_data'] ?? '{}', true);
-        $state = $githubData['state'] ?? 'open';
-        if ($state !== 'closed' && $task['status'] !== 'completed') {
-            $projectTasks[$task['project_id']][] = $task;
-        }
+    $activeTasks = $taskModel->findActiveByUserProjects($user['user_id']);
+    foreach ($activeTasks as $task) {
+        $projectTasks[$task['project_id']][] = $task;
     }
 }
 
