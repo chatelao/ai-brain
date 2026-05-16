@@ -161,8 +161,10 @@ $errorMessage = $errorMessage ?? null;
                     <?php endif; ?>
 
                     <?php if ($user && !empty($autorepeatTasks)): ?>
-                        <div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                            <h3 class="text-lg font-bold text-gray-900 mb-4">Running Autorepeat Tasks</h3>
+                        <div class="mb-6 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                                <h3 class="text-lg font-bold text-gray-900">Active Autorepeat Tasks</h3>
+                            </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm text-left text-gray-500">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
@@ -174,21 +176,21 @@ $errorMessage = $errorMessage ?? null;
                                     </thead>
                                     <tbody>
                                         <?php foreach ($autorepeatTasks as $task): ?>
-                                            <tr class="bg-white border-b">
-                                                <td class="px-6 py-4 font-medium text-gray-900">
-                                                    <a href="https://github.com/<?= htmlspecialchars($task['github_repo']) ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
+                                            <tr class="bg-white border-b hover:bg-gray-50 transition-colors">
+                                                <td class="px-6 py-4 font-bold text-gray-900">
+                                                    <a href="project.php?id=<?= $task['project_id'] ?>" class="text-blue-600 hover:underline">
                                                         <?= htmlspecialchars($task['github_repo']) ?>
                                                     </a>
                                                 </td>
-                                                <td class="px-6 py-4 font-normal">
-                                                    <a href="https://github.com/<?= htmlspecialchars($task['github_repo']) ?>/issues/<?= htmlspecialchars($task['issue_number']) ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">#<?= htmlspecialchars($task['issue_number']) ?></a>
-                                                    <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task)) ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
+                                                <td class="px-6 py-4">
+                                                    <a href="task.php?id=<?= $task['task_id'] ?>" class="font-mono text-gray-400 hover:text-blue-600">#<?= htmlspecialchars($task['issue_number']) ?></a>
+                                                    <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task)) ?>" target="_blank" rel="noopener noreferrer" class="text-gray-900 hover:underline ml-1">
                                                         <?= htmlspecialchars($task['title']) ?>
                                                     </a>
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                                                        🚧 Active
+                                                    <span class="px-3 py-1 text-[10px] font-bold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                                        🚧 PROCESSING
                                                     </span>
                                                 </td>
                                             </tr>
@@ -203,19 +205,20 @@ $errorMessage = $errorMessage ?? null;
                         <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
                             <?php if ($user): ?>
                                 <div class="mt-4">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         <?php foreach ($projects as $project): ?>
-                                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                                                <div class="flex justify-between items-start">
-                                                    <h5 class="text-lg font-bold text-gray-900 truncate">
-                                                        <a href="https://github.com/<?= htmlspecialchars($project['github_repo']) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
-                                                            <?= htmlspecialchars($project['github_repo']) ?>
+                                            <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+                                                <div class="p-5 flex-1">
+                                                    <div class="flex justify-between items-start mb-2">
+                                                        <h5 class="text-lg font-black text-gray-900 truncate tracking-tight">
+                                                            <a href="project.php?id=<?= $project['project_id'] ?>" class="hover:text-blue-600 transition-colors">
+                                                                <?= htmlspecialchars($project['github_repo']) ?>
+                                                            </a>
+                                                        </h5>
+                                                        <a href="?delete_project=<?= $project['project_id'] ?>&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-gray-300 hover:text-red-600 transition-colors" onclick="return confirm('Are you sure?')">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                         </a>
-                                                    </h5>
-                                                    <a href="?delete_project=<?= $project['project_id'] ?>&csrf_token=<?= $auth->getCsrfToken() ?>" class="text-red-600 hover:text-red-800" onclick="return confirm('Are you sure?')">
-                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                                    </a>
-                                                </div>
+                                                    </div>
                                                 <?php
                                                 $repoParts = explode('/', $project['github_repo']);
                                                 $repoOwner = $repoParts[0] ?? '';
@@ -249,14 +252,20 @@ $errorMessage = $errorMessage ?? null;
                                                     <?php endforeach; ?>
                                                 </div>
 
-                                                <div class="mt-4">
-                                                    <a href="project.php?id=<?= $project['project_id'] ?>" class="text-blue-600 hover:underline text-sm font-medium">View Project Details &rarr;</a>
+                                                </div>
+                                                <div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+                                                    <a href="project.php?id=<?= $project['project_id'] ?>" class="text-blue-600 hover:text-blue-800 text-xs font-bold uppercase tracking-widest">
+                                                        Dashboard &rarr;
+                                                    </a>
+                                                    <a href="https://github.com/<?= htmlspecialchars($project['github_repo']) ?>" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-gray-600">
+                                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+                                                    </a>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
 
                                         <!-- Add Project Card -->
-                                        <div class="p-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center">
+                                        <div class="p-6 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center">
                                             <?php if (empty($githubAccounts)): ?>
                                                 <p class="text-sm text-gray-500 text-center">Please link a GitHub account first.</p>
                                             <?php else: ?>

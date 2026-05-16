@@ -173,34 +173,40 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
 
         <!-- Dropdown menu -->
         <div x-show="showNotifications" @click.away="showNotifications = false" x-cloak
-             class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
-            <div class="p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <span class="text-sm font-bold text-gray-700">Notifications</span>
+             class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+            <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <span class="text-xs font-black text-gray-900 uppercase tracking-widest">Notifications</span>
+                <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full" x-text="unreadNotifications + ' unread'"></span>
             </div>
-            <div class="max-h-96 overflow-y-auto">
+            <div class="max-h-96 overflow-y-auto divide-y divide-gray-50">
                 <template x-if="loadingNotifications">
-                    <div class="p-4 text-center text-gray-500 text-sm">Loading...</div>
+                    <div class="p-8 text-center text-gray-400 text-xs italic">
+                        <svg class="animate-spin h-5 w-5 mx-auto mb-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        Loading...
+                    </div>
                 </template>
                 <template x-if="!loadingNotifications && notifications.length === 0">
-                    <div class="p-4 text-center text-gray-500 text-sm">No notifications yet.</div>
+                    <div class="p-8 text-center text-gray-400 text-xs italic">No notifications yet.</div>
                 </template>
                 <template x-for="n in notifications" :key="n.notification_id">
-                    <div class="p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors relative cursor-pointer"
-                         :class="{'bg-blue-50/30': !n.is_read}"
+                    <div class="p-4 hover:bg-gray-50 transition-colors relative cursor-pointer"
+                         :class="{'bg-blue-50/20': !n.is_read}"
                          @click="markAsRead(n.notification_id, n.data?.source_url)">
-                        <div class="flex justify-between items-start">
-                            <span class="text-xs font-bold text-gray-900" x-text="n.title"></span>
-                            <span class="text-[10px] text-gray-400" x-text="new Date(n.created_at).toLocaleDateString()"></span>
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="text-xs font-black text-gray-900 leading-tight" x-text="n.title"></span>
+                            <span class="text-[9px] font-bold text-gray-400 uppercase" x-text="new Date(n.created_at).toLocaleDateString()"></span>
                         </div>
-                        <p class="text-xs text-gray-600 mt-1" x-text="n.message"></p>
+                        <p class="text-xs text-gray-600 leading-relaxed" x-text="n.message"></p>
                         <template x-if="!n.is_read">
-                            <div class="absolute top-3 right-3 w-2 h-2 bg-blue-600 rounded-full"></div>
+                            <div class="absolute top-4 right-4 w-1.5 h-1.5 bg-blue-600 rounded-full shadow-[0_0_8px_rgba(37,99,235,0.5)]"></div>
                         </template>
                     </div>
                 </template>
             </div>
-            <div class="p-2 border-t border-gray-100 text-center bg-gray-50">
-                <a href="#" class="text-xs text-blue-600 hover:underline">View all (Coming Soon)</a>
+            <div class="p-3 border-t border-gray-100 text-center bg-gray-50/50">
+                <a href="#" class="text-[10px] font-black text-blue-600 hover:text-blue-800 uppercase tracking-widest">
+                    View all (Coming Soon)
+                </a>
             </div>
         </div>
     </div>

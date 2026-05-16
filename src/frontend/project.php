@@ -351,52 +351,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
 
                     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
                         <div class="lg:col-span-1 space-y-4">
-                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                                <h3 class="text-lg font-bold text-gray-900 mb-4">Project Overview</h3>
-                                <?php if (empty($roadmapFiles)): ?>
-                                    <p class="text-sm text-gray-500 italic">No roadmap files found in the repository.</p>
-                                <?php else: ?>
-                                    <ul class="space-y-2">
-                                        <?php foreach ($roadmapFiles as $file): ?>
-                                            <li class="flex flex-col">
-                                                <a href="<?= htmlspecialchars($file['html_url']) ?>" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-600 hover:underline flex items-center">
-                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                                    <?= htmlspecialchars($file['name']) ?>
-                                                </a>
-                                                <?php if (!empty($file['next_task'])): ?>
-                                                    <span class="text-[10px] text-gray-500 ml-6 italic">
-                                                        🚧 <?= htmlspecialchars($file['next_task']) ?>
-                                                    </span>
-                                                <?php endif; ?>
-                                            </li>
-                                        <?php endforeach; ?>
-                                    </ul>
-                                <?php endif; ?>
+                            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                                <div class="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+                                    <h3 class="text-sm font-bold text-gray-900">Project Roadmap</h3>
+                                </div>
+                                <div class="p-4">
+                                    <?php if (empty($roadmapFiles)): ?>
+                                        <p class="text-xs text-gray-500 italic">No roadmap files found in the repository.</p>
+                                    <?php else: ?>
+                                        <ul class="space-y-4">
+                                            <?php foreach ($roadmapFiles as $file): ?>
+                                                <li class="flex flex-col">
+                                                    <a href="<?= htmlspecialchars($file['html_url']) ?>" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-blue-600 hover:underline flex items-center mb-1">
+                                                        <svg class="w-3 h-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                                        <?= htmlspecialchars($file['name']) ?>
+                                                    </a>
+                                                    <?php if (!empty($file['next_task'])): ?>
+                                                        <div class="bg-yellow-50 border border-yellow-100 rounded p-2 ml-5">
+                                                            <span class="text-[10px] text-yellow-800 font-medium">
+                                                                🚧 <span class="ml-1"><?= htmlspecialchars($file['next_task']) ?></span>
+                                                            </span>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php endif; ?>
+                                </div>
                             </div>
 
-                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                                <h3 class="text-lg font-bold text-gray-900 mb-4">Webhook Configuration</h3>
-                                <div class="space-y-3">
+                            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                                <div class="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+                                    <h3 class="text-sm font-bold text-gray-900">Webhook Config</h3>
+                                </div>
+                                <div class="p-4 space-y-3">
                                     <div>
-                                        <label class="block text-xs font-medium text-gray-500 uppercase">Payload URL</label>
-                                        <div class="mt-1 flex">
-                                            <input type="text" readonly value="<?= ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https') . '://' . $_SERVER['HTTP_HOST'] ?>/webhook.php" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-full p-2" id="webhook-url">
-                                        </div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Payload URL</label>
+                                        <input type="text" readonly value="<?= ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https') . '://' . $_SERVER['HTTP_HOST'] ?>/webhook.php" class="mt-1 bg-gray-50 border border-gray-200 text-gray-600 text-[10px] font-mono rounded block w-full p-2" id="webhook-url">
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-medium text-gray-500 uppercase">Secret</label>
-                                        <div class="mt-1 flex">
-                                            <input type="text" readonly value="<?= htmlspecialchars($project['webhook_secret']) ?>" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-full p-2" id="webhook-secret">
-                                        </div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Secret</label>
+                                        <input type="text" readonly value="<?= htmlspecialchars($project['webhook_secret']) ?>" class="mt-1 bg-gray-50 border border-gray-200 text-gray-600 text-[10px] font-mono rounded block w-full p-2" id="webhook-secret">
                                     </div>
-                                    <p class="text-[10px] text-gray-500">
-                                        Configure this in your GitHub Repository <b>Settings > Webhooks</b>.
-                                        Set Content type to <b>application/json</b> and select <b>Issues</b> events.
+                                    <p class="text-[10px] text-gray-400 leading-tight">
+                                        Settings > Webhooks. Use <b>application/json</b> and <b>Issues</b> events.
                                     </p>
                                 </div>
                             </div>
 
-                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm" x-data="{
+                            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden" x-data="{
                                 templates: <?= htmlspecialchars(json_encode($templates)) ?>,
                                 selectedTemplateId: '<?= $templates[0]['issue_template_id'] ?? '' ?>',
                                 get selectedTemplate() {
@@ -409,35 +412,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                     return [...new Set(matches)].sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
                                 }
                             }">
-                                <h3 class="text-lg font-bold text-gray-900 mb-4">Create Issue from Template</h3>
-                                <?php if (empty($templates)): ?>
-                                    <p class="text-sm text-gray-500 italic">No templates available. <a href="templates.php" class="text-blue-600 hover:underline">Create one first.</a></p>
-                                <?php else: ?>
-                                    <form method="POST">
-                                        <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                        <div class="mb-4">
-                                            <label class="block mb-2 text-sm font-medium text-gray-900">Select Template</label>
-                                            <select name="template_id" x-model="selectedTemplateId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                                                <?php foreach ($templates as $tmpl): ?>
-                                                    <option value="<?= $tmpl['issue_template_id'] ?>"><?= htmlspecialchars($tmpl['name']) ?></option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                        </div>
-
-                                        <template x-for="p in placeholders" :key="p">
+                                <div class="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+                                    <h3 class="text-sm font-bold text-gray-900">Issue Template</h3>
+                                </div>
+                                <div class="p-4">
+                                    <?php if (empty($templates)): ?>
+                                        <p class="text-xs text-gray-500 italic">No templates available. <a href="templates.php" class="text-blue-600 hover:underline">Create one first.</a></p>
+                                    <?php else: ?>
+                                        <form method="POST">
+                                            <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                             <div class="mb-4">
-                                                <label class="block mb-2 text-sm font-medium text-gray-900" x-text="(selectedTemplate.parameter_config[p] || p) + ' value'"></label>
-                                                <input type="text" :name="'params[' + p + ']'" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                                <label class="block mb-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Select Template</label>
+                                                <select name="template_id" x-model="selectedTemplateId" class="bg-white border border-gray-200 text-gray-900 text-xs rounded block w-full p-2 focus:ring-blue-500 focus:border-blue-500" required>
+                                                    <?php foreach ($templates as $tmpl): ?>
+                                                        <option value="<?= $tmpl['issue_template_id'] ?>"><?= htmlspecialchars($tmpl['name']) ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
                                             </div>
-                                        </template>
 
-                                        <div class="flex items-center mb-4">
-                                            <input id="add_jules_label" name="add_jules_label" type="checkbox" value="1" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" checked>
-                                            <label for="add_jules_label" class="ms-2 text-sm font-medium text-gray-900">Add "Jules" label</label>
-                                        </div>
-                                        <button type="submit" name="create_from_template" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none">Create Issue</button>
-                                    </form>
-                                <?php endif; ?>
+                                            <template x-for="p in placeholders" :key="p">
+                                                <div class="mb-4">
+                                                    <label class="block mb-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider" x-text="(selectedTemplate.parameter_config[p] || p) + ' value'"></label>
+                                                    <input type="text" :name="'params[' + p + ']'" class="bg-white border border-gray-200 text-gray-900 text-xs rounded block w-full p-2 focus:ring-blue-500 focus:border-blue-500">
+                                                </div>
+                                            </template>
+
+                                            <div class="flex items-center mb-4">
+                                                <input id="add_jules_label" name="add_jules_label" type="checkbox" value="1" class="w-3 h-3 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" checked>
+                                                <label for="add_jules_label" class="ms-2 text-[10px] font-medium text-gray-600">Add "Jules" label</label>
+                                            </div>
+                                            <button type="submit" name="create_from_template" class="text-white bg-green-600 hover:bg-green-700 font-bold rounded-lg text-xs px-5 py-2.5 w-full focus:outline-none transition-all shadow-sm active:scale-95">Create Issue</button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
 
@@ -458,40 +465,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                 <table class="w-full text-sm text-left text-gray-500">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                                         <tr>
-                                            <th scope="col" class="px-6 py-3">Issue</th>
-                                            <th scope="col" class="px-6 py-3">Status</th>
-                                            <th scope="col" class="px-6 py-3">Logs</th>
-                                            <th scope="col" class="px-6 py-3">Actions</th>
+                                            <th scope="col" class="px-4 py-3">Issue</th>
+                                            <th scope="col" class="px-4 py-3">Status</th>
+                                            <th scope="col" class="px-4 py-3 text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($tasks)): ?>
                                             <tr class="bg-white border-b">
-                                                <td colspan="4" class="px-6 py-4 text-center">No tasks found. Open an issue on GitHub to see it here.</td>
+                                                <td colspan="3" class="px-4 py-8 text-center text-gray-500 italic">No tasks found. Open an issue on GitHub to see it here.</td>
                                             </tr>
                                         <?php endif; ?>
                                         <?php foreach ($tasks as $task): ?>
-                                            <tr class="bg-white border-b">
-                                                <td class="px-6 py-4">
-                                                    <div class="text-base text-gray-900 font-normal">
-                                                        <a href="task.php?id=<?= $task['task_id'] ?>" class="hover:underline">#<?= htmlspecialchars($task['issue_number']) ?></a>
-                                                        <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task, $project['github_repo'])) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                                            <tr class="bg-white border-b hover:bg-gray-50/50 transition-colors">
+                                                <td class="px-4 py-4">
+                                                    <div class="text-sm text-gray-900 font-normal">
+                                                        <a href="task.php?id=<?= $task['task_id'] ?>" class="font-mono text-gray-400 hover:text-blue-600">#<?= htmlspecialchars($task['issue_number']) ?></a>
+                                                        <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task, $project['github_repo'])) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline ml-1">
                                                             <?= htmlspecialchars($task['title']) ?>
                                                         </a>
                                                     </div>
-                                                    <div class="text-xs text-gray-500"><?= htmlspecialchars(mb_substr($task['body'] ?? '', 0, 100)) ?>...</div>
+                                                    <div class="text-[10px] text-gray-400 mt-1 line-clamp-1"><?= htmlspecialchars(mb_substr($task['body'] ?? '', 0, 100)) ?></div>
                                                 </td>
-                                                <td class="px-6 py-4">
+                                                <td class="px-4 py-4 whitespace-nowrap">
                                                     <?php
                                                     $statusColor = $taskModel->getStatusColor($task);
-                                                    $bgClass = 'bg-gray-100 text-gray-800';
-                                                    if ($statusColor === 'green') $bgClass = 'bg-green-100 text-green-800';
-                                                    elseif ($statusColor === 'yellow') $bgClass = 'bg-yellow-100 text-yellow-800';
-                                                    elseif ($statusColor === 'blue') $bgClass = 'bg-blue-100 text-blue-800';
-                                                    elseif ($statusColor === 'red') $bgClass = 'bg-red-100 text-red-800';
-                                                    elseif ($statusColor === 'purple') $bgClass = 'bg-purple-100 text-purple-800';
+                                                    $bgClass = 'bg-gray-100 text-gray-800 border-gray-200';
+                                                    if ($statusColor === 'green') $bgClass = 'bg-green-100 text-green-800 border-green-200';
+                                                    elseif ($statusColor === 'yellow') $bgClass = 'bg-yellow-100 text-yellow-800 border-yellow-200';
+                                                    elseif ($statusColor === 'blue') $bgClass = 'bg-blue-100 text-blue-800 border-blue-200';
+                                                    elseif ($statusColor === 'red') $bgClass = 'bg-red-100 text-red-800 border-red-200';
+                                                    elseif ($statusColor === 'purple') $bgClass = 'bg-purple-100 text-purple-800 border-purple-200';
                                                     ?>
-                                                    <span class="px-2 py-1 text-xs font-medium rounded-full <?= $bgClass ?>">
+                                                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-full border <?= $bgClass ?>">
                                                         <?php
                                                         $githubData = json_decode($task['github_data'] ?? '{}', true);
                                                         if (($githubData['state'] ?? 'open') === 'closed') echo '✅ ';
@@ -503,24 +509,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                         <?= htmlspecialchars($task['status']) ?>
                                                     </span>
                                                 </td>
-                                                <td class="px-6 py-4">
-                                                    <div class="max-h-32 overflow-y-auto text-[10px] font-mono bg-gray-50 p-2 rounded border border-gray-100">
-                                                        <?php
-                                                        $taskLogs = $taskModel->getLogs($task['task_id']);
-                                                        if (empty($taskLogs)): ?>
-                                                            <span class="text-gray-400 italic">No logs available.</span>
-                                                        <?php else: ?>
-                                                            <?php foreach ($taskLogs as $log): ?>
-                                                                <div class="mb-1">
-                                                                    <span class="text-gray-400">[<?= htmlspecialchars(date('H:i:s', strtotime($log['created_at']))) ?>]</span>
-                                                                    <span class="<?= $log['level'] === 'error' ? 'text-red-600 font-bold' : 'text-gray-700' ?>"><?= htmlspecialchars($log['message']) ?></span>
-                                                                </div>
-                                                            <?php endforeach; ?>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4">
-                                                    <div class="flex flex-col space-y-2">
+                                                <td class="px-4 py-4 text-right">
+                                                    <div class="flex justify-end space-x-1">
                                                         <?php
                                                         $githubData = json_decode($task['github_data'] ?? '{}', true);
                                                         $isClosed = ($githubData['state'] ?? 'open') === 'closed';
@@ -531,16 +521,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                             <form method="POST" class="inline">
                                                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                                                 <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
-                                                                <button type="submit" name="trigger_agent" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Run Agent</button>
+                                                                <button type="submit" name="trigger_agent" class="text-white bg-blue-600 hover:bg-blue-700 font-bold rounded px-2 py-1 text-[10px] focus:outline-none">Run Agent</button>
                                                             </form>
                                                         <?php endif; ?>
                                                         <?php if ($isCompleted || $isImplemented): ?>
                                                             <form method="POST" class="inline">
                                                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                                                 <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
-                                                                <button type="submit" name="rerun_task" class="text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Rerun</button>
+                                                                <button type="submit" name="rerun_task" class="text-white bg-indigo-600 hover:bg-indigo-700 font-bold rounded px-2 py-1 text-[10px] focus:outline-none">Rerun</button>
                                                             </form>
                                                         <?php endif; ?>
+                                                        <a href="task.php?id=<?= $task['task_id'] ?>" class="text-gray-400 hover:text-gray-600 p-1">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                                        </a>
                                                     </div>
                                                 </td>
                                             </tr>
