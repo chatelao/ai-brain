@@ -96,4 +96,62 @@ class GitHubServiceTest extends TestCase
 
         $this->assertEquals(123, $result['number']);
     }
+
+    public function testGetTags(): void
+    {
+        $mockClient = $this->createMock(Client::class);
+        $mockRepo = $this->createMock(Repo::class);
+
+        $mockClient->method('api')->with('repo')->willReturn($mockRepo);
+
+        $expectedTags = [
+            ['name' => 'v0.1'],
+            ['name' => 'v0.2']
+        ];
+
+        $mockRepo->expects($this->once())
+            ->method('tags')
+            ->with('chatelao', 'ai-brain')
+            ->willReturn($expectedTags);
+
+        $service = new GitHubService($mockClient);
+        $tags = $service->getTags('chatelao/ai-brain');
+
+        $this->assertEquals($expectedTags, $tags);
+    }
+
+    public function testGetDefaultBranch(): void
+    {
+        $mockClient = $this->createMock(Client::class);
+        $mockRepo = $this->createMock(Repo::class);
+
+        $mockClient->method('api')->with('repo')->willReturn($mockRepo);
+
+        $mockRepo->expects($this->once())
+            ->method('show')
+            ->with('chatelao', 'ai-brain')
+            ->willReturn(['default_branch' => 'develop']);
+
+        $service = new GitHubService($mockClient);
+        $branch = $service->getDefaultBranch('chatelao/ai-brain');
+
+        $this->assertEquals('develop', $branch);
+    }
+
+    public function testTriggerWorkflow(): void
+    {
+        $mockClient = $this->createMock(Client::class);
+        $mockRepo = $this->createMock(Repo::class);
+        $mockWorkflows = $this->createMock(\Github\Api\Repository\Actions\Workflows::class);
+
+        $mockClient->method('api')->with('repo')->willReturn($mockRepo);
+        $mockRepo->method('workflows')->willReturn($mockWorkflows);
+
+        $mockWorkflows->expects($this->once())
+            ->method('dispatches')
+            ->with('chatelao', 'ai-brain', 'deploy.yml', 'main', ['deployment_ref' => 'v1.0']);
+
+        $service = new GitHubService($mockClient);
+        $service->triggerWorkflow('chatelao/ai-brain', 'deploy.yml', 'main', ['deployment_ref' => 'v1.0']);
+    }
 }

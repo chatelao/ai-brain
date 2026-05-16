@@ -173,4 +173,50 @@ class GitHubService
         }
         return null;
     }
+
+    /**
+     * @throws Exception
+     */
+    public function getTags(string $repo): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        return $this->client->api('repo')->tags($username, $repository);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getDefaultBranch(string $repo): string
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        $repoData = $this->client->api('repo')->show($username, $repository);
+        return $repoData['default_branch'] ?? 'main';
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function triggerWorkflow(string $repo, string $workflowFile, string $ref, array $inputs = []): void
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        $this->client->api('repo')->workflows()->dispatches($username, $repository, $workflowFile, $ref, $inputs);
+    }
 }

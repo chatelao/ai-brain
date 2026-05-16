@@ -2,6 +2,11 @@ name: Manual SSH Deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      deployment_ref:
+        description: 'Tag or Commit SHA to deploy'
+        required: false
+        default: ''
 
 jobs:
   deploy:
@@ -11,6 +16,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deployment_ref || github.ref }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2

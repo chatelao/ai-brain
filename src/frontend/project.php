@@ -62,10 +62,15 @@ $errorMessage = null;
 
 $githubToken = $project['github_token'] ?? null;
 $roadmapFiles = [];
+$tags = [];
+$defaultBranch = 'main';
+
 if ($githubToken) {
     try {
         $githubService = new GitHubService(null, $githubToken);
         $roadmapFiles = $githubService->getRoadmapFiles($project['github_repo']);
+        $tags = $githubService->getTags($project['github_repo']);
+        $defaultBranch = $githubService->getDefaultBranch($project['github_repo']);
     } catch (Exception $e) {
         // Silently fail or log roadmap fetching
     }
@@ -222,6 +227,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
     }
 }
 
+// Handle Trigger Deploy
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_deploy'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+
+    try {
+        $githubToken = $project['github_token'] ?? null;
+        if (!$githubToken) {
+            throw new Exception("GitHub token not found for this project.");
+        }
+
+        $ref = $_POST['deployment_ref'] ?? '';
+        if (empty($ref)) {
+            $ref = $defaultBranch;
+        }
+
+        $githubService = new GitHubService(null, $githubToken);
+        $githubService->triggerWorkflow($project['github_repo'], 'deploy.yml', $defaultBranch, [
+            'deployment_ref' => $ref
+        ]);
+
+        header("Location: project.php?id=$projectId&success=deployed");
+        exit;
+    } catch (Exception $e) {
+        $errorMessage = "Error triggering deployment: " . $e->getMessage();
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -319,6 +353,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                         </div>
                     <?php endif; ?>
 
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'deployed'): ?>
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                            <span class="font-medium">Success!</span> Deployment triggered successfully on GitHub Actions.
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($lastAgentResponse): ?>
                         <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50" role="alert">
                             <span class="font-medium">Agent Response:</span>
@@ -395,6 +435,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                         <button type="submit" name="create_from_template" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none">Create Issue</button>
                                     </form>
                                 <?php endif; ?>
+                            </div>
+
+                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm" x-data="{
+                                deployment_ref: '',
+                                custom_ref: ''
+                            }">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">Deployment Control</h3>
+                                <form method="POST">
+                                    <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                    <div class="mb-4">
+                                        <label class="block mb-2 text-sm font-medium text-gray-900">Select Tag</label>
+                                        <select x-model="deployment_ref" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                            <option value="">-- Default Branch (<?= htmlspecialchars($defaultBranch) ?>) --</option>
+                                            <?php foreach ($tags as $tag): ?>
+                                                <option value="<?= htmlspecialchars($tag['name']) ?>"><?= htmlspecialchars($tag['name']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block mb-2 text-sm font-medium text-gray-900">Or enter Commit/Branch</label>
+                                        <input type="text" x-model="custom_ref" placeholder="SHA or branch name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                    </div>
+
+                                    <input type="hidden" name="deployment_ref" :value="custom_ref || deployment_ref">
+
+                                    <button type="submit" name="trigger_deploy" class="text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 w-full focus:outline-none">
+                                        Trigger Deployment
+                                    </button>
+                                </form>
                             </div>
                         </div>
 
