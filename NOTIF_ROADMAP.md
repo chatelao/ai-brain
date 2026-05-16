@@ -9,11 +9,11 @@
 - [x] Implement unit tests for `NotificationService`.
 
 ## Phase 2: In-App Inbox & Deep Linking
-- [ ] Implement In-App Inbox UI (notification bell in `navbar.php`).
-- [ ] Add unread count indicator to the notification bell.
-- [ ] Create a dropdown/modal to view recent notifications.
-- [ ] Implement "Mark as Read" functionality.
-- [ ] Implement Deep Linking (using `source_url` from notification data).
+- [x] Implement In-App Inbox UI (notification bell in `navbar.php`).
+- [x] Add unread count indicator to the notification bell.
+- [x] Create a dropdown/modal to view recent notifications.
+- [x] Implement "Mark as Read" functionality.
+- [x] Implement Deep Linking (using `source_url` from notification data).
 - [ ] Implement a dedicated "All Notifications" page.
 
 ## Phase 3: Telegram Integration

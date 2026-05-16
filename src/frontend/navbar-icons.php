@@ -51,12 +51,19 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     openIssues: <?= (int)$openIssues ?>,
     totalTasks: <?= (int)$totalTasks ?>,
     completedTasks: <?= (int)$completedTasks ?>,
+    unreadNotifications: 0,
+    notifications: [],
+    showNotifications: false,
+    loadingNotifications: false,
+    csrfToken: '<?= $auth->getCsrfToken() ?>',
     init() {
+        const basePath = window.location.pathname.includes('/admin/') ? '../' : '';
+
+        // Fetch Sync Status
         if (!this.syncStatus) {
             this.syncing = true;
             const projectId = new URLSearchParams(window.location.search).get('id');
             const url = (projectId ? 'ajax-sync.php?id=' + projectId : 'ajax-sync.php');
-            const basePath = window.location.pathname.includes('/admin/') ? '../' : '';
             fetch(basePath + url)
                 .then(res => res.json())
                 .then(data => {
@@ -80,6 +87,54 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
                     this.syncMessage = 'Connection error';
                 });
         }
+
+        // Fetch Unread Notification Count
+        fetch(basePath + 'ajax-notifications.php?action=unread_count')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    this.unreadNotifications = data.unread_count;
+                }
+            });
+    },
+    fetchNotifications() {
+        if (this.showNotifications) return;
+        this.showNotifications = true;
+        this.loadingNotifications = true;
+        const basePath = window.location.pathname.includes('/admin/') ? '../' : '';
+        fetch(basePath + 'ajax-notifications.php?action=list')
+            .then(res => res.json())
+            .then(data => {
+                this.loadingNotifications = false;
+                if (data.status === 'success') {
+                    this.notifications = data.notifications;
+                }
+            });
+    },
+    markAsRead(id, url) {
+        const notification = this.notifications.find(n => n.notification_id == id);
+        const wasRead = notification ? notification.is_read : true;
+
+        const basePath = window.location.pathname.includes('/admin/') ? '../' : '';
+        const formData = new FormData();
+        formData.append('notification_id', id);
+        formData.append('csrf_token', this.csrfToken);
+
+        fetch(basePath + 'ajax-notifications.php?action=mark_read', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                if (!wasRead) {
+                    this.unreadNotifications = Math.max(0, this.unreadNotifications - 1);
+                }
+                this.notifications = this.notifications.map(n => n.notification_id == id ? { ...n, is_read: 1 } : n);
+                if (url) window.open(url, '_blank');
+            }
+        })
+        .catch(err => console.error('Failed to mark notification as read:', err));
     }
 }">
     <div class="flex items-center" x-show="syncing || syncStatus">
@@ -113,5 +168,50 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     <!-- Telegram Status -->
     <div class="flex items-center <?= $telegramConnected ? 'text-black' : 'text-gray-300' ?>" title="Telegram: <?= $telegramConnected ? 'Connected' : 'Not Linked' ?>">
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.665 3.717l-17.73 6.837c-1.21.486-1.203 1.161-.222 1.462l4.552 1.42l10.532-6.645c.498-.303.953-.14.579.192l-8.533 7.701l-.333 4.981c.488 0 .704-.224.977-.488l2.347-2.284l4.882 3.606c.899.496 1.542.24 1.766-.83l3.201-15.084c.328-1.315-.502-1.912-1.362-1.523z"/></svg>
+    </div>
+
+    <!-- Notification Bell -->
+    <div class="relative">
+        <button @click="fetchNotifications()" class="flex items-center text-gray-500 hover:text-gray-700 focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+            </svg>
+            <template x-if="unreadNotifications > 0">
+                <span class="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full" x-text="unreadNotifications"></span>
+            </template>
+        </button>
+
+        <!-- Dropdown menu -->
+        <div x-show="showNotifications" @click.away="showNotifications = false" x-cloak
+             class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
+            <div class="p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <span class="text-sm font-bold text-gray-700">Notifications</span>
+            </div>
+            <div class="max-h-96 overflow-y-auto">
+                <template x-if="loadingNotifications">
+                    <div class="p-4 text-center text-gray-500 text-sm">Loading...</div>
+                </template>
+                <template x-if="!loadingNotifications && notifications.length === 0">
+                    <div class="p-4 text-center text-gray-500 text-sm">No notifications yet.</div>
+                </template>
+                <template x-for="n in notifications" :key="n.notification_id">
+                    <div class="p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors relative cursor-pointer"
+                         :class="{'bg-blue-50/30': !n.is_read}"
+                         @click="markAsRead(n.notification_id, n.data?.source_url)">
+                        <div class="flex justify-between items-start">
+                            <span class="text-xs font-bold text-gray-900" x-text="n.title"></span>
+                            <span class="text-[10px] text-gray-400" x-text="new Date(n.created_at).toLocaleDateString()"></span>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1" x-text="n.message"></p>
+                        <template x-if="!n.is_read">
+                            <div class="absolute top-3 right-3 w-2 h-2 bg-blue-600 rounded-full"></div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+            <div class="p-2 border-t border-gray-100 text-center bg-gray-50">
+                <a href="#" class="text-xs text-blue-600 hover:underline">View all (Coming Soon)</a>
+            </div>
+        </div>
     </div>
 </div>
