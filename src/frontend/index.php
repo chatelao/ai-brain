@@ -51,6 +51,8 @@ if ($user) {
     $githubService = new App\GitHubService();
     $julesService = new App\JulesService();
     $taskModel->refreshJulesStatus($user['user_id'], $githubService, $julesService);
+    // Refresh user object to get updated quota data
+    $user = $userModel->findById($user['user_id']);
 }
 
 $autorepeatTasks = $user ? $taskModel->getRunningAutorepeatTasks($user['user_id']) : [];

@@ -68,6 +68,48 @@ class JulesService
 
     /**
      * @throws GuzzleException
+     */
+    public function fetchQuota(?string $apiKey = null): ?array
+    {
+        $key = $apiKey ?: $this->apiKey;
+        if (empty($key)) {
+            return null;
+        }
+
+        $headers = [
+            'Accept' => 'application/json',
+        ];
+
+        if (str_starts_with($key, 'AIza') || str_starts_with($key, 'AQ.')) {
+            $headers['X-Goog-Api-Key'] = $key;
+            $url = "https://jules.googleapis.com/v1alpha/users/me?key={$key}";
+        } else {
+            $headers['Authorization'] = "Bearer {$key}";
+            $url = "https://jules.googleapis.com/v1alpha/users/me";
+        }
+
+        try {
+            $response = $this->client->get($url, [
+                'headers' => $headers
+            ]);
+
+            $data = json_decode($response->getBody()->getContents(), true);
+
+            if (isset($data['sessionUsage'])) {
+                return [
+                    'usage' => $data['sessionUsage']['usage'] ?? 0,
+                    'limit' => $data['sessionUsage']['limit'] ?? 0
+                ];
+            }
+        } catch (GuzzleException $e) {
+            // Log or handle error
+        }
+
+        return null;
+    }
+
+    /**
+     * @throws GuzzleException
      * @throws Exception
      */
     public function triggerAgent(array $task): string

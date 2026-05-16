@@ -45,6 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['success']) && !isset($
             $githubService = new GitHubService(null, $githubToken);
             $taskModel->syncIssues($user['user_id'], $project['project_id'], $project['github_repo'], $githubService);
             $taskModel->refreshJulesStatus($user['user_id'], $githubService, $julesService);
+            // Re-fetch user to get updated quota
+            $user = $userModel->findById($user['user_id']);
             header("Location: project.php?id=$projectId&success=synced");
             exit;
         } catch (Exception $e) {

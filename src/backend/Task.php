@@ -275,10 +275,21 @@ class Task
         $stmt->execute([$userId, $fiveMinutesAgo]);
         $tasks = $stmt->fetchAll();
 
-        $userStmt = $this->db->getConnection()->prepare("SELECT jules_api_key FROM users WHERE user_id = ?");
+        $userStmt = $this->db->getConnection()->prepare("SELECT jules_api_key, jules_quota_updated_at FROM users WHERE user_id = ?");
         $userStmt->execute([$userId]);
         $user = $userStmt->fetch();
         $apiKey = $user['jules_api_key'] ?? null;
+        $quotaUpdatedAt = $user['jules_quota_updated_at'] ?? null;
+
+        // Fetch Jules quota if more than 60 minutes have passed since last update
+        $oneHourAgo = date('Y-m-d H:i:s', strtotime('-60 minutes'));
+        if ($apiKey && (!$quotaUpdatedAt || $quotaUpdatedAt < $oneHourAgo)) {
+            $quota = $julesService->fetchQuota($apiKey);
+            if ($quota) {
+                $userModel = new User($this->db);
+                $userModel->updateJulesQuota($userId, $quota['usage'], $quota['limit']);
+            }
+        }
 
         foreach ($tasks as $task) {
             $githubData = json_decode($task['github_data'] ?? '{}', true);

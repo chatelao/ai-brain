@@ -165,4 +165,12 @@ class User
         );
         return $stmt->execute([$botToken, $webhookSecret, $userId]);
     }
+
+    public function updateJulesQuota(int $userId, int $usage, int $limit): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE users SET jules_quota_usage = ?, jules_quota_limit = ?, jules_quota_updated_at = ? WHERE user_id = ?"
+        );
+        return $stmt->execute([$usage, $limit, date('Y-m-d H:i:s'), $userId]);
+    }
 }
