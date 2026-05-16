@@ -75,7 +75,6 @@ $taskModel = new Task($db);
 $autorepeatTasks = $user ? $taskModel->getRunningAutorepeatTasks($user['user_id']) : [];
 
 $projectTasks = [];
-$activeTasksCount = 0;
 if ($user) {
     $allTasks = $taskModel->findByUserProjects($user['user_id']);
     foreach ($allTasks as $task) {
@@ -83,7 +82,6 @@ if ($user) {
         $state = $githubData['state'] ?? 'open';
         if ($state !== 'closed' && $task['status'] !== 'completed') {
             $projectTasks[$task['project_id']][] = $task;
-            $activeTasksCount++;
         }
     }
 }
@@ -208,26 +206,7 @@ $errorMessage = $errorMessage ?? null;
                     <div class="grid w-full grid-cols-1 gap-4 mt-4">
                         <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
                             <?php if ($user): ?>
-                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                        <p class="text-xs font-medium text-blue-600 uppercase">Total Projects</p>
-                                        <p class="text-xl font-bold text-blue-900"><?= count($projects) ?></p>
-                                    </div>
-                                    <div class="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                                        <p class="text-xs font-medium text-purple-600 uppercase">GitHub Accounts</p>
-                                        <p class="text-xl font-bold text-purple-900"><?= count($githubAccounts) ?></p>
-                                    </div>
-                                    <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
-                                        <p class="text-xs font-medium text-green-600 uppercase">Active Tasks</p>
-                                        <p class="text-xl font-bold text-green-900"><?= $activeTasksCount ?></p>
-                                    </div>
-                                    <div class="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                                        <p class="text-xs font-medium text-orange-600 uppercase">Autorepeat Tasks</p>
-                                        <p class="text-xl font-bold text-orange-900"><?= count($autorepeatTasks) ?></p>
-                                    </div>
-                                </div>
-
-                                <div class="mt-8">
+                                <div class="mt-4">
                                     <h4 class="text-xl font-bold text-gray-900 mb-4">Your Projects</h4>
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         <?php foreach ($projects as $project): ?>
