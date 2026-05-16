@@ -32,8 +32,12 @@ def run_cuj(page):
         page.screenshot(path=f"{screenshot_dir}/02_tasks_list.png")
         print(f"Saved screenshot: {screenshot_dir}/02_tasks_list.png")
 
-        # Step 3: Click "Run Agent" on the first task
-        page.click("button:has-text('Run Agent') >> nth=0")
+        # Step 3: Click on the first task to go to details
+        page.click("text=#101")
+        page.wait_for_timeout(1000)
+
+        # Step 4: Click "Run Agent" on the task details page
+        page.click("button:has-text('Run Agent')")
         page.wait_for_timeout(2000) # Wait for agent simulation
 
         # Take screenshot of the result (including agent response)

@@ -135,6 +135,16 @@ $taskModel->create([
     'status' => 'in_progress'
 ]);
 
-// Include the actual file to test
-$_GET['id'] = $project['project_id'];
-include __DIR__ . '/../../src/frontend/project.php';
+// Routing for testing
+$uri = $_SERVER['REQUEST_URI'];
+if (strpos($uri, 'task.php') !== false) {
+    if (isset($_GET['id'])) {
+        $_GET['id'] = (int)$_GET['id'];
+    } else {
+        $_GET['id'] = 1; // Fallback for test
+    }
+    include __DIR__ . '/../../src/frontend/task.php';
+} else {
+    $_GET['id'] = $project['project_id'];
+    include __DIR__ . '/../../src/frontend/project.php';
+}
