@@ -11,6 +11,9 @@ entity "users" {
   * <color:grey>email</color> : VARCHAR(255) <<UNIQUE>>
   avatar : VARCHAR(255)
   role : VARCHAR(20)
+  jules_api_key : VARCHAR(255)
+  telegram_bot_token : VARCHAR(255)
+  telegram_webhook_secret : VARCHAR(255)
   telegram_link_token : VARCHAR(255) <<UNIQUE>>
   created_at : TIMESTAMP
 }
@@ -42,11 +45,13 @@ entity "tasks" {
   * <color:grey>issue_number</color> : INT
   * title : VARCHAR(255)
   body : TEXT
-  status : ENUM
+  status : VARCHAR(50)
   github_data : JSON
   agent_response : TEXT
   jules_session_id : VARCHAR(255)
   jules_status : VARCHAR(255)
+  jules_url : VARCHAR(255)
+  pr_url : VARCHAR(255)
   last_synced_at : TIMESTAMP
   created_at : TIMESTAMP
   updated_at : TIMESTAMP
@@ -84,6 +89,7 @@ entity "issue_templates" {
   * <color:grey>name</color> : VARCHAR(255)
   * title_template : VARCHAR(255)
   body_template : TEXT
+  parameter_config : TEXT
   created_at : TIMESTAMP
 }
 
