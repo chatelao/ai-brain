@@ -7,12 +7,14 @@ use App\Auth;
 use App\User;
 use App\Task;
 use App\WebhookLogger;
+use App\NotificationService;
 
 $auth = new Auth();
 $db = new Database();
 $userModel = new User($db);
 $taskModel = new Task($db);
 $webhookLogger = new WebhookLogger($db);
+$notificationService = new NotificationService($db);
 
 if (!$auth->isLoggedIn()) {
     header('Location: login.php');
@@ -47,6 +49,23 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_teleg
         exit;
     } else {
         $errorMessage = "Failed to update Telegram configuration.";
+    }
+}
+
+// Handle Notification Settings Update
+if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notifications'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+    $settings = [
+        'in_app' => isset($_POST['notify_in_app']),
+        'telegram' => isset($_POST['notify_telegram'])
+    ];
+    if ($notificationService->updateUserSettings($user['user_id'], $settings)) {
+        header('Location: settings.php?tab=notifications&success=notifications_updated');
+        exit;
+    } else {
+        $errorMessage = "Failed to update notification settings.";
     }
 }
 
@@ -122,6 +141,9 @@ $errorMessage = $errorMessage ?? null;
                                 <button @click="activeTab = 'general'" :class="activeTab === 'general' ? 'text-blue-600 border-blue-600' : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'" class="inline-block p-4 border-b-2 rounded-t-lg">General</button>
                             </li>
                             <li class="mr-2">
+                                <button @click="activeTab = 'notifications'" :class="activeTab === 'notifications' ? 'text-blue-600 border-blue-600' : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'" class="inline-block p-4 border-b-2 rounded-t-lg">Notifications</button>
+                            </li>
+                            <li class="mr-2">
                                 <button @click="activeTab = 'logging'" :class="activeTab === 'logging' ? 'text-blue-600 border-blue-600' : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'" class="inline-block p-4 border-b-2 rounded-t-lg">Logging</button>
                             </li>
                         </ul>
@@ -195,6 +217,59 @@ $errorMessage = $errorMessage ?? null;
                         </div>
                     </div>
                     </div> <!-- End General Tab -->
+
+                    <div x-show="activeTab === 'notifications'" class="pt-4" x-cloak>
+                        <?php
+                        $notifSettings = $notificationService->getUserSettings($user['user_id']);
+                        ?>
+                        <?php if (isset($_GET['success']) && $_GET['success'] === 'notifications_updated'): ?>
+                            <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                                <span class="font-medium">Success!</span> Notification preferences updated.
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Notification Channels</h3>
+                            <form method="POST" class="space-y-4">
+                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div class="p-2 bg-blue-100 rounded-lg mr-4">
+                                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-gray-900">In-App Inbox</h4>
+                                            <p class="text-xs text-gray-500">Show notifications in the top navigation bar bell.</p>
+                                        </div>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="notify_in_app" class="sr-only peer" <?= ($notifSettings['in_app'] ?? true) ? 'checked' : '' ?>>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
+
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div class="p-2 bg-purple-100 rounded-lg mr-4">
+                                            <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24"><path d="M20.665 3.717l-17.73 6.837c-1.21.486-1.203 1.161-.222 1.462l4.552 1.42l10.532-6.645c.498-.303.953-.14.579.192l-8.533 7.701l-.333 4.981c.488 0 .704-.224.977-.488l2.347-2.284l4.882 3.606c.899.496 1.542.24 1.766-.83l3.201-15.084c.328-1.315-.502-1.912-1.362-1.523z"/></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-gray-900">Telegram</h4>
+                                            <p class="text-xs text-gray-500">Send notifications to your linked Telegram account.</p>
+                                        </div>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="notify_telegram" class="sr-only peer" <?= ($notifSettings['telegram'] ?? false) ? 'checked' : '' ?>>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
+
+                                <div class="flex justify-end">
+                                    <button type="submit" name="update_notifications" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Save Preferences</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
 
                     <div x-show="activeTab === 'logging'" class="pt-4" x-cloak>
                         <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">

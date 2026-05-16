@@ -63,6 +63,15 @@ try {
         } else {
             echo json_encode(['error' => 'Invalid notification ID']);
         }
+    } elseif ($action === 'mark_all_read') {
+        if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+            http_response_code(403);
+            echo json_encode(['error' => 'CSRF token validation failed']);
+            exit;
+        }
+
+        $notificationService->markAllAsRead($userId);
+        echo json_encode(['status' => 'success']);
     } else {
         echo json_encode(['error' => 'Invalid action']);
     }
