@@ -23,3 +23,9 @@ This application aims to provide a centralized platform for controlling and coor
     - **GitHub REST API**: For repository and issue management.
     - **Google Jules API**: For agent control.
     - **Telegram Bot API**: For mobile-based agent control and notifications.
+
+## Mobile Interaction & Notifications (Telegram)
+The Telegram integration provides a mobile-first interface for users to monitor and interact with their AI agents. Key features include:
+- **Account Linking**: Users securely link their Telegram account by using a unique token generated in the dashboard, which is then sent to the bot via the `/start` command.
+- **Real-time Notifications**: Instant alerts for critical events such as task completions, session failures, or new pull requests.
+- **Bot Customization**: Support for user-specific Telegram bots, allowing each user to use their own bot token and webhook secret for enhanced privacy and control.
