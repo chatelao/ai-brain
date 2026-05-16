@@ -71,6 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['trigger_upgrade']) |
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Upgrade - Agent Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
     <nav class="bg-white border-b border-gray-200 fixed w-full z-30 top-0">
