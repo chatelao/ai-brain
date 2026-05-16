@@ -193,4 +193,120 @@ class Task
         }
         return false;
     }
+
+    public function extractSessionId(string $text): ?string
+    {
+        // 1. Markdown links like [Jules Task](.../sessions/ID) or .../task/ID
+        if (preg_match('/jules\.google\.com\/(?:sessions|task)\/([a-zA-Z0-9_-]+)/', $text, $matches)) {
+            return $matches[1];
+        }
+
+        // 2. Explicit task_id or session_id labels
+        if (preg_match('/(?:task_id|session_id|sessionId|taskId)[:=]\s*([a-zA-Z0-9_-]+)/i', $text, $matches)) {
+            return $matches[1];
+        }
+
+        // 3. Look for a long numeric ID that looks like a session ID
+        if (preg_match('/\b(\d{15,25})\b/', $text, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
+    public function refreshJulesStatus(int $userId, GitHubService $githubService, JulesService $julesService): void
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT t.*, p.github_repo
+             FROM tasks t
+             JOIN projects p ON t.project_id = p.project_id
+             WHERE t.user_id = ?
+             AND (t.last_synced_at IS NULL OR t.last_synced_at < datetime('now', '-5 minutes'))
+             AND (t.status NOT IN ('completed', 'failed') OR t.jules_status NOT IN ('completed', 'failed'))"
+        );
+        $stmt->execute([$userId]);
+        $tasks = $stmt->fetchAll();
+
+        $userStmt = $this->db->getConnection()->prepare("SELECT jules_api_key FROM users WHERE user_id = ?");
+        $userStmt->execute([$userId]);
+        $user = $userStmt->fetch();
+        $apiKey = $user['jules_api_key'] ?? null;
+
+        foreach ($tasks as $task) {
+            $githubData = json_decode($task['github_data'] ?? '{}', true);
+            $assignee = $githubData['assignee']['login'] ?? '';
+            $labels = $githubData['labels'] ?? [];
+            $hasJulesLabel = false;
+            foreach ($labels as $label) {
+                if (strtolower($label['name'] ?? '') === 'jules') {
+                    $hasJulesLabel = true;
+                    break;
+                }
+            }
+
+            $isJulesRelated = (
+                strtolower($assignee) === 'jules' ||
+                strtolower($assignee) === 'google-labs-jules[bot]' ||
+                $hasJulesLabel
+            );
+
+            if (!$isJulesRelated) {
+                continue;
+            }
+
+            $sessionId = $task['jules_session_id'];
+
+            if (!$sessionId) {
+                try {
+                    $comments = $githubService->getIssueComments($task['github_repo'], $task['issue_number']);
+                    // Reverse to find the latest "on it" comment
+                    $julesComments = array_reverse(array_filter($comments, function($c) {
+                        $login = strtolower($c['user']['login'] ?? '');
+                        return ($login === 'google-labs-jules[bot]' || $login === 'jules') &&
+                               stripos($c['body'] ?? '', 'on it') !== false;
+                    }));
+
+                    foreach ($julesComments as $comment) {
+                        $sessionId = $this->extractSessionId($comment['body'] ?? '');
+                        if ($sessionId) {
+                            $updateStmt = $this->db->getConnection()->prepare(
+                                "UPDATE tasks SET jules_session_id = ? WHERE task_id = ?"
+                            );
+                            $updateStmt->execute([$sessionId, $task['task_id']]);
+                            break;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    continue;
+                }
+            }
+
+            if ($sessionId && $apiKey) {
+                $julesData = $julesService->fetchSessionStatus($sessionId, $apiKey);
+                if ($julesData) {
+                    $newStatus = $julesData['status'];
+                    $mappedStatus = $task['status'];
+
+                    if (in_array($newStatus, ['in-progress', 'coding', 'testing', 'researching', 'planning'])) {
+                        $mappedStatus = 'in_progress';
+                    } elseif ($newStatus === 'completed' || $newStatus === 'finished') {
+                        $mappedStatus = 'completed';
+                    } elseif ($newStatus === 'failed' || $newStatus === 'error') {
+                        $mappedStatus = 'failed';
+                    }
+
+                    $updateStmt = $this->db->getConnection()->prepare(
+                        "UPDATE tasks SET jules_status = ?, status = ?, last_synced_at = datetime('now') WHERE task_id = ?"
+                    );
+                    $updateStmt->execute([$newStatus, $mappedStatus, $task['task_id']]);
+                }
+            } else {
+                // Still update last_synced_at even if no sessionId or apiKey to avoid constant retries
+                $updateStmt = $this->db->getConnection()->prepare(
+                    "UPDATE tasks SET last_synced_at = datetime('now') WHERE task_id = ?"
+                );
+                $updateStmt->execute([$task['task_id']]);
+            }
+        }
+    }
 }

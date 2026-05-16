@@ -44,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['success']) && !isset($
         try {
             $githubService = new GitHubService(null, $githubToken);
             $taskModel->syncIssues($user['user_id'], $project['project_id'], $project['github_repo'], $githubService);
+            $taskModel->refreshJulesStatus($user['user_id'], $githubService, $julesService);
             header("Location: project.php?id=$projectId&success=synced");
             exit;
         } catch (Exception $e) {

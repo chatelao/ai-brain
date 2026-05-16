@@ -21,6 +21,21 @@ class GitHubService
     /**
      * @throws Exception
      */
+    public function getIssueComments(string $repo, int $issueNumber): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        return $this->client->api('issue')->comments()->all($username, $repository, $issueNumber);
+    }
+
+    /**
+     * @throws Exception
+     */
     public function postComment(string $repo, int $issueNumber, string $comment): array
     {
         $parts = explode('/', $repo);

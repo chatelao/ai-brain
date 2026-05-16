@@ -45,6 +45,9 @@ entity "tasks" {
   status : ENUM
   github_data : JSON
   agent_response : TEXT
+  jules_session_id : VARCHAR(255)
+  jules_status : VARCHAR(255)
+  last_synced_at : TIMESTAMP
   created_at : TIMESTAMP
   updated_at : TIMESTAMP
 }

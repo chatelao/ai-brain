@@ -46,6 +46,13 @@ if ($user && isset($_GET['delete_project'])) {
 $projects = $user ? $projectModel->findByUserId($user['user_id']) : [];
 $githubAccounts = $user ? $userModel->getGitHubAccounts($user['user_id']) : [];
 $taskModel = new Task($db);
+
+if ($user) {
+    $githubService = new App\GitHubService();
+    $julesService = new App\JulesService();
+    $taskModel->refreshJulesStatus($user['user_id'], $githubService, $julesService);
+}
+
 $autorepeatTasks = $user ? $taskModel->getRunningAutorepeatTasks($user['user_id']) : [];
 
 $projectTasks = [];

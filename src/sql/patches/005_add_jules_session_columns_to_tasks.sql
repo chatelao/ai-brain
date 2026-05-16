@@ -1,0 +1,3 @@
+ALTER TABLE tasks ADD COLUMN jules_session_id VARCHAR(255);
+ALTER TABLE tasks ADD COLUMN jules_status VARCHAR(255);
+ALTER TABLE tasks ADD COLUMN last_synced_at TIMESTAMP NULL;

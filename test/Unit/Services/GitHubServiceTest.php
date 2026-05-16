@@ -4,6 +4,8 @@ namespace Tests\Unit\Services;
 
 use App\GitHubService;
 use Github\Client;
+use Github\Api\Issue;
+use Github\Api\Issue\Comments;
 use Github\Api\Repo;
 use Github\Api\Repository\Contents;
 use PHPUnit\Framework\TestCase;
@@ -46,5 +48,30 @@ class GitHubServiceTest extends TestCase
         $this->assertEquals('Next task', $roadmaps[0]['next_task']);
         $this->assertEquals('docs/roadmap.rst', $roadmaps[1]['name']);
         $this->assertEquals('Still to do', $roadmaps[1]['next_task']);
+    }
+
+    public function testGetIssueComments(): void
+    {
+        $mockClient = $this->createMock(Client::class);
+        $mockIssue = $this->createMock(Issue::class);
+        $mockComments = $this->createMock(Comments::class);
+
+        $mockClient->method('api')->with('issue')->willReturn($mockIssue);
+        $mockIssue->method('comments')->willReturn($mockComments);
+
+        $expectedComments = [
+            ['id' => 1, 'body' => 'First comment'],
+            ['id' => 2, 'body' => 'Second comment']
+        ];
+
+        $mockComments->expects($this->once())
+            ->method('all')
+            ->with('chatelao', 'ai-brain', 123)
+            ->willReturn($expectedComments);
+
+        $service = new GitHubService($mockClient);
+        $comments = $service->getIssueComments('chatelao/ai-brain', 123);
+
+        $this->assertEquals($expectedComments, $comments);
     }
 }
