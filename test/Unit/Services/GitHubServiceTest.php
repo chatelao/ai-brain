@@ -29,6 +29,12 @@ class GitHubServiceTest extends TestCase
                 ['chatelao', 'ai-brain', 'docs', null, [
                     ['type' => 'file', 'name' => 'roadmap.rst', 'html_url' => 'http://example.com/roadmap_rst'],
                     ['type' => 'file', 'name' => 'install.rst', 'html_url' => 'http://example.com/install']
+                ]],
+                ['chatelao', 'ai-brain', 'ROADMAP.md', null, [
+                    'content' => base64_encode("- [x] Done task\n- [ ] Next task\n- [ ] Another task")
+                ]],
+                ['chatelao', 'ai-brain', 'docs/roadmap.rst', null, [
+                    'content' => base64_encode("* [x] Already done\n* [ ] Still to do")
                 ]]
             ]);
 
@@ -37,6 +43,8 @@ class GitHubServiceTest extends TestCase
 
         $this->assertCount(2, $roadmaps);
         $this->assertEquals('ROADMAP.md', $roadmaps[0]['name']);
+        $this->assertEquals('Next task', $roadmaps[0]['next_task']);
         $this->assertEquals('docs/roadmap.rst', $roadmaps[1]['name']);
+        $this->assertEquals('Still to do', $roadmaps[1]['next_task']);
     }
 }

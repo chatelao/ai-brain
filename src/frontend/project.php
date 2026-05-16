@@ -295,11 +295,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                 <?php else: ?>
                                     <ul class="space-y-2">
                                         <?php foreach ($roadmapFiles as $file): ?>
-                                            <li>
+                                            <li class="flex flex-col">
                                                 <a href="<?= htmlspecialchars($file['html_url']) ?>" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-600 hover:underline flex items-center">
                                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                                     <?= htmlspecialchars($file['name']) ?>
                                                 </a>
+                                                <?php if (!empty($file['next_task'])): ?>
+                                                    <span class="text-[10px] text-gray-500 ml-6 italic">
+                                                        🚧 <?= htmlspecialchars($file['next_task']) ?>
+                                                    </span>
+                                                <?php endif; ?>
                                             </li>
                                         <?php endforeach; ?>
                                     </ul>
@@ -382,7 +387,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                     <div class="text-xs text-gray-500"><?= htmlspecialchars(mb_substr($task['body'] ?? '', 0, 100)) ?>...</div>
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <span class="px-2 py-1 text-xs font-medium rounded-full <?= $task['status'] === 'completed' ? 'bg-green-100 text-green-800' : ($task['status'] === 'in_progress' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') ?>">
+                                                    <span class="px-2 py-1 text-xs font-medium rounded-full <?= $task['status'] === 'completed' ? 'bg-green-100 text-green-800' : ($task['status'] === 'in_progress' ? 'bg-blue-100 text-blue-800' : ($task['status'] === 'failed' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800')) ?>">
+                                                        <?php
+                                                        if ($task['status'] === 'completed') echo '✅ ';
+                                                        elseif ($task['status'] === 'in_progress') echo '🚧 ';
+                                                        elseif ($task['status'] === 'failed') echo '❌ ';
+                                                        else echo '⏳ ';
+                                                        ?>
                                                         <?= htmlspecialchars($task['status']) ?>
                                                     </span>
                                                 </td>

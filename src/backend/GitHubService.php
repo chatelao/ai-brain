@@ -114,9 +114,23 @@ class GitHubService
                 if (is_array($contents)) {
                     foreach ($contents as $file) {
                         if ($file['type'] === 'file' && stripos($file['name'], 'ROADMAP') !== false) {
+                            $fullPath = ($path !== '.' ? $path . '/' : '') . $file['name'];
+
+                            $nextTask = null;
+                            try {
+                                $fileContentResponse = $this->client->api('repo')->contents()->show($username, $repository, $fullPath);
+                                if (isset($fileContentResponse['content'])) {
+                                    $decodedContent = base64_decode($fileContentResponse['content']);
+                                    $nextTask = $this->extractNextTask($decodedContent);
+                                }
+                            } catch (Exception $e) {
+                                // Ignore content fetching errors
+                            }
+
                             $roadmaps[] = [
-                                'name' => ($path !== '.' ? $path . '/' : '') . $file['name'],
-                                'html_url' => $file['html_url']
+                                'name' => $fullPath,
+                                'html_url' => $file['html_url'],
+                                'next_task' => $nextTask
                             ];
                         }
                     }
@@ -130,5 +144,18 @@ class GitHubService
         }
 
         return $roadmaps;
+    }
+
+    private function extractNextTask(string $content): ?string
+    {
+        $lines = explode("\n", $content);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            // Match - [ ], * [ ] or + [ ]
+            if (preg_match('/^[-*+]\s*\[\s*\]\s*(.*)$/', $line, $matches)) {
+                return trim($matches[1]);
+            }
+        }
+        return null;
     }
 }

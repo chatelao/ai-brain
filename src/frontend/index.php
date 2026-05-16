@@ -172,7 +172,7 @@ $errorMessage = $errorMessage ?? null;
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                                                        Active
+                                                        🚧 Active
                                                     </span>
                                                 </td>
                                             </tr>
@@ -228,13 +228,21 @@ $errorMessage = $errorMessage ?? null;
                                                     foreach ($tasks as $task):
                                                         $color = $taskModel->getStatusColor($task);
                                                         $isAutorepeat = $taskModel->hasAutorepeatLabel($task);
+                                                        $githubData = json_decode($task['github_data'] ?? '{}', true);
+                                                        $state = $githubData['state'] ?? 'open';
+
+                                                        $emoji = '⏳';
+                                                        if ($state === 'closed') $emoji = '✅';
+                                                        elseif ($task['status'] === 'failed') $emoji = '❌';
+                                                        elseif ($task['status'] === 'in_progress') $emoji = '🚧';
+                                                        elseif ($task['status'] === 'completed') $emoji = '✅';
                                                     ?>
                                                         <div class="relative group">
                                                             <a href="project.php?id=<?= $project['project_id'] ?>"
                                                                class="status-square <?= $color ?> <?= $isAutorepeat ? 'auto-repeat-tag' : '' ?>">
                                                             </a>
                                                             <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">
-                                                                #<?= htmlspecialchars($task['issue_number']) ?>: <?= htmlspecialchars(mb_substr($task['title'], 0, 30)) ?><?= mb_strlen($task['title']) > 30 ? '...' : '' ?>
+                                                                #<?= htmlspecialchars($task['issue_number']) ?>: <?= $emoji ?> <?= htmlspecialchars(mb_substr($task['title'], 0, 30)) ?><?= mb_strlen($task['title']) > 30 ? '...' : '' ?>
                                                             </div>
                                                         </div>
                                                     <?php endforeach; ?>
