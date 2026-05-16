@@ -44,8 +44,8 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
 
 <div class="flex items-center space-x-4 mr-4" x-data="{
     syncing: <?= $syncStatus ? 'false' : 'true' ?>,
-    syncStatus: <?= json_encode($syncStatus) ?>,
-    syncMessage: <?= json_encode($syncMessage) ?>,
+    syncStatus: <?= htmlspecialchars(json_encode($syncStatus)) ?>,
+    syncMessage: <?= htmlspecialchars(json_encode($syncMessage)) ?>,
     quotaUsage: <?= (int)($user['jules_quota_usage'] ?? 0) ?>,
     quotaLimit: <?= (int)($user['jules_quota_limit'] ?? 0) ?>,
     openIssues: <?= (int)$openIssues ?>,
