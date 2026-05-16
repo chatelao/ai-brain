@@ -40,7 +40,19 @@ This guide explains how to install the AI Brain application on a web server.
 3.  Click **Create API key** (either in a new or existing Google Cloud project).
 4.  Copy the generated key for `GOOGLE_JULES_API_KEY`. (Note: Users can also provide their own keys in the application dashboard).
 
-### 4. Telegram Bot
+### 4. GitHub Webhook Configuration
+To receive real-time updates for issue events, you must configure a webhook for each repository you link.
+1.  In the application, go to the **Project Details** page for your linked repository.
+2.  Copy the **Payload URL** and **Secret** from the "Webhook Configuration" section.
+3.  In GitHub, navigate to your repository's **Settings > Webhooks**.
+4.  Click **Add webhook**.
+5.  Paste the **Payload URL**.
+6.  Set **Content type** to `application/json`.
+7.  Paste the **Secret**.
+8.  Select **Let me select individual events** and check **Issues**.
+9.  Ensure **Active** is checked and click **Add webhook**.
+
+### 5. Telegram Bot
 1.  Message [@BotFather](https://t.me/botfather) on Telegram.
 2.  Use the `/newbot` command and follow the instructions to get your **Bot Token**.
 3.  For `TELEGRAM_WEBHOOK_SECRET`, generate a random, secure string (e.g., using `openssl rand -hex 32`). This is used to verify that requests to your webhook are actually coming from Telegram.

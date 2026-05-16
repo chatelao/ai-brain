@@ -141,7 +141,7 @@ class WebhookHandlerTest extends TestCase
             'issue' => ['number' => 123]
         ];
 
-        $this->assertFalse($this->handler->handle($project, $event));
+        $this->assertTrue($this->handler->handle($project, $event));
     }
 
     public function testHandleSqlite()

@@ -22,7 +22,7 @@ class WebhookHandler
         $issue = $event['issue'] ?? null;
 
         if (!$issue) {
-            return false;
+            return true;
         }
 
         $taskModel = new Task($this->db);
@@ -32,7 +32,7 @@ class WebhookHandler
         }
 
         if (!in_array($action, ['opened', 'reopened', 'edited', 'closed', 'labeled', 'unlabeled'])) {
-            return false;
+            return true;
         }
 
         $result = $taskModel->upsert($project['user_id'], $project['project_id'], $issue);

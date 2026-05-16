@@ -28,7 +28,7 @@ $handler = new WebhookHandler($db);
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
 $event = $_SERVER['HTTP_X_GITHUB_EVENT'] ?? '';
 
-if (empty($payload) || empty($signature) || $event !== 'issues') {
+if (empty($payload) || empty($signature) || !in_array($event, ['issues', 'ping'])) {
     http_response_code(400);
     exit('Invalid request');
 }
@@ -77,6 +77,11 @@ if (!$verified) {
     }
     http_response_code(401);
     exit('Invalid signature');
+}
+
+if ($event === 'ping') {
+    http_response_code(200);
+    exit('PONG');
 }
 
 $githubService = null;
