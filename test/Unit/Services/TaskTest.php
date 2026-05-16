@@ -5,6 +5,7 @@ namespace Tests\Unit\Services;
 use PHPUnit\Framework\TestCase;
 use App\Database;
 use App\Task;
+use App\GitHubService;
 use PDO;
 use PDOStatement;
 
@@ -61,6 +62,34 @@ class TaskTest extends TestCase
         $this->pdo->method('prepare')->willReturn($stmt);
 
         $result = $this->taskModel->updateStatus($id, $status);
+        $this->assertTrue($result);
+    }
+
+    public function testSyncProjectTasks()
+    {
+        $userId = 1;
+        $projectId = 1;
+        $repo = 'owner/repo';
+
+        $issues = [
+            ['number' => 1, 'title' => 'Issue 1', 'body' => 'Body 1'],
+            ['number' => 2, 'title' => 'PR 1', 'body' => 'Body 2', 'pull_request' => []],
+            ['number' => 3, 'title' => 'Issue 2', 'body' => 'Body 3'],
+        ];
+
+        $githubService = $this->createMock(GitHubService::class);
+        $githubService->method('listIssues')->with($repo)->willReturn($issues);
+
+        $stmt = $this->createMock(PDOStatement::class);
+        $stmt->method('execute')->willReturn(true);
+
+        $this->pdo->method('getAttribute')->with(PDO::ATTR_DRIVER_NAME)->willReturn('mysql');
+        $this->pdo->method('prepare')->willReturn($stmt);
+
+        // Expect 2 calls for issues, skip PR
+        $stmt->expects($this->exactly(2))->method('execute');
+
+        $result = $this->taskModel->syncProjectTasks($userId, $projectId, $repo, $githubService);
         $this->assertTrue($result);
     }
 }

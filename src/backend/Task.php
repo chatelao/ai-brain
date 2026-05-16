@@ -104,6 +104,24 @@ class Task
         ]);
     }
 
+    public function syncProjectTasks(int $userId, int $projectId, string $repo, GitHubService $githubService): bool
+    {
+        $issues = $githubService->listIssues($repo);
+        $success = true;
+
+        foreach ($issues as $issue) {
+            // Check if it's really an issue (not a PR)
+            if (isset($issue['pull_request'])) {
+                continue;
+            }
+            if (!$this->upsert($userId, $projectId, $issue)) {
+                $success = false;
+            }
+        }
+
+        return $success;
+    }
+
     public function upsert(int $userId, int $projectId, array $issue): bool
     {
         $connection = $this->db->getConnection();

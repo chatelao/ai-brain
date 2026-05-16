@@ -169,15 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
         }
 
         $githubService = new GitHubService(null, $githubToken);
-        $issues = $githubService->listIssues($project['github_repo']);
-
-        foreach ($issues as $issue) {
-            // Check if it's really an issue (not a PR)
-            if (isset($issue['pull_request'])) {
-                continue;
-            }
-            $taskModel->upsert($user['user_id'], $project['project_id'], $issue);
-        }
+        $taskModel->syncProjectTasks($user['user_id'], $project['project_id'], $project['github_repo'], $githubService);
 
         header("Location: project.php?id=$projectId&success=synced");
         exit;

@@ -4,6 +4,9 @@ use App\Auth;
 use App\GitHubAuth;
 use App\Database;
 use App\User;
+use App\Project;
+use App\Task;
+use App\GitHubService;
 use App\RateLimiter;
 
 $db = new Database();
@@ -28,6 +31,19 @@ if (isset($_GET['code']) && isset($_GET['state'])) {
     try {
         $githubData = $githubAuth->authenticate($_GET['code'], $_GET['state']);
         $userModel->addGitHubAccount($auth->getUserId(), $githubData['access_token'], $githubData['github_username']);
+
+        // Auto-resync tasks for all projects matching this GitHub account
+        $projectModel = new Project($db);
+        $taskModel = new Task($db);
+        $githubService = new GitHubService(null, $githubData['access_token']);
+        $projects = $projectModel->findByUserId($auth->getUserId());
+
+        foreach ($projects as $project) {
+            if ($project['github_username'] === $githubData['github_username']) {
+                $taskModel->syncProjectTasks($auth->getUserId(), $project['project_id'], $project['github_repo'], $githubService);
+            }
+        }
+
         header('Location: index.php?github=success');
         exit;
     } catch (Exception $e) {
