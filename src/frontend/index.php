@@ -248,7 +248,7 @@ $errorMessage = $errorMessage ?? null;
                                                         elseif ($task['status'] === 'completed') $emoji = '✅';
                                                     ?>
                                                         <div class="relative group">
-                                                            <a href="project.php?id=<?= $project['project_id'] ?>"
+                                                            <a href="task.php?id=<?= $task['task_id'] ?>"
                                                                class="status-square <?= $color ?> <?= $isAutorepeat ? 'auto-repeat-tag' : '' ?>">
                                                             </a>
                                                             <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">
