@@ -28,13 +28,13 @@ if (isset($_GET['code']) && isset($_GET['state'])) {
     try {
         $githubData = $githubAuth->authenticate($_GET['code'], $_GET['state']);
         $userModel->addGitHubAccount($auth->getUserId(), $githubData['access_token'], $githubData['github_username']);
-        header('Location: index.php?github=success');
+        header('Location: settings.php?github=success');
         exit;
     } catch (Exception $e) {
-        header('Location: index.php?github=error&message=' . urlencode($e->getMessage()));
+        header('Location: settings.php?github=error&message=' . urlencode($e->getMessage()));
         exit;
     }
 } else {
-    header('Location: index.php');
+    header('Location: settings.php');
     exit;
 }
