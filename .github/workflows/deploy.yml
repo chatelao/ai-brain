@@ -22,34 +22,35 @@ jobs:
         run: composer install --no-dev --optimize-autoloader
 
       - name: Deploy via SFTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
         with:
           server: ${{ secrets.SFTP_SERVER }}
           username: ${{ secrets.SFTP_USERNAME }}
           password: ${{ secrets.SFTP_PASSWORD }}
-          protocol: sftp
+          remote_path: ${{ secrets.SFTP_PATH }}
           port: 22
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.github/**
-            **/test/**
-            **/docs/**
-            **/specification/**
-            **/scripts/**
-            **/Vagrantfile
-            **/CONCEPT.md
-            **/DESIGN.md
-            **/GEMINI.md
-            **/HOWTO.md
-            **/INSTALL.md
-            **/ROADMAP.md
-            **/CONCEPT_UPGRADES.md
-            **/openapi.yaml
-            **/schema.puml
-            **/*.sqlite
-            **/.readthedocs.yaml
-            **/composer.json
-            **/composer.lock
-            **/phpunit.xml
-            **/README.md
+          local_path: './'
+          sftp_only: false
+          rsyncArgs: >-
+            --exclude='.git*'
+            --exclude='.github/'
+            --exclude='test/'
+            --exclude='docs/'
+            --exclude='specification/'
+            --exclude='scripts/'
+            --exclude='Vagrantfile'
+            --exclude='CONCEPT.md'
+            --exclude='DESIGN.md'
+            --exclude='GEMINI.md'
+            --exclude='HOWTO.md'
+            --exclude='INSTALL.md'
+            --exclude='ROADMAP.md'
+            --exclude='CONCEPT_UPGRADES.md'
+            --exclude='openapi.yaml'
+            --exclude='schema.puml'
+            --exclude='*.sqlite'
+            --exclude='.readthedocs.yaml'
+            --exclude='composer.json'
+            --exclude='composer.lock'
+            --exclude='phpunit.xml'
+            --exclude='README.md'
