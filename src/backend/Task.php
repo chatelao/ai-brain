@@ -88,6 +88,24 @@ class Task
         return $stmt->execute([$response, $status, $id]);
     }
 
+    public function updateJulesToken(int $taskId, string $token): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE tasks SET jules_token = ? WHERE task_id = ?"
+        );
+        return $stmt->execute([$token, $taskId]);
+    }
+
+    public function findByJulesToken(string $token): ?array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT * FROM tasks WHERE jules_token = ?"
+        );
+        $stmt->execute([$token]);
+        $task = $stmt->fetch();
+        return $task ?: null;
+    }
+
     public function create(array $data): bool
     {
         $stmt = $this->db->getConnection()->prepare(

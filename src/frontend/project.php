@@ -101,15 +101,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
                 $telegramService->sendMessage($telegramChatId, "🤖 <b>Agent Started</b>\nProject: {$project['github_repo']}\nIssue: #{$task['issue_number']} {$task['title']}");
             }
 
-            $logger->log($user['user_id'], $taskId, "Calling Jules API...");
+            $julesToken = bin2hex(random_bytes(16));
+            $taskModel->updateJulesToken($taskId, $julesToken);
+            $logger->log($user['user_id'], $taskId, "Generated Jules token for session: $julesToken");
+
+            $logger->log($user['user_id'], $taskId, "Calling Jules API (with webhook support)...");
+            // In a real scenario, we would pass the token and webhook URL to the Jules API.
+            // For now, we simulate the start of the asynchronous process.
             $lastAgentResponse = $julesService->triggerAgent($task);
-            $logger->log($user['user_id'], $taskId, "Received response from Jules API");
+            $logger->log($user['user_id'], $taskId, "Received immediate response from Jules API");
 
             $taskModel->updateAgentResponse($taskId, $lastAgentResponse, 'completed');
             $logger->log($user['user_id'], $taskId, "Task agent response updated and status set to completed");
 
             if ($githubService) {
-                $githubService->postComment($project['github_repo'], $task['issue_number'], "✅ Agent has completed the analysis:\n\n" . $lastAgentResponse);
+                $githubService->postComment($project['github_repo'], $task['issue_number'], "✅ Agent has completed the analysis (Sync Mode):\n\n" . $lastAgentResponse);
                 $logger->log($user['user_id'], $taskId, "Posted 'completed' comment to GitHub");
             }
 

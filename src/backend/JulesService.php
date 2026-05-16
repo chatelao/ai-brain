@@ -24,7 +24,7 @@ class JulesService
      * @throws GuzzleException
      * @throws Exception
      */
-    public function triggerAgent(array $task): string
+    public function triggerAgent(array $task, ?string $julesToken = null, ?string $webhookUrl = null): string
     {
         if (empty($this->apiKey)) {
             throw new Exception("API Key not configured.");
@@ -34,16 +34,25 @@ class JulesService
                   "Task Body: " . ($task['body'] ?? 'No description provided.') . "\n\n" .
                   "Please analyze this GitHub issue and suggest a plan of action.";
 
-        $response = $this->client->post("v1beta/models/gemini-pro:generateContent?key=" . $this->apiKey, [
-            'json' => [
-                'contents' => [
-                    [
-                        'parts' => [
-                            ['text' => $prompt]
-                        ]
+        $json = [
+            'contents' => [
+                [
+                    'parts' => [
+                        ['text' => $prompt]
                     ]
                 ]
             ]
+        ];
+
+        if ($julesToken) {
+            $json['jules_token'] = $julesToken;
+        }
+        if ($webhookUrl) {
+            $json['webhook_url'] = $webhookUrl;
+        }
+
+        $response = $this->client->post("v1beta/models/gemini-pro:generateContent?key=" . $this->apiKey, [
+            'json' => $json
         ]);
 
         $data = json_decode($response->getBody()->getContents(), true);
