@@ -37,23 +37,6 @@ if (!$project || $project['user_id'] !== $user['user_id']) {
     die("Project not found or access denied.");
 }
 
-// Automatic Sync on Page Load
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['success']) && !isset($_GET['error'])) {
-    $githubToken = $project['github_token'] ?? null;
-    if ($githubToken) {
-        try {
-            $githubService = new GitHubService(null, $githubToken);
-            $taskModel->syncIssues($user['user_id'], $project['project_id'], $project['github_repo'], $githubService);
-            $taskModel->refreshJulesStatus($user['user_id'], $githubService, $julesService);
-            // Re-fetch user to get updated quota
-            $user = $userModel->findById($user['user_id']);
-            header("Location: project.php?id=$projectId&success=synced");
-            exit;
-        } catch (Exception $e) {
-            // Silently fail automatic sync to not disrupt the user
-        }
-    }
-}
 
 $templateModel = new IssueTemplate($db);
 $templates = $templateModel->findByUserId($user['user_id']);
