@@ -302,7 +302,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                 </a>
                                                 <?php if (!empty($file['next_task'])): ?>
                                                     <span class="text-[10px] text-gray-500 ml-6 italic">
-                                                        Next: <?= htmlspecialchars($file['next_task']) ?>
+                                                        🚧 <?= htmlspecialchars($file['next_task']) ?>
                                                     </span>
                                                 <?php endif; ?>
                                             </li>
@@ -387,7 +387,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                     <div class="text-xs text-gray-500"><?= htmlspecialchars(mb_substr($task['body'] ?? '', 0, 100)) ?>...</div>
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <span class="px-2 py-1 text-xs font-medium rounded-full <?= $task['status'] === 'completed' ? 'bg-green-100 text-green-800' : ($task['status'] === 'in_progress' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') ?>">
+                                                    <span class="px-2 py-1 text-xs font-medium rounded-full <?= $task['status'] === 'completed' ? 'bg-green-100 text-green-800' : ($task['status'] === 'in_progress' ? 'bg-blue-100 text-blue-800' : ($task['status'] === 'failed' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800')) ?>">
+                                                        <?php
+                                                        if ($task['status'] === 'completed') echo '✅ ';
+                                                        elseif ($task['status'] === 'in_progress') echo '🚧 ';
+                                                        elseif ($task['status'] === 'failed') echo '❌ ';
+                                                        else echo '⏳ ';
+                                                        ?>
                                                         <?= htmlspecialchars($task['status']) ?>
                                                     </span>
                                                 </td>
