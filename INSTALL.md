@@ -188,6 +188,7 @@ If you have your own fork of this repository, you can use the included GitHub Ac
    - `SFTP_SERVER`: Your SFTP server hostname or IP address.
    - `SFTP_USERNAME`: Your SFTP username.
    - `SFTP_PASSWORD`: Your SFTP password.
+   - `SFTP_PATH`: The target folder on the remote server.
 
 2. **Trigger Deployment:**
    - Go to the **Actions** tab in your GitHub repository.
