@@ -291,6 +291,43 @@ class Task
         return false;
     }
 
+    /**
+     * Pre-processes Markdown/HTML text to trust and render GitHub image links.
+     * This converts <img> tags from trusted GitHub domains into Markdown image syntax
+     * so they can be rendered by Parsedown even when safe mode is enabled.
+     */
+    public function processGitHubImages(string $text): string
+    {
+        $trustedDomains = [
+            'https://github.com/user-attachments/assets/',
+            'https://raw.githubusercontent.com/',
+            'https://user-images.githubusercontent.com/',
+            'https://github-production-user-asset-6210df.s3.amazonaws.com/'
+        ];
+
+        return preg_replace_callback('/<img\s+[^>]*src="([^"]+)"[^>]*>/i', function($matches) use ($trustedDomains) {
+            $src = $matches[1];
+            $isTrusted = false;
+            foreach ($trustedDomains as $domain) {
+                if (strpos($src, $domain) === 0) {
+                    $isTrusted = true;
+                    break;
+                }
+            }
+
+            if ($isTrusted) {
+                // Extract alt text if present
+                $alt = 'image';
+                if (preg_match('/alt="([^"]+)"/i', $matches[0], $altMatches)) {
+                    $alt = $altMatches[1];
+                }
+                return "![$alt]($src)";
+            }
+
+            return $matches[0];
+        }, $text);
+    }
+
     public function extractSessionId(string $text): ?string
     {
         // 1. Markdown links like [Jules Task](.../sessions/ID) or .../task/ID
