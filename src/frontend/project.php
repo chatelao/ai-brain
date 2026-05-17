@@ -409,82 +409,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                             </div>
                         </div>
 
-                        <div class="lg:col-span-3 order-2 lg:order-1 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <div class="lg:col-span-3 order-2 lg:order-1 p-4 bg-white border border-gray-200 rounded-lg shadow-sm" x-data="{
+                            tasks: <?= htmlspecialchars(json_encode(array_map(fn($t) => array_merge($taskModel->getTaskUiInfo($t), [
+                                'issue_number' => $t['issue_number'],
+                                'title_html' => $parsedown->text($taskModel->processGitHubImages($t['title'] ?? '')),
+                                'body_preview_html' => $parsedown->text($taskModel->processGitHubImages(mb_substr($t['body'] ?? '', 0, 100) . (mb_strlen($t['body'] ?? '') > 100 ? '...' : '')))
+                            ]), $tasks))) ?>
+                        }" @sync-updated.window="
+                            if ($event.detail.tasks) {
+                                $event.detail.tasks.forEach(updatedTask => {
+                                    const idx = tasks.findIndex(t => t.task_id === updatedTask.task_id);
+                                    if (idx !== -1) {
+                                        tasks[idx] = { ...tasks[idx], ...updatedTask };
+                                    }
+                                });
+                            }
+                        ">
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm text-left text-gray-500">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                                         <tr>
                                             <th scope="col" class="px-6 py-3">Issue</th>
                                             <th scope="col" class="px-6 py-3">Status</th>
-                                            <th scope="col" class="px-6 py-3">Actions</th>
+                                            <th scope="col" class="px-6 py-3 text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php if (empty($tasks)): ?>
+                                        <template x-if="tasks.length === 0">
                                             <tr class="bg-white border-b">
                                                 <td colspan="3" class="px-6 py-4 text-center">No tasks found. Open an issue on GitHub to see it here.</td>
                                             </tr>
-                                        <?php endif; ?>
-                                        <?php foreach ($tasks as $task): ?>
+                                        </template>
+                                        <template x-for="task in tasks" :key="task.task_id">
                                             <tr class="bg-white border-b">
                                                 <td class="px-6 py-4">
                                                     <div class="text-base text-gray-900 font-normal markdown-body">
-                                                        <a href="task.php?id=<?= $task['task_id'] ?>" class="hover:underline">#<?= htmlspecialchars($task['issue_number'] ?? '') ?></a>
-                                                        <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task, $project['github_repo'])) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline inline">
-                                                            <?= $parsedown->text($taskModel->processGitHubImages($task['title'] ?? '')) ?>
+                                                        <a :href="'task.php?id=' + task.task_id" class="hover:underline">#<span x-text="task.issue_number"></span></a>
+                                                        <a :href="task.target_url" target="_blank" rel="noopener noreferrer" class="hover:underline inline" x-html="task.title_html">
                                                         </a>
                                                     </div>
-                                                    <div class="text-xs text-gray-500 markdown-body">
-                                                        <?= $parsedown->text($taskModel->processGitHubImages(mb_substr($task['body'] ?? '', 0, 100) . (mb_strlen($task['body'] ?? '') > 100 ? '...' : ''))) ?>
+                                                    <div class="text-xs text-gray-500 markdown-body" x-html="task.body_preview_html">
                                                     </div>
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <?php
-                                                    $statusColor = $taskModel->getStatusColor($task);
-                                                    $bgClass = 'bg-gray-100 text-gray-800';
-                                                    if ($statusColor === 'green') $bgClass = 'bg-green-100 text-green-800';
-                                                    elseif ($statusColor === 'yellow') $bgClass = 'bg-yellow-100 text-yellow-800';
-                                                    elseif ($statusColor === 'blue') $bgClass = 'bg-blue-100 text-blue-800';
-                                                    elseif ($statusColor === 'red') $bgClass = 'bg-red-100 text-red-800';
-                                                    elseif ($statusColor === 'purple') $bgClass = 'bg-purple-100 text-purple-800';
-                                                    ?>
-                                                    <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
-                                                        <?php
-                                                        if (($task['github_state'] ?? 'open') === 'closed') echo '✅ ';
-                                                        elseif ($task['status'] === 'completed') echo '✅ ';
-                                                        elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') echo '❌ Jules ';
-                                                        elseif ($task['status'] === 'failed_pr') echo '❌ PR ';
-                                                        elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) echo '🚧 ';
-                                                        else echo '⏳ ';
-                                                        ?>
-                                                        <?= htmlspecialchars(str_replace(['failed_jules', 'failed_pr'], 'failed', $task['status'] ?? '')) ?>
+                                                    <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap"
+                                                          :class="{
+                                                              'bg-green-100 text-green-800': task.status_color === 'green',
+                                                              'bg-yellow-100 text-yellow-800': task.status_color === 'yellow',
+                                                              'bg-blue-100 text-blue-800': task.status_color === 'blue',
+                                                              'bg-red-100 text-red-800': task.status_color === 'red',
+                                                              'bg-purple-100 text-purple-800': task.status_color === 'purple',
+                                                              'bg-gray-100 text-gray-800': task.status_color === 'grey'
+                                                          }">
+                                                        <span x-text="task.status_emoji"></span>
+                                                        <span x-text="task.status_label"></span>
                                                     </span>
                                                 </td>
-                                                <td class="px-6 py-4">
-                                                    <div class="flex flex-col space-y-2">
-                                                        <?php
-                                                        $isClosed = ($task['github_state'] ?? 'open') === 'closed';
-                                                        $isCompleted = ($task['status'] ?? '') === 'completed';
-                                                        $isImplemented = ($task['status'] ?? '') === 'implemented';
-                                                        ?>
-                                                        <?php if (!$isClosed && !$isCompleted && !$isImplemented): ?>
-                                                            <form method="POST" class="inline">
+                                                <td class="px-6 py-4 text-right">
+                                                    <div class="flex flex-col space-y-2 items-end">
+                                                        <template x-if="task.github_state !== 'closed' && task.status_label !== 'completed' && task.status_label !== 'implemented'">
+                                                            <form method="POST" class="inline w-full max-w-[120px]">
                                                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                                                <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
+                                                                <input type="hidden" name="task_id" :value="task.task_id">
                                                                 <button type="submit" name="trigger_agent" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Run Agent</button>
                                                             </form>
-                                                        <?php endif; ?>
-                                                        <?php if ($isCompleted || $isImplemented): ?>
-                                                            <form method="POST" class="inline">
+                                                        </template>
+                                                        <template x-if="task.status_label === 'completed' || task.status_label === 'implemented'">
+                                                            <form method="POST" class="inline w-full max-w-[120px]">
                                                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                                                <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
+                                                                <input type="hidden" name="task_id" :value="task.task_id">
                                                                 <button type="submit" name="rerun_task" class="text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Rerun</button>
                                                             </form>
-                                                        <?php endif; ?>
+                                                        </template>
                                                     </div>
                                                 </td>
                                             </tr>
-                                        <?php endforeach; ?>
+                                        </template>
                                     </tbody>
                                 </table>
                             </div>

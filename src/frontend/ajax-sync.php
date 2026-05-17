@@ -28,31 +28,36 @@ $userId = $auth->getUserId();
 $user = $userModel->findById($userId);
 
 $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$taskId = isset($_GET['task_id']) ? (int)$_GET['task_id'] : 0;
+$fast = isset($_GET['fast']) && $_GET['fast'] === '1';
+
 $julesService = new JulesService(null, $user['jules_api_key'] ?? null);
 $notificationService = new NotificationService($db);
 
 try {
-    if ($projectId > 0) {
-        $project = $projectModel->findById($projectId);
-        if ($project && $project['user_id'] === $userId) {
-            $githubToken = $project['github_token'] ?? null;
-            if ($githubToken) {
-                $githubService = new GitHubService(null, $githubToken);
-                $taskModel->syncIssues($userId, $projectId, $project['github_repo'], $githubService);
+    if (!$fast) {
+        if ($projectId > 0) {
+            $project = $projectModel->findById($projectId);
+            if ($project && $project['user_id'] === $userId) {
+                $githubToken = $project['github_token'] ?? null;
+                if ($githubToken) {
+                    $githubService = new GitHubService(null, $githubToken);
+                    $taskModel->syncIssues($userId, $projectId, $project['github_repo'], $githubService);
+                    $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
+                }
+            }
+        } else {
+            // Global refresh for dashboard
+            $githubAccounts = $userModel->getGitHubAccounts($userId);
+            if (!empty($githubAccounts)) {
+                // Use the first account's token for refreshing Jules status
+                $githubService = new GitHubService(null, $githubAccounts[0]['github_token']);
+                $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
+            } else {
+                // Fallback without token
+                $githubService = new GitHubService();
                 $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
             }
-        }
-    } else {
-        // Global refresh for dashboard
-        $githubAccounts = $userModel->getGitHubAccounts($userId);
-        if (!empty($githubAccounts)) {
-            // Use the first account's token for refreshing Jules status
-            $githubService = new GitHubService(null, $githubAccounts[0]['github_token']);
-            $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
-        } else {
-            // Fallback without token
-            $githubService = new GitHubService();
-            $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
         }
     }
 
@@ -61,6 +66,28 @@ try {
 
     // Calculate updated counts
     $counts = $taskModel->getTaskCounts($userId);
+
+    // Get relevant tasks UI info
+    $tasksUiInfo = [];
+    if ($taskId > 0) {
+        $task = $taskModel->findById($taskId);
+        if ($task && (int)$task['user_id'] === $userId) {
+            $tasksUiInfo[] = $taskModel->getTaskUiInfo($task);
+        }
+    } elseif ($projectId > 0) {
+        $project = $projectModel->findById($projectId);
+        if ($project && (int)$project['user_id'] === $userId) {
+            $tasks = $taskModel->findByProjectId($projectId);
+            foreach ($tasks as $task) {
+                $tasksUiInfo[] = $taskModel->getTaskUiInfo($task);
+            }
+        }
+    } else {
+        $tasks = $taskModel->findActiveByUserProjects($userId);
+        foreach ($tasks as $task) {
+            $tasksUiInfo[] = $taskModel->getTaskUiInfo($task);
+        }
+    }
 
     echo json_encode([
         'status' => 'success',
@@ -73,7 +100,8 @@ try {
         'jules_failed' => $counts['jules_failed'] ?? 0,
         'github_running' => $counts['github_running'] ?? 0,
         'github_passed' => $counts['github_passed'] ?? 0,
-        'github_failed' => $counts['github_failed'] ?? 0
+        'github_failed' => $counts['github_failed'] ?? 0,
+        'tasks' => $tasksUiInfo
     ]);
 } catch (Exception $e) {
     http_response_code(500);

@@ -113,6 +113,37 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
                     this.unreadNotifications = data.unread_count;
                 }
             });
+
+        // Set up periodic sync
+        setInterval(() => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            const isTaskPage = window.location.pathname.endsWith('task.php');
+            let url = 'ajax-sync.php?fast=1';
+            if (id) {
+                url += isTaskPage ? '&task_id=' + id : '&id=' + id;
+            }
+            fetch(this.basePath + url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        this.quotaUsage = data.quota_usage;
+                        this.quotaLimit = data.quota_limit;
+                        this.openIssues = data.open_issues;
+                        this.totalTasks = data.total_tasks;
+                        this.completedTasks = data.completed_tasks;
+                        this.julesRunning = data.jules_running;
+                        this.julesFailed = data.jules_failed;
+                        this.githubRunning = data.github_running;
+                        this.githubPassed = data.github_passed;
+                        this.githubFailed = data.github_failed;
+
+                        // Dispatch event for other components
+                        window.dispatchEvent(new CustomEvent('sync-updated', { detail: data }));
+                    }
+                })
+                .catch(err => console.error('Periodic sync failed:', err));
+        }, 15000);
     },
     fetchNotifications() {
         this.loadingNotifications = true;

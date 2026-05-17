@@ -349,6 +349,69 @@ class Task
         return 'grey';
     }
 
+    public function getTaskUiInfo(array $task): array
+    {
+        $statusColor = $this->getStatusColor($task);
+        $state = $task['github_state'] ?? 'open';
+        $status = $task['status'] ?? 'pending';
+
+        $emoji = '⏳';
+        if ($state === 'closed' || $status === 'completed') {
+            $emoji = '✅';
+        } elseif ($status === 'failed' || $status === 'failed_jules' || $status === 'failed_pr') {
+            $emoji = '❌';
+        } elseif (in_array($status, ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) {
+            $emoji = '🚧';
+        }
+
+        $statusLabel = str_replace(['failed_jules', 'failed_pr'], 'failed', $status);
+        if ($status === 'failed_jules') {
+            $statusLabel = 'Jules failed';
+        } elseif ($status === 'failed_pr') {
+            $statusLabel = 'PR failed';
+        }
+
+        $julesStatus = $task['jules_status'] ?? 'pending';
+        $julesDisplayStatus = ucfirst(str_replace(['-', '_'], ' ', $julesStatus));
+        $julesColor = 'gray';
+        if (in_array($julesStatus, ['coding', 'testing', 'researching', 'planning', 'in-progress', 'in_progress'])) {
+            $julesColor = 'yellow';
+        } elseif (in_array($julesStatus, ['completed', 'finished'])) {
+            $julesColor = 'green';
+        } elseif (in_array($julesStatus, ['failed', 'error']) || $status === 'failed_jules') {
+            $julesColor = 'red';
+        }
+
+        $prStatus = !empty($task['pr_url']) ? 'Open' : 'None';
+        $prColor = !empty($task['pr_url']) ? 'green' : 'gray';
+        if ($state === 'closed' && !empty($task['pr_url'])) {
+            $prStatus = 'Closed';
+            $prColor = 'purple';
+        } elseif ($status === 'failed_pr') {
+            $prStatus = 'Failed';
+            $prColor = 'red';
+        } elseif ($status === 'completed' && !empty($task['pr_url'])) {
+            $prStatus = 'Passed';
+            $prColor = 'green';
+        }
+
+        return [
+            'task_id' => (int)$task['task_id'],
+            'status_color' => $statusColor,
+            'status_emoji' => $emoji,
+            'status_label' => $statusLabel,
+            'github_state' => $state,
+            'jules_status' => $julesStatus,
+            'jules_display_status' => $julesDisplayStatus,
+            'jules_color' => $julesColor,
+            'pr_status' => $prStatus,
+            'pr_color' => $prColor,
+            'pr_url' => $task['pr_url'] ?? '',
+            'jules_url' => $task['jules_url'] ?? '',
+            'target_url' => $this->getTargetUrl($task)
+        ];
+    }
+
     public function hasAutorepeatLabel(array $task): bool
     {
         $githubData = json_decode($task['github_data'] ?? '{}', true);
@@ -479,7 +542,8 @@ class Task
 
     public function getTargetUrl(array $task, ?string $repo = null): string
     {
-        $issueUrl = "https://github.com/" . ($repo ?? $task['github_repo']) . "/issues/" . $task['issue_number'];
+        $repoName = $repo ?? ($task['github_repo'] ?? 'unknown/repo');
+        $issueUrl = "https://github.com/" . $repoName . "/issues/" . ($task['issue_number'] ?? 0);
         $status = $task['status'] ?? 'pending';
 
         if ($status === 'completed' || $status === 'failed_pr') {

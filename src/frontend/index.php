@@ -222,40 +222,33 @@ $errorMessage = $errorMessage ?? null;
                                                     <p class="text-sm text-gray-500 mt-1">Linked as&nbsp;<?= htmlspecialchars($project['github_username'] ?? '') ?></p>
                                                 <?php endif; ?>
 
-                                                <div class="flex flex-wrap gap-2 mt-3">
-                                                    <?php
-                                                    $tasks = $projectTasks[$project['project_id']] ?? [];
-                                                    foreach ($tasks as $task):
-                                                        $color = $taskModel->getStatusColor($task);
-                                                        $isAutorepeat = $taskModel->hasAutorepeatLabel($task);
-                                                        $state = $task['github_state'] ?? 'open';
-
-                                                        $emoji = '⏳';
-                                                        $statusLabel = $task['status'] ?? '';
-                                                        if ($state === 'closed') {
-                                                            $emoji = '✅';
-                                                            $statusLabel = 'closed';
-                                                        } elseif ($task['status'] === 'completed') {
-                                                            $emoji = '✅';
-                                                        } elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') {
-                                                            $emoji = '❌';
-                                                            $statusLabel = 'Jules';
-                                                        } elseif ($task['status'] === 'failed_pr') {
-                                                            $emoji = '❌';
-                                                            $statusLabel = 'PR';
-                                                        } elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) {
-                                                            $emoji = '🚧';
-                                                        }
-                                                    ?>
+                                                <div class="flex flex-wrap gap-2 mt-3" x-data="{
+                                                    tasks: <?= htmlspecialchars(json_encode(array_map(fn($t) => array_merge($taskModel->getTaskUiInfo($t), [
+                                                        'issue_number' => $t['issue_number'],
+                                                        'title' => $t['title'],
+                                                        'is_autorepeat' => $taskModel->hasAutorepeatLabel($t)
+                                                    ]), $projectTasks[$project['project_id']] ?? []))) ?>
+                                                }" @sync-updated.window="
+                                                    if ($event.detail.tasks) {
+                                                        $event.detail.tasks.forEach(updatedTask => {
+                                                            const idx = tasks.findIndex(t => t.task_id === updatedTask.task_id);
+                                                            if (idx !== -1) {
+                                                                tasks[idx] = { ...tasks[idx], ...updatedTask };
+                                                            }
+                                                        });
+                                                    }
+                                                ">
+                                                    <template x-for="task in tasks" :key="task.task_id">
                                                         <div class="relative group">
-                                                            <a href="task.php?id=<?= $task['task_id'] ?>"
-                                                               class="status-square <?= $color ?> <?= $isAutorepeat ? 'auto-repeat-tag' : '' ?>">
+                                                            <a :href="'task.php?id=' + task.task_id"
+                                                               class="status-square"
+                                                               :class="task.status_color + (task.is_autorepeat ? ' auto-repeat-tag' : '')">
                                                             </a>
                                                             <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">
-                                                                #<?= htmlspecialchars($task['issue_number'] ?? '') ?>: <?= $emoji ?> <?= htmlspecialchars($statusLabel) ?> - <?= htmlspecialchars(mb_substr($task['title'] ?? '', 0, 30)) ?><?= mb_strlen($task['title'] ?? '') > 30 ? '...' : '' ?>
+                                                                #<span x-text="task.issue_number"></span>: <span x-text="task.status_emoji"></span> <span x-text="task.status_label"></span> - <span x-text="task.title.substring(0, 30) + (task.title.length > 30 ? '...' : '')"></span>
                                                             </div>
                                                         </div>
-                                                    <?php endforeach; ?>
+                                                    </template>
                                                 </div>
 
                                                 <div class="mt-4">
