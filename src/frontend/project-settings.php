@@ -182,13 +182,6 @@ if (isset($_GET['success'])) {
                 </div>
                 <div class="flex items-center">
                     <?php include 'navbar-icons.php'; ?>
-                    <div class="flex items-center ml-3">
-                        <img class="w-8 h-8 rounded-full" src="<?= htmlspecialchars($user['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="user photo">
-                        <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($user['name'] ?? '') ?></div>
-                        <a href="templates.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Templates</a>
-                        <a href="settings.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Settings</a>
-                        <a href="logout.php" class="ml-4 text-sm font-medium text-red-600 hover:underline">Logout</a>
-                    </div>
                 </div>
             </div>
         </div>
