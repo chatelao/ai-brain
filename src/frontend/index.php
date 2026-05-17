@@ -128,7 +128,7 @@ $errorMessage = $errorMessage ?? null;
                     <span class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap">Agent Control</span>
                 </div>
                 <div class="flex items-center">
-                    <?php if ($user): ?>
+                    <?php if ($user) : ?>
                         <?php include 'navbar-icons.php'; ?>
                         <div class="flex items-center ml-3">
                             <div>
@@ -141,7 +141,7 @@ $errorMessage = $errorMessage ?? null;
                             <a href="settings.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Settings</a>
                             <a href="logout.php" class="ml-4 text-sm font-medium text-red-600 hover:underline">Logout</a>
                         </div>
-                    <?php else: ?>
+                    <?php else : ?>
                         <a href="login.php" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 focus:outline-none">Login with Google</a>
                     <?php endif; ?>
                 </div>
@@ -153,13 +153,13 @@ $errorMessage = $errorMessage ?? null;
         <div id="main-content" class="relative w-full h-full overflow-y-auto bg-gray-50">
             <main>
                 <div class="px-4 pt-6">
-                    <?php if ($errorMessage): ?>
+                    <?php if ($errorMessage) : ?>
                         <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
                             <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage ?? '') ?>
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($user && !empty($autorepeatTasks)): ?>
+                    <?php if ($user && !empty($autorepeatTasks)) : ?>
                         <div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                             <h3 class="text-lg font-bold text-gray-900 mb-4">Running Autorepeat Tasks</h3>
                             <div class="overflow-x-auto">
@@ -172,7 +172,7 @@ $errorMessage = $errorMessage ?? null;
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach ($autorepeatTasks as $task): ?>
+                                        <?php foreach ($autorepeatTasks as $task) : ?>
                                             <tr class="bg-white border-b">
                                                 <td class="px-6 py-4 font-medium text-gray-900">
                                                     <a href="https://github.com/<?= htmlspecialchars($task['github_repo'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
@@ -200,10 +200,10 @@ $errorMessage = $errorMessage ?? null;
 
                     <div class="grid w-full grid-cols-1 gap-4 mt-4">
                         <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
-                            <?php if ($user): ?>
+                            <?php if ($user) : ?>
                                 <div class="mt-4">
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        <?php foreach ($projects as $project): ?>
+                                        <?php foreach ($projects as $project) : ?>
                                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                                                 <div class="flex justify-between items-start">
                                                     <h5 class="text-lg font-bold text-gray-900 truncate">
@@ -218,14 +218,14 @@ $errorMessage = $errorMessage ?? null;
                                                 <?php
                                                 $repoParts = explode('/', $project['github_repo']);
                                                 $repoOwner = $repoParts[0] ?? '';
-                                                if (strcasecmp($repoOwner, $project['github_username']) !== 0): ?>
+                                                if (strcasecmp($repoOwner, $project['github_username']) !== 0) : ?>
                                                     <p class="text-sm text-gray-500 mt-1">Linked as&nbsp;<?= htmlspecialchars($project['github_username'] ?? '') ?></p>
                                                 <?php endif; ?>
 
                                                 <div class="flex flex-wrap gap-2 mt-3">
                                                     <?php
                                                     $tasks = $projectTasks[$project['project_id']] ?? [];
-                                                    foreach ($tasks as $task):
+                                                    foreach ($tasks as $task) :
                                                         $color = $taskModel->getStatusColor($task);
                                                         $isAutorepeat = $taskModel->hasAutorepeatLabel($task);
                                                         $state = $task['github_state'] ?? 'open';
@@ -246,7 +246,7 @@ $errorMessage = $errorMessage ?? null;
                                                         } elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) {
                                                             $emoji = '🚧';
                                                         }
-                                                    ?>
+                                                        ?>
                                                         <div class="relative group">
                                                             <a href="task.php?id=<?= $task['task_id'] ?>"
                                                                class="status-square <?= $color ?> <?= $isAutorepeat ? 'auto-repeat-tag' : '' ?>">
@@ -266,9 +266,9 @@ $errorMessage = $errorMessage ?? null;
 
                                         <!-- Add Project Card -->
                                         <div class="p-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center">
-                                            <?php if (empty($githubAccounts)): ?>
+                                            <?php if (empty($githubAccounts)) : ?>
                                                 <p class="text-sm text-gray-500 text-center">Please link a GitHub account first.</p>
-                                            <?php else: ?>
+                                            <?php else : ?>
                                                 <form method="POST" class="w-full" x-data="{
                                                     repo: '',
                                                     selectedAccountId: '<?= $githubAccounts[0]['github_account_id'] ?>',
@@ -292,7 +292,7 @@ $errorMessage = $errorMessage ?? null;
                                                     <div class="mb-2">
                                                         <label class="block mb-1 text-xs font-medium text-gray-900">GitHub Account</label>
                                                         <select name="github_account_id" x-model="selectedAccountId" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                                                            <?php foreach ($githubAccounts as $account): ?>
+                                                            <?php foreach ($githubAccounts as $account) : ?>
                                                                 <option value="<?= $account['github_account_id'] ?>" x-text="'<?= htmlspecialchars($account['github_username'] ?? '') ?>' + (recommendedId == <?= $account['github_account_id'] ?> ? ' (Recommended)' : '')">
                                                                     <?= htmlspecialchars($account['github_username'] ?? '') ?>
                                                                 </option>
@@ -309,7 +309,7 @@ $errorMessage = $errorMessage ?? null;
                                         </div>
                                     </div>
                                 </div>
-                            <?php else: ?>
+                            <?php else : ?>
                                 <h3 class="text-base font-normal text-gray-500">Welcome to Agent Control</h3>
                                 <p class="text-2xl font-bold leading-none text-gray-900 sm:text-3xl">Please Login</p>
                                 <div class="mt-4">

@@ -104,12 +104,12 @@ $title = $filterLabels[$filter] ?? 'Tasks';
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php if (empty($tasks)): ?>
+                                    <?php if (empty($tasks)) : ?>
                                         <tr class="bg-white border-b">
                                             <td colspan="3" class="px-6 py-4 text-center">No tasks matching this filter.</td>
                                         </tr>
                                     <?php endif; ?>
-                                    <?php foreach ($tasks as $task): ?>
+                                    <?php foreach ($tasks as $task) : ?>
                                         <tr class="bg-white border-b hover:bg-gray-50 transition-colors">
                                             <td class="px-6 py-4 font-medium text-gray-900">
                                                 <a href="project.php?id=<?= $task['project_id'] ?>" class="text-blue-600 hover:underline">
@@ -128,20 +128,33 @@ $title = $filterLabels[$filter] ?? 'Tasks';
                                                 <?php
                                                 $statusColor = $taskModel->getStatusColor($task);
                                                 $bgClass = 'bg-gray-100 text-gray-800';
-                                                if ($statusColor === 'green') $bgClass = 'bg-green-100 text-green-800';
-                                                elseif ($statusColor === 'yellow') $bgClass = 'bg-yellow-100 text-yellow-800';
-                                                elseif ($statusColor === 'blue') $bgClass = 'bg-blue-100 text-blue-800';
-                                                elseif ($statusColor === 'red') $bgClass = 'bg-red-100 text-red-800';
-                                                elseif ($statusColor === 'purple') $bgClass = 'bg-purple-100 text-purple-800';
+                                                if ($statusColor === 'green') {
+                                                    $bgClass = 'bg-green-100 text-green-800';
+                                                } elseif ($statusColor === 'yellow') {
+                                                    $bgClass = 'bg-yellow-100 text-yellow-800';
+                                                } elseif ($statusColor === 'blue') {
+                                                    $bgClass = 'bg-blue-100 text-blue-800';
+                                                } elseif ($statusColor === 'red') {
+                                                    $bgClass = 'bg-red-100 text-red-800';
+                                                } elseif ($statusColor === 'purple') {
+                                                    $bgClass = 'bg-purple-100 text-purple-800';
+                                                }
                                                 ?>
                                                 <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
                                                     <?php
-                                                    if (($task['github_state'] ?? 'open') === 'closed') echo '✅ ';
-                                                    elseif ($task['status'] === 'completed') echo '✅ ';
-                                                    elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') echo '❌ Jules ';
-                                                    elseif ($task['status'] === 'failed_pr') echo '❌ PR ';
-                                                    elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) echo '🚧 ';
-                                                    else echo '⏳ ';
+                                                    if (($task['github_state'] ?? 'open') === 'closed') {
+                                                        echo '✅ ';
+                                                    } elseif ($task['status'] === 'completed') {
+                                                        echo '✅ ';
+                                                    } elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') {
+                                                        echo '❌ Jules ';
+                                                    } elseif ($task['status'] === 'failed_pr') {
+                                                        echo '❌ PR ';
+                                                    } elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) {
+                                                        echo '🚧 ';
+                                                    } else {
+                                                        echo '⏳ ';
+                                                    }
                                                     ?>
                                                     <?= htmlspecialchars(str_replace(['failed_jules', 'failed_pr'], 'failed', $task['status'] ?? '')) ?>
                                                 </span>

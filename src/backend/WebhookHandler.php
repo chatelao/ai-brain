@@ -117,7 +117,9 @@ class WebhookHandler
 
         foreach ($pullRequests as $pr) {
             $prUrl = $pr['url'] ?? '';
-            if (!$prUrl) continue;
+            if (!$prUrl) {
+                continue;
+            }
 
             // GitHub API PR URL is usually api.github.com/repos/.../pulls/...
             // But we store html_url in tasks table. Let's try to convert or match.
@@ -125,7 +127,9 @@ class WebhookHandler
             $htmlUrl = str_replace(['api.github.com/repos', '/pulls/'], ['github.com', '/pull/'], $prUrl);
 
             $task = $taskModel->findByPrUrl($htmlUrl);
-            if (!$task) continue;
+            if (!$task) {
+                continue;
+            }
 
             $newStatus = $task['status'];
             if ($conclusion === 'failure' || $conclusion === 'timed_out' || $conclusion === 'cancelled') {

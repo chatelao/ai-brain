@@ -56,7 +56,7 @@ $tasks = $taskModel->findByProjectId($projectId, $showAll);
 $lastAgentResponse = null;
 $errorMessage = null;
 
-$triggerAgent = function($taskId) use ($taskModel, $logger, $user, $project, $julesService, $notificationService, &$lastAgentResponse, &$errorMessage, &$tasks, $projectId, $showAll) {
+$triggerAgent = function ($taskId) use ($taskModel, $logger, $user, $project, $julesService, $notificationService, &$lastAgentResponse, &$errorMessage, &$tasks, $projectId, $showAll) {
     $task = $taskModel->findById($taskId);
     if ($task && $task['project_id'] === $project['project_id']) {
         try {
@@ -322,13 +322,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                         </div>
                     </div>
 
-                    <?php if ($errorMessage): ?>
+                    <?php if ($errorMessage) : ?>
                         <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
                             <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage ?? '') ?>
                         </div>
                     <?php endif; ?>
 
-                    <?php if (isset($_GET['success']) && $_GET['success'] === 'issue_created'): ?>
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'issue_created') : ?>
                         <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
                             <span class="font-medium">Success!</span> Issue created from template. It may take a few seconds to appear in the list (synced via webhook).
                         </div>
@@ -337,7 +337,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
 
 
 
-                    <?php if ($lastAgentResponse): ?>
+                    <?php if ($lastAgentResponse) : ?>
                         <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50" role="alert">
                             <span class="font-medium">Agent Response:</span>
                             <div class="mt-2 p-2 bg-white rounded border border-blue-200 whitespace-pre-wrap font-mono text-xs">
@@ -350,17 +350,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                         <div class="lg:col-span-1 order-1 lg:order-2 space-y-4">
                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                                 <h3 class="text-lg font-bold text-gray-900 mb-4">Project Overview</h3>
-                                <?php if (empty($roadmapFiles)): ?>
+                                <?php if (empty($roadmapFiles)) : ?>
                                     <p class="text-sm text-gray-500 italic">No roadmap files found in the repository.</p>
-                                <?php else: ?>
+                                <?php else : ?>
                                     <ul class="space-y-2">
-                                        <?php foreach ($roadmapFiles as $file): ?>
+                                        <?php foreach ($roadmapFiles as $file) : ?>
                                             <li class="flex flex-col">
                                                 <a href="<?= htmlspecialchars($file['html_url'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-600 hover:underline flex items-center">
                                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                                     <?= htmlspecialchars($file['name'] ?? '') ?>
                                                 </a>
-                                                <?php if (!empty($file['next_task'])): ?>
+                                                <?php if (!empty($file['next_task'])) : ?>
                                                     <span class="text-[10px] text-gray-500 ml-6 italic whitespace-nowrap">
                                                         🚧 <?= htmlspecialchars($file['next_task'] ?? '') ?>
                                                     </span>
@@ -386,15 +386,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                 }
                             }">
                                 <h3 class="text-lg font-bold text-gray-900 mb-4">Create Issue from Template</h3>
-                                <?php if (empty($templates)): ?>
+                                <?php if (empty($templates)) : ?>
                                     <p class="text-sm text-gray-500 italic">No templates available. <a href="templates.php" class="text-blue-600 hover:underline">Create one first.</a></p>
-                                <?php else: ?>
+                                <?php else : ?>
                                     <form method="POST">
                                         <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                         <div class="mb-4">
                                             <label class="block mb-2 text-sm font-medium text-gray-900">Select Template</label>
                                             <select name="template_id" x-model="selectedTemplateId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                                                <?php foreach ($templates as $tmpl): ?>
+                                                <?php foreach ($templates as $tmpl) : ?>
                                                     <option value="<?= $tmpl['issue_template_id'] ?>"><?= htmlspecialchars($tmpl['name'] ?? '') ?></option>
                                                 <?php endforeach; ?>
                                             </select>
@@ -428,12 +428,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php if (empty($tasks)): ?>
+                                        <?php if (empty($tasks)) : ?>
                                             <tr class="bg-white border-b">
                                                 <td colspan="3" class="px-6 py-4 text-center">No tasks found. Open an issue on GitHub to see it here.</td>
                                             </tr>
                                         <?php endif; ?>
-                                        <?php foreach ($tasks as $task): ?>
+                                        <?php foreach ($tasks as $task) : ?>
                                             <tr class="bg-white border-b">
                                                 <td class="px-6 py-4">
                                                     <div class="text-base text-gray-900 font-normal markdown-body">
@@ -450,20 +450,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                     <?php
                                                     $statusColor = $taskModel->getStatusColor($task);
                                                     $bgClass = 'bg-gray-100 text-gray-800';
-                                                    if ($statusColor === 'green') $bgClass = 'bg-green-100 text-green-800';
-                                                    elseif ($statusColor === 'yellow') $bgClass = 'bg-yellow-100 text-yellow-800';
-                                                    elseif ($statusColor === 'blue') $bgClass = 'bg-blue-100 text-blue-800';
-                                                    elseif ($statusColor === 'red') $bgClass = 'bg-red-100 text-red-800';
-                                                    elseif ($statusColor === 'purple') $bgClass = 'bg-purple-100 text-purple-800';
+                                                    if ($statusColor === 'green') {
+                                                        $bgClass = 'bg-green-100 text-green-800';
+                                                    } elseif ($statusColor === 'yellow') {
+                                                        $bgClass = 'bg-yellow-100 text-yellow-800';
+                                                    } elseif ($statusColor === 'blue') {
+                                                        $bgClass = 'bg-blue-100 text-blue-800';
+                                                    } elseif ($statusColor === 'red') {
+                                                        $bgClass = 'bg-red-100 text-red-800';
+                                                    } elseif ($statusColor === 'purple') {
+                                                        $bgClass = 'bg-purple-100 text-purple-800';
+                                                    }
                                                     ?>
                                                     <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
                                                         <?php
-                                                        if (($task['github_state'] ?? 'open') === 'closed') echo '✅ ';
-                                                        elseif ($task['status'] === 'completed') echo '✅ ';
-                                                        elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') echo '❌ Jules ';
-                                                        elseif ($task['status'] === 'failed_pr') echo '❌ PR ';
-                                                        elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) echo '🚧 ';
-                                                        else echo '⏳ ';
+                                                        if (($task['github_state'] ?? 'open') === 'closed') {
+                                                            echo '✅ ';
+                                                        } elseif ($task['status'] === 'completed') {
+                                                            echo '✅ ';
+                                                        } elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') {
+                                                            echo '❌ Jules ';
+                                                        } elseif ($task['status'] === 'failed_pr') {
+                                                            echo '❌ PR ';
+                                                        } elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) {
+                                                            echo '🚧 ';
+                                                        } else {
+                                                            echo '⏳ ';
+                                                        }
                                                         ?>
                                                         <?= htmlspecialchars(str_replace(['failed_jules', 'failed_pr'], 'failed', $task['status'] ?? '')) ?>
                                                     </span>
@@ -475,14 +488,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                         $isCompleted = ($task['status'] ?? '') === 'completed';
                                                         $isImplemented = ($task['status'] ?? '') === 'implemented';
                                                         ?>
-                                                        <?php if (!$isClosed && !$isCompleted && !$isImplemented): ?>
+                                                        <?php if (!$isClosed && !$isCompleted && !$isImplemented) : ?>
                                                             <form method="POST" class="inline">
                                                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                                                 <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
                                                                 <button type="submit" name="trigger_agent" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Run Agent</button>
                                                             </form>
                                                         <?php endif; ?>
-                                                        <?php if ($isCompleted || $isImplemented): ?>
+                                                        <?php if ($isCompleted || $isImplemented) : ?>
                                                             <form method="POST" class="inline">
                                                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                                                 <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">

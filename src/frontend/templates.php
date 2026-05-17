@@ -183,13 +183,13 @@ $templates = $templateModel->findByUserId($user['user_id']);
                         </div>
                     </div>
 
-                    <?php if ($errorMessage): ?>
+                    <?php if ($errorMessage) : ?>
                         <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
                             <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage) ?>
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($successMessage): ?>
+                    <?php if ($successMessage) : ?>
                         <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
                             <span class="font-medium">Success!</span> <?= htmlspecialchars($successMessage) ?>
                         </div>
@@ -208,12 +208,12 @@ $templates = $templateModel->findByUserId($user['user_id']);
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php if (empty($templates)): ?>
+                                        <?php if (empty($templates)) : ?>
                                             <tr class="bg-white border-b">
                                                 <td colspan="3" class="px-6 py-4 text-center">No templates found. Create one using the form.</td>
                                             </tr>
                                         <?php endif; ?>
-                                        <?php foreach ($templates as $template): ?>
+                                        <?php foreach ($templates as $template) : ?>
                                             <tr class="bg-white border-b">
                                                 <td class="px-6 py-4 font-medium text-gray-900">
                                                     <?= htmlspecialchars($template['name']) ?>

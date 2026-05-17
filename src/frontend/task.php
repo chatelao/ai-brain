@@ -212,7 +212,7 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                         </ol>
                     </nav>
 
-                    <?php if (isset($_GET['success']) && $_GET['success'] === 'notifications_updated'): ?>
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'notifications_updated') : ?>
                         <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
                             <span class="font-medium">Success!</span> Notification settings updated.
                         </div>
@@ -227,12 +227,19 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                             <div class="flex items-center space-x-2">
                                 <span class="px-4 py-1.5 text-sm font-semibold rounded-full bg-<?= $statusColor ?>-100 text-<?= $statusColor ?>-800 flex items-center shadow-sm">
                                     <?php
-                                    if ($task['status'] === 'completed') echo '✅ ';
-                                    elseif (in_array($task['status'], ['in_progress', 'coding', 'testing'])) echo '🚧 ';
-                                    elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') echo '❌ Jules ';
-                                    elseif ($task['status'] === 'failed_pr') echo '❌ PR ';
-                                    elseif (in_array($task['status'], ['researching', 'planning', 'awaiting-plan-approval', 'awaiting-user-feedback'])) echo '🔵 ';
-                                    else echo '⏳ ';
+                                    if ($task['status'] === 'completed') {
+                                        echo '✅ ';
+                                    } elseif (in_array($task['status'], ['in_progress', 'coding', 'testing'])) {
+                                        echo '🚧 ';
+                                    } elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') {
+                                        echo '❌ Jules ';
+                                    } elseif ($task['status'] === 'failed_pr') {
+                                        echo '❌ PR ';
+                                    } elseif (in_array($task['status'], ['researching', 'planning', 'awaiting-plan-approval', 'awaiting-user-feedback'])) {
+                                        echo '🔵 ';
+                                    } else {
+                                        echo '⏳ ';
+                                    }
                                     ?>
                                     <?= htmlspecialchars(str_replace(['failed_jules', 'failed_pr'], 'failed', $task['status'] ?? '')) ?>
                                 </span>
@@ -240,7 +247,7 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                         </div>
 
                         <div class="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-6">
-                            <?php foreach ($labels as $label): ?>
+                            <?php foreach ($labels as $label) : ?>
                                 <span class="px-2.5 py-1 text-xs font-semibold rounded-full border shadow-sm" style="background-color: #<?= $label['color'] ?>20; border-color: #<?= $label['color'] ?>; color: #<?= $label['color'] ?>; filter: brightness(0.8);">
                                     <?= htmlspecialchars($label['name'] ?? '') ?>
                                 </span>
@@ -266,7 +273,7 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                                 </div>
                             </div>
 
-                            <?php if ($prDetails): ?>
+                            <?php if ($prDetails) : ?>
                                 <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
                                     <div class="bg-green-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
                                         <div class="flex items-center space-x-2">
@@ -289,7 +296,7 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                                             <span>Base: <code class="bg-gray-100 px-1 rounded"><?= htmlspecialchars($prDetails['base']['ref'] ?? 'main') ?></code></span>
                                             <span>Head: <code class="bg-gray-100 px-1 rounded"><?= htmlspecialchars($prDetails['head']['ref'] ?? 'feature') ?></code></span>
                                         </div>
-                                        <?php if (!empty($prDetails['body'])): ?>
+                                        <?php if (!empty($prDetails['body'])) : ?>
                                             <div class="prose prose-sm max-w-none text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-100">
                                                 <?= $parsedown->text($taskModel->processGitHubImages(mb_substr($prDetails['body'], 0, 300) . (mb_strlen($prDetails['body']) > 300 ? '...' : ''))) ?>
                                             </div>
@@ -298,13 +305,13 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                                 </div>
                             <?php endif; ?>
 
-                            <?php if (!empty($julesMessages)): ?>
+                            <?php if (!empty($julesMessages)) : ?>
                                 <div class="space-y-4">
                                     <h3 class="text-lg font-bold text-gray-900 px-1 flex items-center">
                                         <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                                         Last Jules Messages
                                     </h3>
-                                    <?php foreach ($julesMessages as $msg): ?>
+                                    <?php foreach ($julesMessages as $msg) : ?>
                                         <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
                                             <div class="bg-blue-50 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
                                                 <div class="flex items-center space-x-2">
@@ -329,10 +336,10 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                                     <h3 class="text-sm font-bold text-gray-700">Task Logs</h3>
                                 </div>
                                 <div class="p-4 space-y-1 bg-gray-900 min-h-[100px] max-h-[400px] overflow-y-auto">
-                                    <?php if (empty($logs)): ?>
+                                    <?php if (empty($logs)) : ?>
                                         <p class="text-sm text-gray-400 italic">No logs available for this task.</p>
-                                    <?php else: ?>
-                                        <?php foreach ($logs as $log): ?>
+                                    <?php else : ?>
+                                        <?php foreach ($logs as $log) : ?>
                                             <div class="flex items-start text-xs font-mono p-1 rounded <?= $log['level'] === 'error' ? 'bg-red-900/30 text-red-300' : 'text-gray-300 hover:bg-gray-800' ?>">
                                                 <span class="text-gray-500 mr-3 shrink-0">[<?= htmlspecialchars(date('H:i:s', strtotime($log['created_at']))) ?>]</span>
                                                 <span class="flex-1"><?= htmlspecialchars($log['message'] ?? '') ?></span>
@@ -342,7 +349,7 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                                 </div>
                             </div>
 
-                            <?php if (!empty($task['agent_response'])): ?>
+                            <?php if (!empty($task['agent_response'])) : ?>
                                 <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
                                     <div class="bg-blue-50 px-4 py-3 border-b border-gray-200">
                                         <h3 class="text-sm font-bold text-blue-700">Last Agent Analysis</h3>
@@ -373,12 +380,12 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
 
                                     <!-- Jules Session -->
                                     <div class="flex items-center justify-between">
-                                        <?php if (!empty($task['jules_url'])): ?>
+                                        <?php if (!empty($task['jules_url'])) : ?>
                                             <a href="<?= htmlspecialchars($task['jules_url'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="flex items-center text-sm text-purple-600 hover:underline">
                                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 5.586 3.004 3.004 0 0 0 5.193 2.019A4 4 0 0 1 12 18c.35 0 .692.045 1.02.13a3.004 3.004 0 0 0 5.193-2.019 4 4 0 0 0 .52-5.586 4 4 0 0 0-2.526-5.77A3 3 0 1 0 12 5M9 14.5a2.5 2.5 0 0 0 2.46-2.019M15 14.5a2.5 2.5 0 0 1-2.46-2.019"/></svg>
                                                 Jules Session
                                             </a>
-                                        <?php else: ?>
+                                        <?php else : ?>
                                             <div class="flex items-center text-sm text-gray-500">
                                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 5.586 3.004 3.004 0 0 0 5.193 2.019A4 4 0 0 1 12 18c.35 0 .692.045 1.02.13a3.004 3.004 0 0 0 5.193-2.019 4 4 0 0 0 .52-5.586 4 4 0 0 0-2.526-5.77A3 3 0 1 0 12 5M9 14.5a2.5 2.5 0 0 0 2.46-2.019M15 14.5a2.5 2.5 0 0 1-2.46-2.019"/></svg>
                                                 Jules Session
@@ -391,12 +398,12 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
 
                                     <!-- Pull Request -->
                                     <div class="flex items-center justify-between">
-                                        <?php if (!empty($task['pr_url'])): ?>
+                                        <?php if (!empty($task['pr_url'])) : ?>
                                             <a href="<?= htmlspecialchars($task['pr_url'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="flex items-center text-sm text-<?= $prColor ?>-600 hover:underline">
                                                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M11 19.25c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 14.5c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 9.75c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 19.25c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 14.5c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 9.75c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM20.5 2h-17C2.673 2 2 2.673 2 3.5v17c0 .827.673 1.5 1.5 1.5h17c.827 0 1.5-.673 1.5-1.5v-17C22 2.673 21.327 2 20.5 2zM20 18H4V4h16v14z"/></svg>
                                                 Pull Request
                                             </a>
-                                        <?php else: ?>
+                                        <?php else : ?>
                                             <div class="flex items-center text-sm text-gray-500">
                                                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M11 19.25c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 14.5c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 9.75c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 19.25c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 14.5c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 9.75c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM20.5 2h-17C2.673 2 2 2.673 2 3.5v17c0 .827.673 1.5 1.5 1.5h17c.827 0 1.5-.673 1.5-1.5v-17C22 2.673 21.327 2 20.5 2zM20 18H4V4h16v14z"/></svg>
                                                 Pull Request
@@ -412,7 +419,7 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                                     <div class="text-xs text-gray-500 space-y-1">
                                         <p>Created: <?= htmlspecialchars($task['created_at'] ?? '') ?></p>
                                         <p>Last Synced: <?= htmlspecialchars($task['last_synced_at'] ?? 'Never') ?></p>
-                                        <?php if (!empty($task['jules_session_id'])): ?>
+                                        <?php if (!empty($task['jules_session_id'])) : ?>
                                             <p>Jules Session ID: <span class="font-mono"><?= htmlspecialchars($task['jules_session_id'] ?? '') ?></span></p>
                                         <?php endif; ?>
                                     </div>

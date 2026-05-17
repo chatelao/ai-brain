@@ -20,6 +20,7 @@ $db = new Database();
 $userModel = new User($db);
 $projectModel = new Project($db);
 $taskModel = new Task($db);
+$githubService = new GitHubService();
 $julesService = new JulesService();
 
 $users = $userModel->getAllUsersWithProjectCount();
