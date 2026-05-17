@@ -62,4 +62,16 @@ class WebhookLogger
         $stmt->execute([$userId]);
         return $stmt->fetchAll();
     }
+
+    public function getAllLogs(int $limit = 100): array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT w.*, u.email as user_email FROM webhook_logs w
+             LEFT JOIN users u ON w.user_id = u.user_id
+             ORDER BY w.created_at DESC, w.log_id DESC
+             LIMIT " . (int)$limit
+        );
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }
