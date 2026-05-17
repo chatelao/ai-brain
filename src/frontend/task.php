@@ -38,6 +38,24 @@ $labels = $githubData['labels'] ?? [];
 $statusColor = $taskModel->getStatusColor($task);
 $logs = $taskModel->getLogs($taskId);
 
+// Status logic for the right sidebar overview
+$githubIssueStatus = ucfirst($task['github_state'] ?? 'open');
+$githubIssueColor = $githubIssueStatus === 'Closed' ? 'purple' : 'green';
+
+$julesStatus = $task['jules_status'] ?? 'Pending';
+$julesDisplayStatus = ucfirst(str_replace(['-', '_'], ' ', $julesStatus));
+$julesColor = 'gray';
+if (in_array($julesStatus, ['coding', 'testing', 'researching', 'planning', 'in-progress', 'in_progress'])) {
+    $julesColor = 'yellow';
+} elseif (in_array($julesStatus, ['completed', 'finished'])) {
+    $julesColor = 'green';
+} elseif (in_array($julesStatus, ['failed', 'error'])) {
+    $julesColor = 'red';
+}
+
+$prStatus = !empty($task['pr_url']) ? 'Open' : 'None';
+$prColor = !empty($task['pr_url']) ? 'green' : 'gray';
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -157,6 +175,30 @@ $logs = $taskModel->getLogs($taskId);
                         </div>
 
                         <div class="lg:col-span-1 space-y-4">
+                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">Status Overview</h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-gray-600">GH issue</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-<?= $githubIssueColor ?>-100 text-<?= $githubIssueColor ?>-800">
+                                            <?= htmlspecialchars($githubIssueStatus) ?>
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-gray-600">Jules session</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-<?= $julesColor ?>-100 text-<?= $julesColor ?>-800">
+                                            <?= htmlspecialchars($julesDisplayStatus) ?>
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-gray-600">GH PR</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-<?= $prColor ?>-100 text-<?= $prColor ?>-800">
+                                            <?= htmlspecialchars($prStatus) ?>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                                 <h3 class="text-lg font-bold text-gray-900 mb-4">Links & Status</h3>
                                 <ul class="space-y-3">
