@@ -8,38 +8,55 @@ def run_cuj(page):
     screenshot_dir = "test/screenshots"
     os.makedirs(screenshot_dir, exist_ok=True)
 
-    # Start the PHP server
-    env = os.environ.copy()
-    env["DB_NAME"] = ":memory:"
-    server_process = subprocess.Popen(
-        ["php", "-S", "localhost:8088", "test/Integration/verify_project_ui.php"],
-        env=env
-    )
-    time.sleep(2)  # Wait for server to start
+    # Helper function to run server
+    def start_server(script):
+        env = os.environ.copy()
+        env["DB_NAME"] = ":memory:"
+        return subprocess.Popen(
+            ["php", "-S", "localhost:8088", script],
+            env=env
+        )
 
+    # Test Project UI
+    print("Testing Project UI...")
+    server_process = start_server("test/Integration/verify_project_ui.php")
+    time.sleep(1)
     try:
-        # Step 1: Navigate to Project Details
         page.goto("http://localhost:8088")
-        page.wait_for_timeout(1000)
-
-        # Check if we see the project details
         page.wait_for_selector("h1:has-text('owner/repo')")
         page.screenshot(path=f"{screenshot_dir}/01_project_details.png")
-        print(f"Saved screenshot: {screenshot_dir}/01_project_details.png")
+        print(f"Saved: {screenshot_dir}/01_project_details.png")
+    finally:
+        server_process.terminate()
 
-        # Step 2: Verify tasks are visible
-        page.wait_for_selector("text=Sample Issue #1")
-        page.screenshot(path=f"{screenshot_dir}/02_tasks_list.png")
-        print(f"Saved screenshot: {screenshot_dir}/02_tasks_list.png")
+    # Test Settings UI
+    print("Testing Settings UI...")
+    server_process = start_server("test/Integration/verify_settings_ui.php")
+    time.sleep(1)
+    try:
+        page.goto("http://localhost:8088")
+        page.wait_for_selector("h1:has-text('Account Settings')")
+        page.screenshot(path=f"{screenshot_dir}/04_settings_general.png")
 
-        # Step 3: Click "Run Agent" on the first task
-        page.click("button:has-text('Run Agent') >> nth=0")
-        page.wait_for_timeout(2000) # Wait for agent simulation
+        # Switch to notifications tab
+        page.click("button:has-text('Notifications')")
+        page.wait_for_selector("h3:has-text('Notification Channels')")
+        page.screenshot(path=f"{screenshot_dir}/05_settings_notifications.png")
+        print(f"Saved: {screenshot_dir}/04_settings_general.png, 05_settings_notifications.png")
+    finally:
+        server_process.terminate()
 
-        # Take screenshot of the result (including agent response)
-        page.screenshot(path=f"{screenshot_dir}/03_agent_triggered.png")
-        print(f"Saved screenshot: {screenshot_dir}/03_agent_triggered.png")
-
+    # Test Task UI
+    print("Testing Task UI...")
+    server_process = start_server("test/Integration/verify_task_ui.php")
+    time.sleep(1)
+    try:
+        page.goto("http://localhost:8088")
+        page.wait_for_selector("h1:has-text('Mock Task Title')")
+        page.wait_for_selector("text=Task Logs")
+        page.wait_for_selector("text=Status Overview")
+        page.screenshot(path=f"{screenshot_dir}/06_task_details.png")
+        print(f"Saved: {screenshot_dir}/06_task_details.png")
     finally:
         server_process.terminate()
 

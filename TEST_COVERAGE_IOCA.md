@@ -28,12 +28,12 @@ This document provides a comprehensive audit of the test coverage for the AI Bra
 | `Project` | `ProjectTest` | `ProjectDBIntegrationTest` | ✅ Covered |
 | `RateLimiter` | `RateLimiterTest` | - | ✅ Covered |
 | `Task` | `TaskTest` | `TaskDBIntegrationTest`, `IssueSyncIntegrationTest` | ✅ Covered |
-| `TelegramService` | - | - | ❌ Missing |
+| `TelegramService` | `TelegramServiceTest` | `ExternalApiFailureIntegrationTest` | ✅ Covered |
 | `TelegramWebhookHandler`| `TelegramWebhookHandlerTest`| - | ✅ Covered |
 | `User` | `UserTest` | `UserDBIntegrationTest` | ✅ Covered |
 | `WebhookHandler` | `WebhookHandlerTest` | `WebhookHandlerTest` (Integration) | ✅ Covered |
 | `WebhookLogger` | `WebhookLoggerTest` | - | ✅ Covered |
-| `TelegramChannelHandler`| - | - | ❌ Missing |
+| `TelegramChannelHandler`| `TelegramChannelHandlerTest` | - | ✅ Covered |
 
 ### Frontend & UI (`src/frontend/`)
 
@@ -41,12 +41,13 @@ This document provides a comprehensive audit of the test coverage for the AI Bra
 | :--- | :--- | :--- | :--- |
 | Dashboard (`index.php`) | `DashboardTest`, `DashboardDBIntegrationTest` | Unit/Integration | ✅ Covered |
 | Project View (`project.php`) | `verify_project_ui.php` | Integration (UI) | ✅ Covered |
+| Settings (`settings.php`) | `verify_settings_ui.php` | Integration (UI) | ✅ Covered |
+| Task Detail (`task.php`) | `verify_task_ui.php` | Integration (UI) | ✅ Covered |
 | Admin Dashboard | `AdminDashboardIntegrationTest`, `verify_admin_ui.php` | Integration | ✅ Covered |
 | Full Flow | `FullFlowTest.php` | E2E | ✅ Covered |
 
 ## Identified Coverage Gaps
 
-1. **Telegram Integration**: `TelegramService` and `TelegramChannelHandler` lack dedicated unit or integration tests.
-2. **Notification Channels**: While `NotificationService` is tested, individual channel handlers (like Telegram) need more validation.
-3. **Frontend Interactivity**: Many frontend pages (e.g., `settings.php`, `task.php`) rely on manual verification or lightweight UI scripts; more robust Playwright coverage is recommended.
-4. **Error Handling**: Coverage for edge cases in API failures (GitHub/Jules) could be strengthened in integration tests.
+1. **GitHub Enterprise**: Testing with GitHub Enterprise instances.
+2. **Rate Limiting**: Integration tests for rate limiter behavior across multiple users.
+3. **Large Payloads**: Handling of extremely large GitHub payloads or logs.
