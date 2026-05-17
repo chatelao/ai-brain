@@ -2,6 +2,10 @@
 
 namespace App;
 
+use App\User;
+use App\Task;
+use App\TelegramService;
+
 class TelegramChannelHandler implements NotificationChannelInterface
 {
     public function __construct(
@@ -25,15 +29,10 @@ class TelegramChannelHandler implements NotificationChannelInterface
             return false;
         }
 
-        $user = $this->userModel->findById($userId);
-        $telegramService = $this->telegramService;
-
-        if ($user && !empty($user['telegram_bot_token'])) {
-            $telegramService = $this->telegramService->withToken($user['telegram_bot_token']);
-        }
-
-        $title = $notification['title'];
-        $message = $notification['message'];
+        $taskModel = new Task($this->userModel->getDb());
+        $title = htmlspecialchars($notification['title']);
+        // convertImagesToLinks already performs htmlspecialchars on non-link text
+        $message = $taskModel->convertImagesToLinks($notification['message']);
         $sourceUrl = $notification['data']['source_url'] ?? null;
 
         $text = "<b>" . $title . "</b>\n\n";
