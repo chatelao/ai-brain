@@ -54,7 +54,7 @@ def run_cuj(page):
         page.goto("http://localhost:8088")
         page.wait_for_selector("h1:has-text('Mock Task Title')")
         page.wait_for_selector("text=Task Logs")
-        page.wait_for_selector("text=Status Overview")
+        page.wait_for_selector("text=Status & Links")
         page.screenshot(path=f"{screenshot_dir}/06_task_details.png")
         print(f"Saved: {screenshot_dir}/06_task_details.png")
     finally:
