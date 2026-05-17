@@ -20,6 +20,27 @@ running on a php webserver using a MySQL database and Google SSO login for multi
 - `/build/`: Only temporary place for compilation, may be cached by Github
 - `/scripts/install.sh` to install all tools to build the application (test only tools, see below)
 
+# `*ROADMAP.md` handling
+- The `ROADMAP.md` is the final plan to implement the `CONCEPT.md` and `DESIGN.md` to achive the top goal
+- Define the steps in a way to allow for parallelization by defining interfaces only first and implementing functions later.
+- The `ROADMAP.md` file is structured into several key sections:
+  - **Progress Overview**: A table summarizing Phases, Descriptions, and Status (using ✅ for completed, 🚧 for in-progress, ⏳ for planned).
+  - **Goals**: A high-level list of project objectives with status emojis.
+  - **Phases**: Detailed chapters for each project phase.
+- The Tasks, and Subtasks if necessary, have checkboxes to show the progress.
+- Every task to be implemented has to be modest, feasible and reasonable.
+  - If no such task is available, then break down a bigger steps to modest ones without implementing anything, just changing the `ROADMAP.md`.
+- Status Emojis:
+  - ✅: Completed
+  - 🚧: In Progress
+  - ⏳: Planned / To Do
+- The progress is updated with every increment.
+- The finished tasks are linked to the corresponding issue and timestamped at the end of the line.
+
+## Database
+- If SQL statements are required, use the oldest, most common standard dialect available to improve cross-plattform compatibility.
+- Draw database schematics as plantUML entities with crowfoot notation.
+
 # Testing Locally & with Github Action Workflow
 
 - Setup the empty CI/CD pipeline before coding anything
