@@ -13,7 +13,18 @@
         "phpunit/phpunit": "^11.0"
     },
     "scripts": {
-        "test": "vendor/bin/phpunit -c test/phpunit.xml"
+        "test": "vendor/bin/phpunit -c test/phpunit.xml",
+        "post-install-cmd": [
+            "Google\\Task\\Composer::cleanup"
+        ],
+        "post-update-cmd": [
+            "Google\\Task\\Composer::cleanup"
+        ]
+    },
+    "extra": {
+        "google/apiclient-services": [
+            "Oauth2"
+        ]
     },
     "autoload": {
         "psr-4": {
