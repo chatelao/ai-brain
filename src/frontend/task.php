@@ -8,12 +8,14 @@ use App\User;
 use App\Project;
 use App\Task;
 use App\GitHubService;
+use App\NotificationService;
 
 $auth = new Auth();
 $db = new Database();
 $userModel = new User($db);
 $projectModel = new Project($db);
 $taskModel = new Task($db);
+$notificationService = new NotificationService($db);
 
 if (!$auth->isLoggedIn()) {
     header('Location: login.php');
@@ -42,6 +44,19 @@ if (!$project || $project['user_id'] !== $user['user_id']) {
     die("Access denied.");
 }
 
+// Handle Notification Settings Update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_task_notifications'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+    $isMuted = isset($_POST['is_muted']);
+    if ($notificationService->updateTaskSettings($taskId, $isMuted)) {
+        $redirectUrl = basename($_SERVER['PHP_SELF']) . "?id=$taskId&success=notifications_updated";
+        header("Location: $redirectUrl");
+        exit;
+    }
+}
+
 $githubData = json_decode($task['github_data'] ?? '{}', true);
 $labels = $githubData['labels'] ?? [];
 $statusColor = $taskModel->getStatusColor($task);
@@ -51,6 +66,8 @@ $githubToken = $project['github_token'] ?? null;
 $githubService = null;
 $prDetails = null;
 $julesMessages = [];
+
+$taskNotifSettings = $notificationService->getTaskSettings($taskId);
 
 if ($githubToken) {
     $githubService = new GitHubService(null, $githubToken);
@@ -171,6 +188,12 @@ if ($task['github_state'] === 'closed' && !empty($task['pr_url'])) {
                             </li>
                         </ol>
                     </nav>
+
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'notifications_updated'): ?>
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                            <span class="font-medium">Success!</span> Notification settings updated.
+                        </div>
+                    <?php endif; ?>
 
                     <div class="mb-6">
                         <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
@@ -378,6 +401,22 @@ if ($task['github_state'] === 'closed' && !empty($task['pr_url'])) {
                                 <p class="text-sm font-medium text-gray-900 mb-1"><?= htmlspecialchars($project['github_repo'] ?? '') ?></p>
                                 <p class="text-xs text-gray-500 mb-4">Linked account: <?= htmlspecialchars($project['github_username'] ?? '') ?></p>
                                 <a href="project.php?id=<?= $project['project_id'] ?>" class="text-blue-600 hover:underline text-sm font-medium">Back to Project &rarr;</a>
+                            </div>
+
+                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">Notification Settings</h3>
+                                <form method="POST" class="space-y-4">
+                                    <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-gray-700">Mute Notifications</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" name="is_muted" class="sr-only peer" <?= ($taskNotifSettings['is_muted'] ?? false) ? 'checked' : '' ?> onchange="this.form.submit()">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <input type="hidden" name="update_task_notifications" value="1">
+                                    <p class="text-xs text-gray-500">Silence all notifications for this specific task.</p>
+                                </form>
                             </div>
                         </div>
                     </div>

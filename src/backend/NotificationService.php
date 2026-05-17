@@ -77,25 +77,103 @@ class NotificationService
         return true;
     }
 
-    private function isTaskMuted(int $taskId): bool
+    public function getTaskSettings(int $taskId): array
     {
         $stmt = $this->db->getConnection()->prepare(
             "SELECT is_muted FROM task_notification_settings WHERE task_id = ?"
         );
         $stmt->execute([$taskId]);
         $result = $stmt->fetch();
-        return $result && (bool)$result['is_muted'];
+        return [
+            'is_muted' => $result ? (bool)$result['is_muted'] : false
+        ];
+    }
+
+    public function updateTaskSettings(int $taskId, bool $isMuted): bool
+    {
+        $db = $this->db->getConnection();
+        $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+        if ($driver === 'sqlite') {
+            $stmt = $db->prepare(
+                "INSERT INTO task_notification_settings (task_id, is_muted)
+                 VALUES (?, ?)
+                 ON CONFLICT(task_id) DO UPDATE SET is_muted = excluded.is_muted"
+            );
+        } else {
+            $stmt = $db->prepare(
+                "INSERT INTO task_notification_settings (task_id, is_muted)
+                 VALUES (?, ?)
+                 ON DUPLICATE KEY UPDATE is_muted = VALUES(is_muted)"
+            );
+        }
+        return $stmt->execute([$taskId, (int)$isMuted]);
+    }
+
+    public function getProjectSettings(int $projectId): array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT notification_type, is_enabled FROM project_notification_settings WHERE project_id = ?"
+        );
+        $stmt->execute([$projectId]);
+        $rows = $stmt->fetchAll();
+
+        $settings = [];
+        foreach ($rows as $row) {
+            $settings[$row['notification_type']] = (bool)$row['is_enabled'];
+        }
+
+        // Default settings if not present
+        $types = ['github_issue', 'task_status', 'agent_event'];
+        foreach ($types as $type) {
+            if (!isset($settings[$type])) {
+                $settings[$type] = true;
+            }
+        }
+
+        return $settings;
+    }
+
+    public function updateProjectSettings(int $projectId, array $settings): bool
+    {
+        $db = $this->db->getConnection();
+        $db->beginTransaction();
+
+        try {
+            foreach ($settings as $type => $enabled) {
+                $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+                if ($driver === 'sqlite') {
+                    $stmt = $db->prepare(
+                        "INSERT INTO project_notification_settings (project_id, notification_type, is_enabled)
+                         VALUES (?, ?, ?)
+                         ON CONFLICT(project_id, notification_type) DO UPDATE SET is_enabled = excluded.is_enabled"
+                    );
+                } else {
+                    $stmt = $db->prepare(
+                        "INSERT INTO project_notification_settings (project_id, notification_type, is_enabled)
+                         VALUES (?, ?, ?)
+                         ON DUPLICATE KEY UPDATE is_enabled = VALUES(is_enabled)"
+                    );
+                }
+                $stmt->execute([$projectId, $type, (int)$enabled]);
+            }
+            $db->commit();
+            return true;
+        } catch (\Exception $e) {
+            $db->rollBack();
+            return false;
+        }
+    }
+
+    private function isTaskMuted(int $taskId): bool
+    {
+        $settings = $this->getTaskSettings($taskId);
+        return $settings['is_muted'];
     }
 
     private function isProjectTypeEnabled(int $projectId, string $type): bool
     {
-        $stmt = $this->db->getConnection()->prepare(
-            "SELECT is_enabled FROM project_notification_settings WHERE project_id = ? AND notification_type = ?"
-        );
-        $stmt->execute([$projectId, $type]);
-        $result = $stmt->fetch();
-        // If no setting exists, default to enabled
-        return $result === false || (bool)$result['is_enabled'];
+        $settings = $this->getProjectSettings($projectId);
+        return $settings[$type] ?? true;
     }
 
     private function persistNotification(int $userId, string $type, string $title, string $message, array $data): int

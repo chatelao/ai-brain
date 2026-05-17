@@ -53,8 +53,8 @@
     - [x] Telegram
     - [ ] Browser
 - [ ] Implement global event type toggles in settings.
-- [ ] Add notification settings to the project page (`src/frontend/project.php`).
-- [ ] Implement per-task "Mute" functionality.
+- [x] Add notification settings to the project page (`src/frontend/project-settings.php`).
+- [x] Implement per-task "Mute" functionality.
 
 ## Phase 6: Event Integration
 - [x] Integrate `NotificationService` with GitHub webhooks (e.g., issue opened/closed/reopened).
