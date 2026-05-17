@@ -47,6 +47,7 @@ class Database
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
+                PDO::ATTR_STATEMENT_CLASS    => [TimedPDOStatement::class, []],
             ];
             try {
                 self::$pdo = new PDO($dsn, $this->user, $this->pass, $options);
