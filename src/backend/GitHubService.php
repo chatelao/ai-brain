@@ -22,6 +22,34 @@ class GitHubService
     /**
      * @throws Exception
      */
+    private function apiCall(string $type, string $target, callable $call, ?array $context = null): mixed
+    {
+        $start = microtime(true);
+        try {
+            $result = $call();
+            $duration = microtime(true) - $start;
+            if ($duration > 1.0) {
+                Logger::getInstance()->logPerformance(null, 'GitHub API', $target, $duration, $context, 200);
+            }
+            return $result;
+        } catch (Exception $e) {
+            $duration = microtime(true) - $start;
+            Logger::getInstance()->logPerformance(
+                null,
+                'GitHub API',
+                $target,
+                $duration,
+                $context,
+                $e->getCode() ?: 500,
+                $e->getMessage()
+            );
+            throw $e;
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
     public function getPullRequest(string $repo, int $prNumber): array
     {
         $parts = explode('/', $repo);
@@ -31,15 +59,11 @@ class GitHubService
 
         [$username, $repository] = $parts;
 
-        $start = microtime(true);
-        $result = $this->client->api('pull_request')->show($username, $repository, $prNumber);
-        $duration = microtime(true) - $start;
-
-        if ($duration > 1.0) {
-            Logger::getInstance()->logPerformance(null, 'GitHub API', "GET pull_request $repo/pull/$prNumber", $duration);
-        }
-
-        return $result;
+        return $this->apiCall(
+            'GitHub API',
+            "GET pull_request $repo/pull/$prNumber",
+            fn() => $this->client->api('pull_request')->show($username, $repository, $prNumber)
+        );
     }
 
     public function extractPrNumber(string $prUrl): ?int
@@ -92,17 +116,13 @@ class GitHubService
 
         [$username, $repository] = $parts;
 
-        $start = microtime(true);
-        $result = $this->client->api('issue')->comments()->create($username, $repository, $issueNumber, [
-            'body' => $comment
-        ]);
-        $duration = microtime(true) - $start;
-
-        if ($duration > 1.0) {
-            Logger::getInstance()->logPerformance(null, 'GitHub API', "POST comment $repo/issues/$issueNumber", $duration);
-        }
-
-        return $result;
+        return $this->apiCall(
+            'GitHub API',
+            "POST comment $repo/issues/$issueNumber",
+            fn() => $this->client->api('issue')->comments()->create($username, $repository, $issueNumber, [
+                'body' => $comment
+            ])
+        );
     }
 
     /**
@@ -117,19 +137,16 @@ class GitHubService
 
         [$username, $repository] = $parts;
 
-        $start = microtime(true);
-        $result = $this->client->api('issue')->create($username, $repository, [
-            'title' => $title,
-            'body' => $body,
-            'labels' => $labels
-        ]);
-        $duration = microtime(true) - $start;
-
-        if ($duration > 1.0) {
-            Logger::getInstance()->logPerformance(null, 'GitHub API', "POST issue $repo", $duration, ['title' => $title]);
-        }
-
-        return $result;
+        return $this->apiCall(
+            'GitHub API',
+            "POST issue $repo",
+            fn() => $this->client->api('issue')->create($username, $repository, [
+                'title' => $title,
+                'body' => $body,
+                'labels' => $labels
+            ]),
+            ['title' => $title]
+        );
     }
 
     /**
@@ -166,18 +183,16 @@ class GitHubService
 
         [$username, $repository] = $parts;
 
-        $start = microtime(true);
-        $pager = new ResultPager($this->client);
-        $result = $pager->fetchAll($this->client->api('issue'), 'all', [$username, $repository, [
-            'state' => $state
-        ]]);
-        $duration = microtime(true) - $start;
-
-        if ($duration > 1.0) {
-            Logger::getInstance()->logPerformance(null, 'GitHub API', "GET issues $repo?state=$state", $duration);
-        }
-
-        return $result;
+        return $this->apiCall(
+            'GitHub API',
+            "GET issues $repo?state=$state",
+            function () use ($username, $repository, $state) {
+                $pager = new ResultPager($this->client);
+                return $pager->fetchAll($this->client->api('issue'), 'all', [$username, $repository, [
+                    'state' => $state
+                ]]);
+            }
+        );
     }
 
     /**

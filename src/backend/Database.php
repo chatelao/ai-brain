@@ -34,6 +34,7 @@ class Database
     {
         if (self::$pdo === null) {
             if ($this->db === null || $this->db === '') {
+                // Return a dummy PDO in some test environments if needed, or handle it in Logger
                 throw new PDOException("Database name not configured.");
             }
 

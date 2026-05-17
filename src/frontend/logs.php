@@ -85,7 +85,7 @@ if ($isAdmin) {
                             <li class="mr-2">
                                 <button @click="activeTab = 'performance'"
                                         :class="activeTab === 'performance' ? 'text-blue-600 border-blue-600' : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300'"
-                                        class="inline-block p-4 border-b-2 rounded-t-lg">Performance Logs</button>
+                                                        class="inline-block p-4 border-b-2 rounded-t-lg">API & Performance Logs</button>
                             </li>
                             <li class="mr-2">
                                 <button @click="activeTab = 'webhooks'"
@@ -108,12 +108,14 @@ if ($isAdmin) {
                                                     <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Type</th>
                                                     <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Target</th>
                                                     <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Duration</th>
+                                                    <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Status</th>
+                                                    <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Error</th>
                                                     <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Time</th>
                                                 </tr>
                                             </thead>
                                             <tbody class="bg-white divide-y divide-gray-200">
                                                 <?php foreach ($performanceLogs as $log) : ?>
-                                                    <tr class="hover:bg-gray-50">
+                                                    <tr class="hover:bg-gray-50 <?= (isset($log['status_code']) && $log['status_code'] >= 400) ? 'bg-red-50' : '' ?>">
                                                         <?php if ($isAdmin) : ?>
                                                             <td class="p-4 text-sm font-normal text-gray-900 whitespace-nowrap"><?= htmlspecialchars($log['user_email'] ?? 'System') ?></td>
                                                         <?php endif; ?>
@@ -122,11 +124,21 @@ if ($isAdmin) {
                                                         </td>
                                                         <td class="p-4 text-sm font-normal text-gray-500 max-w-xs truncate" title="<?= htmlspecialchars($log['target']) ?>"><?= htmlspecialchars($log['target']) ?></td>
                                                         <td class="p-4 text-sm font-semibold whitespace-nowrap <?= $log['duration'] > 1.0 ? 'text-red-600' : 'text-gray-900' ?>"><?= number_format($log['duration'], 3) ?>s</td>
+                                                        <td class="p-4 whitespace-nowrap">
+                                                            <?php if (isset($log['status_code'])) : ?>
+                                                                <span class="px-2 py-1 text-xs font-medium rounded-full <?= $log['status_code'] >= 200 && $log['status_code'] < 300 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
+                                                                    <?= $log['status_code'] ?>
+                                                                </span>
+                                                            <?php else : ?>
+                                                                <span class="text-gray-400">-</span>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                        <td class="p-4 text-sm font-normal text-red-500 max-w-xs truncate" title="<?= htmlspecialchars($log['error_message'] ?? '') ?>"><?= htmlspecialchars($log['error_message'] ?? '-') ?></td>
                                                         <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap"><?= date('Y-m-d H:i:s', strtotime($log['created_at'])) ?></td>
                                                     </tr>
                                                 <?php endforeach; ?>
                                                 <?php if (empty($performanceLogs)) : ?>
-                                                    <tr><td colspan="<?= $isAdmin ? 5 : 4 ?>" class="p-4 text-center text-gray-500 italic">No performance logs found.</td></tr>
+                                                    <tr><td colspan="<?= $isAdmin ? 7 : 6 ?>" class="p-4 text-center text-gray-500 italic">No performance logs found.</td></tr>
                                                 <?php endif; ?>
                                             </tbody>
                                         </table>
