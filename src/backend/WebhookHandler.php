@@ -20,12 +20,17 @@ class WebhookHandler
     {
         $action = $event['action'] ?? '';
         $issue = $event['issue'] ?? null;
+        $checkSuite = $event['check_suite'] ?? null;
+
+        $taskModel = new Task($this->db);
+
+        if ($checkSuite) {
+            return $this->handleCheckSuite($project, $event, $taskModel, $notificationService);
+        }
 
         if (!$issue) {
             return true;
         }
-
-        $taskModel = new Task($this->db);
 
         if ($action === 'deleted') {
             return $taskModel->deleteByIssueNumber($project['project_id'], $issue['number']);
@@ -81,5 +86,56 @@ class WebhookHandler
         }
 
         return $result;
+    }
+
+    private function handleCheckSuite(array $project, array $event, Task $taskModel, ?NotificationService $notificationService): bool
+    {
+        $action = $event['action'] ?? '';
+        $checkSuite = $event['check_suite'] ?? null;
+
+        if ($action !== 'completed' || !$checkSuite) {
+            return true;
+        }
+
+        $conclusion = $checkSuite['conclusion'] ?? '';
+        $pullRequests = $checkSuite['pull_requests'] ?? [];
+
+        foreach ($pullRequests as $pr) {
+            $prUrl = $pr['url'] ?? '';
+            if (!$prUrl) continue;
+
+            // GitHub API PR URL is usually api.github.com/repos/.../pulls/...
+            // But we store html_url in tasks table. Let's try to convert or match.
+            // Example PR URL stored: https://github.com/owner/repo/pull/123
+            $htmlUrl = str_replace(['api.github.com/repos', '/pulls/'], ['github.com', '/pull/'], $prUrl);
+
+            $task = $taskModel->findByPrUrl($htmlUrl);
+            if (!$task) continue;
+
+            $newStatus = $task['status'];
+            if ($conclusion === 'failure' || $conclusion === 'timed_out' || $conclusion === 'cancelled') {
+                $newStatus = 'failed_pr';
+            } elseif ($conclusion === 'success' && $task['status'] === 'failed_pr') {
+                $newStatus = 'completed';
+            }
+
+            if ($newStatus !== $task['status']) {
+                $taskModel->updateStatus($task['task_id'], $newStatus);
+
+                if ($notificationService) {
+                    $title = $newStatus === 'failed_pr' ? "❌ PR Failed: #" . $task['issue_number'] : "✅ PR Fixed: #" . $task['issue_number'];
+                    $message = $newStatus === 'failed_pr' ? "PR checks for \"" . $task['title'] . "\" failed." : "PR checks for \"" . $task['title'] . "\" are now passing.";
+
+                    $notificationService->notify($project['user_id'], 'task_status', $title, $message, [
+                        'task_id' => $task['task_id'],
+                        'project_id' => $task['project_id'],
+                        'status' => $newStatus,
+                        'source_url' => $taskModel->getTargetUrl(array_merge($task, ['status' => $newStatus]))
+                    ]);
+                }
+            }
+        }
+
+        return true;
     }
 }
