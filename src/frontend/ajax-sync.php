@@ -66,14 +66,14 @@ try {
         'status' => 'success',
         'quota_usage' => $updatedUser['jules_quota_usage'] ?? 0,
         'quota_limit' => $updatedUser['jules_quota_limit'] ?? 0,
-        'total_tasks' => $counts['total'],
-        'open_issues' => $counts['open_issues'],
-        'completed_tasks' => $counts['completed_tasks'],
-        'jules_running' => $counts['jules_running'],
-        'jules_failed' => $counts['jules_failed'],
-        'github_running' => $counts['github_running'],
-        'github_passed' => $counts['github_passed'],
-        'github_failed' => $counts['github_failed']
+        'total_tasks' => $counts['total'] ?? 0,
+        'open_issues' => $counts['open_issues'] ?? 0,
+        'completed_tasks' => $counts['completed_tasks'] ?? 0,
+        'jules_running' => $counts['jules_running'] ?? 0,
+        'jules_failed' => $counts['jules_failed'] ?? 0,
+        'github_running' => $counts['github_running'] ?? 0,
+        'github_passed' => $counts['github_passed'] ?? 0,
+        'github_failed' => $counts['github_failed'] ?? 0
     ]);
 } catch (Exception $e) {
     http_response_code(500);
