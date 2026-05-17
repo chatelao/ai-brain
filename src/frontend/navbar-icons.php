@@ -1,18 +1,19 @@
 <?php
+
 /** @var array $user */
 /** @var App\User $userModel */
 /** @var App\Task $taskModel */
 
 if ($user) {
     $counts = $taskModel->getTaskCounts($user['user_id']);
-    $totalTasks = $counts['total'];
-    $openIssues = $counts['open_issues'];
-    $completedTasks = $counts['completed_tasks'];
-    $julesRunning = $counts['jules_running'];
-    $julesFailed = $counts['jules_failed'];
-    $githubRunning = $counts['github_running'];
-    $githubPassed = $counts['github_passed'];
-    $githubFailed = $counts['github_failed'];
+    $totalTasks = $counts['total'] ?? 0;
+    $openIssues = $counts['open_issues'] ?? 0;
+    $completedTasks = $counts['completed_tasks'] ?? 0;
+    $julesRunning = $counts['jules_running'] ?? 0;
+    $julesFailed = $counts['jules_failed'] ?? 0;
+    $githubRunning = $counts['github_running'] ?? 0;
+    $githubPassed = $counts['github_passed'] ?? 0;
+    $githubFailed = $counts['github_failed'] ?? 0;
 
     $quotaUsage = (int)($user['jules_quota_usage'] ?? 0);
     $quotaLimit = (int)($user['jules_quota_limit'] ?? 0);
@@ -51,8 +52,8 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     syncing: <?= $syncStatus ? 'false' : 'true' ?>,
     syncStatus: <?= htmlspecialchars(json_encode($syncStatus)) ?>,
     syncMessage: <?= htmlspecialchars(json_encode($syncMessage)) ?>,
-    quotaUsage: <?= (int)($user['jules_quota_usage'] ?? 0) ?>,
-    quotaLimit: <?= (int)($user['jules_quota_limit'] ?? 0) ?>,
+    quotaUsage: <?= (int)$quotaUsage ?>,
+    quotaLimit: <?= (int)$quotaLimit ?>,
     openIssues: <?= (int)$openIssues ?>,
     totalTasks: <?= (int)$totalTasks ?>,
     completedTasks: <?= (int)$completedTasks ?>,
