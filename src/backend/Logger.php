@@ -4,8 +4,22 @@ namespace App;
 
 class Logger
 {
+    private static ?Logger $instance = null;
+
     public function __construct(private Database $db)
     {
+        self::$instance = $this;
+    }
+
+    public static function getInstance(?Database $db = null): Logger
+    {
+        if (self::$instance === null) {
+            if ($db === null) {
+                $db = new Database();
+            }
+            self::$instance = new Logger($db);
+        }
+        return self::$instance;
     }
 
     public function log(int $userId, int $taskId, string $message, string $level = 'info'): bool
@@ -23,5 +37,19 @@ class Logger
         );
         $stmt->execute([$taskId]);
         return $stmt->fetchAll();
+    }
+
+    public function logPerformance(?int $userId, string $type, string $target, float $duration, ?array $context = null): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "INSERT INTO performance_logs (user_id, type, target, duration, context) VALUES (?, ?, ?, ?, ?)"
+        );
+        return $stmt->execute([
+            $userId,
+            $type,
+            $target,
+            $duration,
+            $context ? json_encode($context) : null
+        ]);
     }
 }
