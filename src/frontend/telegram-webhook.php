@@ -16,18 +16,14 @@ $userId = isset($_GET['user_id']) ? (int)$_GET['user_id'] : null;
 $headers = getallheaders();
 $headersStr = json_encode($headers);
 $input = file_get_contents('php://input');
-$botToken = getenv('TELEGRAM_BOT_TOKEN') ?: '';
-$webhookSecret = getenv('TELEGRAM_WEBHOOK_SECRET') ?: '';
+$botToken = '';
+$webhookSecret = '';
 
 if ($userId) {
     $user = $userModel->findById($userId);
     if ($user) {
-        if (!empty($user['telegram_bot_token'])) {
-            $botToken = $user['telegram_bot_token'];
-        }
-        if (!empty($user['telegram_webhook_secret'])) {
-            $webhookSecret = $user['telegram_webhook_secret'];
-        }
+        $botToken = $user['telegram_bot_token'] ?? '';
+        $webhookSecret = $user['telegram_webhook_secret'] ?? '';
     }
 }
 

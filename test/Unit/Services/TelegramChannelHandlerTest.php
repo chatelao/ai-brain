@@ -32,11 +32,22 @@ class TelegramChannelHandlerTest extends TestCase
         ];
 
         $this->userModel->expects($this->once())
+            ->method('findById')
+            ->with(1)
+            ->willReturn(['user_id' => 1, 'telegram_bot_token' => 'fake-token']);
+
+        $this->userModel->expects($this->once())
             ->method('getTelegramChatId')
             ->with(1)
             ->willReturn(123456);
 
+        $mockService = $this->createMock(TelegramService::class);
         $this->telegramService->expects($this->once())
+            ->method('withToken')
+            ->with('fake-token')
+            ->willReturn($mockService);
+
+        $mockService->expects($this->once())
             ->method('sendMessage')
             ->with(123456, $this->stringContains('<b>Test Notification</b>'))
             ->willReturn(true);
@@ -54,12 +65,17 @@ class TelegramChannelHandlerTest extends TestCase
         ];
 
         $this->userModel->expects($this->once())
+            ->method('findById')
+            ->with(1)
+            ->willReturn(['user_id' => 1, 'telegram_bot_token' => 'fake-token']);
+
+        $this->userModel->expects($this->once())
             ->method('getTelegramChatId')
             ->with(1)
             ->willReturn(null);
 
         $this->telegramService->expects($this->never())
-            ->method('sendMessage');
+            ->method('withToken');
 
         $result = $this->handler->send($notification);
         $this->assertFalse($result);
@@ -74,11 +90,22 @@ class TelegramChannelHandlerTest extends TestCase
         ];
 
         $this->userModel->expects($this->once())
+            ->method('findById')
+            ->with(1)
+            ->willReturn(['user_id' => 1, 'telegram_bot_token' => 'fake-token']);
+
+        $this->userModel->expects($this->once())
             ->method('getTelegramChatId')
             ->with(1)
             ->willReturn(123456);
 
+        $mockService = $this->createMock(TelegramService::class);
         $this->telegramService->expects($this->once())
+            ->method('withToken')
+            ->with('fake-token')
+            ->willReturn($mockService);
+
+        $mockService->expects($this->once())
             ->method('sendMessage')
             ->willThrowException(new \Exception('API Error'));
 

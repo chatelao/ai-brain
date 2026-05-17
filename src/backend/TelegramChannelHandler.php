@@ -13,9 +13,15 @@ class TelegramChannelHandler implements NotificationChannelInterface
     public function send(array $notification): bool
     {
         $userId = $notification['user_id'];
-        $chatId = $this->userModel->getTelegramChatId($userId);
+        $user = $this->userModel->findById($userId);
+        if (!$user) {
+            return false;
+        }
 
-        if (!$chatId) {
+        $chatId = $this->userModel->getTelegramChatId($userId);
+        $botToken = $user['telegram_bot_token'] ?? '';
+
+        if (!$chatId || !$botToken) {
             return false;
         }
 
@@ -32,7 +38,7 @@ class TelegramChannelHandler implements NotificationChannelInterface
         }
 
         try {
-            return $this->telegramService->sendMessage($chatId, $text);
+            return $this->telegramService->withToken($botToken)->sendMessage($chatId, $text);
         } catch (\Exception $e) {
             // Silently fail for now, or log if needed
             return false;
