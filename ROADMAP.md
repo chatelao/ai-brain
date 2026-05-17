@@ -37,3 +37,13 @@
 ## Phase 6: Customization
 - [x] Enable user-specific Telegram configuration (custom bot tokens and webhook secrets).
 - [ ] Implement per-project agent behavior configuration.
+    - [ ] Define project-specific configuration schema (e.g., custom prompts, temperature, model choice).
+    - [ ] Create database migration for `project_settings` or update `projects` table.
+    - [ ] Implement settings UI in `src/frontend/project.php`.
+    - [ ] Update `JulesService` to utilize per-project settings during agent orchestration.
+
+## ⏳ Analyzing and updating the TEST_COVERAGE_IOCA.md in reasonable chunks
+- [x] Initialize `TEST_COVERAGE_IOCA.md` with a comprehensive audit of existing tests (Unit, Integration, E2E) against core components.
+- [ ] Identify coverage gaps in GitHub integration and webhook handling.
+- [ ] Identify coverage gaps in Jules agent orchestration and task management.
+- [ ] Identify coverage gaps in notification delivery (Telegram, In-App).
