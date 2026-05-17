@@ -28,6 +28,8 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(20) DEFAULT 'user',
     jules_api_key VARCHAR(255),
     telegram_link_token VARCHAR(255),
+    telegram_bot_token VARCHAR(255),
+    telegram_webhook_secret VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )");
 
@@ -63,6 +65,11 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     github_state VARCHAR(20) DEFAULT 'open',
     github_data TEXT,
     agent_response TEXT,
+    jules_session_id VARCHAR(255),
+    jules_status VARCHAR(255),
+    last_synced_at TIMESTAMP NULL,
+    jules_url VARCHAR(255),
+    pr_url VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(project_id, issue_number)
@@ -84,6 +91,50 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS task_logs (
     message TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (task_id) REFERENCES tasks(task_id) ON DELETE CASCADE
+)");
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS notifications (
+    notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    data TEXT,
+    is_read BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+)");
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS notification_user_settings (
+    user_id INTEGER PRIMARY KEY,
+    channels TEXT, -- JSON array of enabled channels
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+)");
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS task_notification_settings (
+    user_id INT NOT NULL,
+    task_id INT NOT NULL,
+    is_muted BOOLEAN DEFAULT 0,
+    PRIMARY KEY (user_id, task_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (task_id) REFERENCES tasks(task_id) ON DELETE CASCADE
+)");
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS user_notification_settings (
+    user_id INT NOT NULL,
+    channel VARCHAR(20) NOT NULL,
+    is_enabled BOOLEAN DEFAULT 1,
+    PRIMARY KEY (user_id, channel),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+)");
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS project_notification_settings (
+    project_id INT NOT NULL,
+    notification_type VARCHAR(50) NOT NULL,
+    is_enabled BOOLEAN DEFAULT 1,
+    PRIMARY KEY (project_id, notification_type),
+    FOREIGN KEY (project_id) REFERENCES projects(project_id) ON DELETE CASCADE
 )");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS issue_templates (

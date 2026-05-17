@@ -7,12 +7,15 @@ use App\Auth;
 use App\User;
 use App\Project;
 use App\Task;
+use App\GitHubService;
 
 $auth = new Auth();
 $db = new Database();
 $userModel = new User($db);
 $projectModel = new Project($db);
 $taskModel = new Task($db);
+$parsedown = new \Parsedown();
+$parsedown->setSafeMode(true);
 
 if (!$auth->isLoggedIn()) {
     header('Location: login.php');
@@ -37,6 +40,41 @@ $githubData = json_decode($task['github_data'] ?? '{}', true);
 $labels = $githubData['labels'] ?? [];
 $statusColor = $taskModel->getStatusColor($task);
 $logs = $taskModel->getLogs($taskId);
+
+$githubToken = $project['github_token'] ?? null;
+$githubService = null;
+$prDetails = null;
+$julesMessages = [];
+
+if ($githubToken) {
+    $githubService = new GitHubService(null, $githubToken);
+
+    // Fetch PR details if available
+    if (!empty($task['pr_url'])) {
+        $prNumber = $githubService->extractPrNumber($task['pr_url']);
+        if ($prNumber) {
+            try {
+                $prDetails = $githubService->getPullRequest($project['github_repo'], $prNumber);
+            } catch (Exception $e) {
+                // Ignore PR fetch errors
+            }
+        }
+    }
+
+    // Fetch last comments to find Jules messages
+    try {
+        $comments = $githubService->getIssueComments($project['github_repo'], $task['issue_number']);
+        // Filter for Jules comments
+        $julesMessages = array_filter($comments, function($comment) {
+            $login = strtolower($comment['user']['login'] ?? '');
+            return $login === 'jules' || $login === 'google-labs-jules[bot]';
+        });
+        // Take the last few
+        $julesMessages = array_slice(array_reverse($julesMessages), 0, 3);
+    } catch (Exception $e) {
+        // Ignore comment fetch errors
+    }
+}
 
 // Status logic for the right sidebar overview
 $githubIssueStatus = ucfirst($task['github_state'] ?? 'open');
@@ -69,6 +107,7 @@ if ($task['status'] === 'failed_pr') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task #<?= htmlspecialchars($task['issue_number'] ?? '') ?> - Agent Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
     <nav class="bg-white border-b border-gray-200 fixed w-full z-30 top-0">
@@ -122,64 +161,145 @@ if ($task['status'] === 'failed_pr') {
                         </ol>
                     </nav>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                        <div class="lg:col-span-2 space-y-4">
-                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                                <div class="flex justify-between items-start mb-4">
-                                    <h1 class="text-lg font-bold text-gray-900"><?= htmlspecialchars($task['title'] ?? '') ?></h1>
-                                    <span class="px-3 py-1 text-sm font-medium rounded-full bg-<?= $statusColor ?>-100 text-<?= $statusColor ?>-800 flex items-center">
-                                        <?php
-                                        if ($task['status'] === 'completed') echo '✅ ';
-                                        elseif (in_array($task['status'], ['in_progress', 'coding', 'testing'])) echo '🚧 ';
-                                        elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') echo '❌ Jules ';
-                                        elseif ($task['status'] === 'failed_pr') echo '❌ PR ';
-                                        elseif (in_array($task['status'], ['researching', 'planning', 'awaiting-plan-approval', 'awaiting-user-feedback'])) echo '🔵 ';
-                                        else echo '⏳ ';
-                                        ?>
-                                        <?= htmlspecialchars(str_replace(['failed_jules', 'failed_pr'], 'failed', $task['status'] ?? '')) ?>
-                                    </span>
-                                </div>
+                    <div class="mb-6">
+                        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                            <h1 class="text-3xl font-bold text-gray-900 flex-1 min-w-[300px]">
+                                <?= htmlspecialchars($task['title'] ?? '') ?>
+                                <span class="text-gray-400 font-normal ml-2">#<?= htmlspecialchars($task['issue_number'] ?? '') ?></span>
+                            </h1>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-4 py-1.5 text-sm font-semibold rounded-full bg-<?= $statusColor ?>-100 text-<?= $statusColor ?>-800 flex items-center shadow-sm">
+                                    <?php
+                                    if ($task['status'] === 'completed') echo '✅ ';
+                                    elseif (in_array($task['status'], ['in_progress', 'coding', 'testing'])) echo '🚧 ';
+                                    elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') echo '❌ Jules ';
+                                    elseif ($task['status'] === 'failed_pr') echo '❌ PR ';
+                                    elseif (in_array($task['status'], ['researching', 'planning', 'awaiting-plan-approval', 'awaiting-user-feedback'])) echo '🔵 ';
+                                    else echo '⏳ ';
+                                    ?>
+                                    <?= htmlspecialchars(str_replace(['failed_jules', 'failed_pr'], 'failed', $task['status'] ?? '')) ?>
+                                </span>
+                            </div>
+                        </div>
 
-                                <div class="flex flex-wrap gap-2 mb-6">
-                                    <?php foreach ($labels as $label): ?>
-                                        <span class="px-2 py-1 text-xs font-semibold rounded" style="background-color: #<?= $label['color'] ?>; color: <?= (hexdec($label['color']) > 0xffffff/2) ? 'black' : 'white' ?>">
-                                            <?= htmlspecialchars($label['name'] ?? '') ?>
-                                        </span>
-                                    <?php endforeach; ?>
-                                </div>
+                        <div class="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-6">
+                            <?php foreach ($labels as $label): ?>
+                                <span class="px-2.5 py-1 text-xs font-semibold rounded-full border shadow-sm" style="background-color: #<?= $label['color'] ?>20; border-color: #<?= $label['color'] ?>; color: #<?= $label['color'] ?>; filter: brightness(0.8);">
+                                    <?= htmlspecialchars($label['name'] ?? '') ?>
+                                </span>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
 
-                                <div class="prose max-w-none text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border border-gray-100 mb-6">
-                                    <?= htmlspecialchars($task['body'] ?? '') ?>
-                                </div>
-
-                                <?php if (!empty($task['agent_response'])): ?>
-                                    <div class="mt-8">
-                                        <h3 class="text-lg font-bold text-gray-900 mb-4">Last Agent Response</h3>
-                                        <div class="p-4 bg-blue-50 border border-blue-100 rounded-lg whitespace-pre-wrap font-mono text-sm text-blue-900">
-                                            <?= htmlspecialchars($task['agent_response'] ?? '') ?>
-                                        </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-4">
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                                <div class="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <img class="w-6 h-6 rounded-full" src="<?= htmlspecialchars($user['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="user photo">
+                                        <span class="text-sm font-bold text-gray-700"><?= htmlspecialchars($user['name'] ?? 'User') ?></span>
+                                        <span class="text-sm text-gray-500">commented on <?= htmlspecialchars(date('M d, Y', strtotime($task['created_at']))) ?></span>
                                     </div>
-                                <?php endif; ?>
+                                    <div class="px-2 py-0.5 text-xs font-medium text-gray-500 border border-gray-300 rounded-md">Author</div>
+                                </div>
+                                <div class="p-6">
+                                    <div class="prose max-w-none text-gray-800 markdown-body">
+                                        <?= $parsedown->text($task['body'] ?? '') ?>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                                <h3 class="text-lg font-bold text-gray-900 mb-4">Task Logs</h3>
-                                <div class="space-y-2">
+                            <?php if ($prDetails): ?>
+                                <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                                    <div class="bg-green-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24"><path d="M11 19.25c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 14.5c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 9.75c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 19.25c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 14.5c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 9.75c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM20.5 2h-17C2.673 2 2 2.673 2 3.5v17c0 .827.673 1.5 1.5 1.5h17c.827 0 1.5-.673 1.5-1.5v-17C22 2.673 21.327 2 20.5 2zM20 18H4V4h16v14z"/></svg>
+                                            <span class="text-sm font-bold text-green-900">Associated Pull Request</span>
+                                        </div>
+                                        <a href="<?= htmlspecialchars($task['pr_url']) ?>" target="_blank" class="text-xs font-medium text-green-700 hover:underline">View on GitHub &rarr;</a>
+                                    </div>
+                                    <div class="p-6">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <h4 class="text-lg font-bold text-gray-900 leading-tight">
+                                                <?= htmlspecialchars($prDetails['title'] ?? 'PR Details') ?>
+                                            </h4>
+                                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium <?= $prDetails['state'] === 'open' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800' ?> border border-current shadow-sm">
+                                                <?= ucfirst($prDetails['state'] ?? 'unknown') ?>
+                                            </span>
+                                        </div>
+                                        <div class="text-sm text-gray-500 mb-4 flex items-center space-x-4">
+                                            <span>Merged: <?= ($prDetails['merged'] ?? false) ? 'Yes' : 'No' ?></span>
+                                            <span>Base: <code class="bg-gray-100 px-1 rounded"><?= htmlspecialchars($prDetails['base']['ref'] ?? 'main') ?></code></span>
+                                            <span>Head: <code class="bg-gray-100 px-1 rounded"><?= htmlspecialchars($prDetails['head']['ref'] ?? 'feature') ?></code></span>
+                                        </div>
+                                        <?php if (!empty($prDetails['body'])): ?>
+                                            <div class="prose prose-sm max-w-none text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                                <?= $parsedown->text(mb_substr($prDetails['body'], 0, 300) . (mb_strlen($prDetails['body']) > 300 ? '...' : '')) ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($julesMessages)): ?>
+                                <div class="space-y-4">
+                                    <h3 class="text-lg font-bold text-gray-900 px-1 flex items-center">
+                                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                                        Last Jules Messages
+                                    </h3>
+                                    <?php foreach ($julesMessages as $msg): ?>
+                                        <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                                            <div class="bg-blue-50 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
+                                                <div class="flex items-center space-x-2">
+                                                    <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] text-white font-bold">J</div>
+                                                    <span class="text-sm font-bold text-gray-700"><?= htmlspecialchars($msg['user']['login'] ?? 'Jules') ?></span>
+                                                    <span class="text-sm text-gray-500">at <?= htmlspecialchars(date('M d, H:i', strtotime($msg['created_at']))) ?></span>
+                                                </div>
+                                                <a href="<?= htmlspecialchars($msg['html_url']) ?>" target="_blank" class="text-xs text-blue-600 hover:underline">Link</a>
+                                            </div>
+                                            <div class="p-4">
+                                                <div class="prose prose-sm max-w-none text-gray-700 markdown-body">
+                                                    <?= $parsedown->text($msg['body'] ?? '') ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                                <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                    <h3 class="text-sm font-bold text-gray-700">Task Logs</h3>
+                                </div>
+                                <div class="p-4 space-y-1 bg-gray-900 min-h-[100px] max-h-[400px] overflow-y-auto">
                                     <?php if (empty($logs)): ?>
-                                        <p class="text-sm text-gray-500 italic">No logs available for this task.</p>
+                                        <p class="text-sm text-gray-400 italic">No logs available for this task.</p>
                                     <?php else: ?>
                                         <?php foreach ($logs as $log): ?>
-                                            <div class="flex items-start text-xs font-mono p-2 rounded <?= $log['level'] === 'error' ? 'bg-red-50 text-red-700' : 'bg-gray-50 text-gray-700' ?>">
-                                                <span class="text-gray-400 mr-3">[<?= htmlspecialchars($log['created_at'] ?? '') ?>]</span>
+                                            <div class="flex items-start text-xs font-mono p-1 rounded <?= $log['level'] === 'error' ? 'bg-red-900/30 text-red-300' : 'text-gray-300 hover:bg-gray-800' ?>">
+                                                <span class="text-gray-500 mr-3 shrink-0">[<?= htmlspecialchars(date('H:i:s', strtotime($log['created_at']))) ?>]</span>
                                                 <span class="flex-1"><?= htmlspecialchars($log['message'] ?? '') ?></span>
                                             </div>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
                                 </div>
                             </div>
+
+                            <?php if (!empty($task['agent_response'])): ?>
+                                <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                                    <div class="bg-blue-50 px-4 py-3 border-b border-gray-200">
+                                        <h3 class="text-sm font-bold text-blue-700">Last Agent Analysis</h3>
+                                    </div>
+                                    <div class="p-6 bg-blue-50/30">
+                                        <div class="prose prose-sm max-w-none text-blue-900 markdown-body">
+                                            <?= $parsedown->text($task['agent_response'] ?? '') ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
                         </div>
 
-                        <div class="lg:col-span-1 space-y-4">
+                        <div class="lg:col-span-1 space-y-6">
                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                                 <h3 class="text-lg font-bold text-gray-900 mb-4">Status Overview</h3>
                                 <div class="space-y-3">
