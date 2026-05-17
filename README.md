@@ -108,6 +108,7 @@ If you encounter `VBoxManage.exe: error: Details: code E_ACCESSDENIED (0x8007000
 - `CONCEPT.md`, `DESIGN.md`, `GEMINI.md`, `ROADMAP.md`: Project documentation.
 
 ## Documentation
+- [**User Wiki**](wiki/Home.md) - Comprehensive guide for users.
 - [Concept](CONCEPT.md)
 - [Design](DESIGN.md)
 - [Gemini Project Goal](GEMINI.md)
