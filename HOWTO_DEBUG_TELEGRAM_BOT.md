@@ -20,7 +20,7 @@ The Telegram Bot integration consists of the following components:
 
 3.  **`App\TelegramService` (`src/backend/TelegramService.php`)**: A service wrapper for the Telegram Bot API.
     *   Sends messages using the Guzzle HTTP client.
-    *   Uses the user's custom Bot Token (if configured) or the system-wide default.
+    *   Uses the user's custom Bot Token stored in the database.
 
 4.  **`App\WebhookLogger` (`src/backend/WebhookLogger.php`)**: Utility for logging webhook interactions for debugging purposes.
 
@@ -40,14 +40,20 @@ The Telegram Bot integration consists of the following components:
 
 Telegram requires your webhook endpoint to be accessible via **HTTPS** with a valid SSL certificate.
 
-### Webhook URL Format
-Your specific webhook URL is displayed in the Settings page:
+### 1. Automated Registration
+The application attempts to automatically register your webhook whenever you save your Telegram configuration in the **Settings** page.
+
+*   If successful, you will see a success message.
+*   If it fails (e.g., due to an invalid token or connectivity issue), a warning will appear with the specific error message from Telegram.
+
+### 2. Webhook URL Format
+If you need to verify or manually set your webhook, your specific URL is:
 ```
 https://<your-domain>/telegram-webhook.php?user_id=<your_user_id>
 ```
 
-### Registering the Webhook
-You must manually register your webhook with Telegram using their `setWebhook` API method. You can do this via `curl`:
+### 3. Manual Registration (Fallback)
+If automated registration fails, you can manually register your webhook using `curl`:
 
 ```bash
 curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook" \
@@ -68,13 +74,28 @@ To receive notifications and control agents, you must link your Telegram account
 
 ## Debugging Tools
 
-### Webhook Logging
-The **Settings** page includes a **Logging** tab that displays the last 5 webhook calls per endpoint.
+### 1. Test Broadcast
+In the **Settings > Notifications** tab, use the **Test Broadcast** button.
+*   This sends a test message to all your enabled channels (including Telegram) without persisting it to the database.
+*   It's the fastest way to verify that your Bot Token and Chat ID are working correctly.
 
-*   **Status Codes**: Look for `200` (Success). `401` indicates a Webhook Secret mismatch. `400` indicates an invalid payload.
-*   **View Payload**: Clicking this allows you to inspect the raw **Headers** and **JSON Payload** sent by Telegram. This is crucial for verifying that Telegram is reaching your server and sending the expected data.
+### 2. Centralized Logs Page
+The **Logs** page (`logs.php`) provides a comprehensive view of all system activity.
 
-### Manual Testing with `curl`
+*   **API & Performance Logs**: Tracks outgoing calls to the Telegram API.
+    *   **Status**: Check for `200` (Success) or `4xx/5xx` errors.
+    *   **Duration**: Identifies slow responses (calls > 1.0s are highlighted).
+    *   **Error Message**: Captures specific error descriptions returned by Telegram (e.g., "Unauthorized", "chat not found").
+    *   **Security**: Bot Tokens are automatically redacted from error messages to prevent logs from leaking credentials.
+*   **Webhook Logs**: Shows incoming updates from Telegram.
+    *   Displays headers, raw payload, status code, and any processing errors.
+
+### 3. Webhook Logging (Settings Page)
+The **Settings > Logging** tab provides a quick view of the last 5 webhook calls.
+*   **Status Codes**: `200` (Success), `401` (Secret mismatch), `400` (Invalid payload).
+*   **View Payload**: Inspect raw headers and JSON payload to verify Telegram's delivery.
+
+### 4. Manual Testing with `curl`
 You can simulate a Telegram webhook post to test your configuration without using the actual Telegram API.
 
 #### Test Unauthorized Access (Missing Secret)
