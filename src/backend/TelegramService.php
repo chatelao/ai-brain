@@ -79,7 +79,7 @@ class TelegramService
         }
 
         try {
-            $response = $this->client->post("bot" . $this->botToken . "/" . $method, $options);
+            $response = $this->client->post("/bot" . $this->botToken . "/" . $method, $options);
             $data = json_decode($response->getBody()->getContents(), true);
 
             if (!isset($data['ok']) || $data['ok'] !== true) {
