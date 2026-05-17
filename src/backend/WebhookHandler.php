@@ -16,7 +16,7 @@ class WebhookHandler
         return hash_equals($hash, $signature);
     }
 
-    public function handle(array $project, array $event, ?GitHubService $githubService = null, ?NotificationService $notificationService = null): bool
+    public function handle(array $project, array $event, ?GitHubService $githubService = null, ?NotificationService $notificationService = null, ?JulesService $julesService = null): bool
     {
         $action = $event['action'] ?? '';
         $issue = $event['issue'] ?? null;
@@ -49,6 +49,13 @@ class WebhookHandler
         }
 
         $result = $taskModel->upsert($project['user_id'], $project['project_id'], $issue);
+
+        if ($result && $julesService && $githubService) {
+            $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
+            if ($task) {
+                $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $notificationService, (int)$task['task_id']);
+            }
+        }
 
         if ($result && $notificationService) {
             if ($action === 'opened') {

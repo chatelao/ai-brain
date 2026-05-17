@@ -389,18 +389,27 @@ class Task
         return $issueUrl;
     }
 
-    public function refreshJulesStatus(int $userId, GitHubService $githubService, JulesService $julesService, ?NotificationService $notificationService = null): void
+    public function refreshJulesStatus(int $userId, GitHubService $githubService, JulesService $julesService, ?NotificationService $notificationService = null, ?int $taskId = null): void
     {
-        $stmt = $this->db->getConnection()->prepare(
-            "SELECT t.*, p.github_repo
+        $sql = "SELECT t.*, p.github_repo
              FROM tasks t
              JOIN projects p ON t.project_id = p.project_id
-             WHERE t.user_id = ?
-             AND (t.last_synced_at IS NULL OR t.last_synced_at < ?)
-             AND (t.status NOT IN ('completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))"
-        );
-        $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
-        $stmt->execute([$userId, $fiveMinutesAgo]);
+             WHERE t.user_id = ?";
+
+        $params = [$userId];
+
+        if ($taskId) {
+            $sql .= " AND t.task_id = ?";
+            $params[] = $taskId;
+        } else {
+            $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
+            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ?)
+                      AND (t.status NOT IN ('completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))";
+            $params[] = $fiveMinutesAgo;
+        }
+
+        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt->execute($params);
         $tasks = $stmt->fetchAll();
 
         $userStmt = $this->db->getConnection()->prepare("SELECT jules_api_key, jules_quota_updated_at FROM users WHERE user_id = ?");
