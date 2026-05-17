@@ -136,7 +136,7 @@ Use this method if you want to deploy from your local machine via SSH.
    ```bash
    rsync -avz --exclude='.git*' --exclude='.github/' --exclude='test/' \
      --exclude='docs/' --exclude='specification/' --exclude='scripts/' \
-     --exclude='Vagrantfile' --exclude='*.sqlite' \
+     --exclude='*.sqlite' \
      ./ user@your-server:/var/www/ai-brain/
    ```
 
