@@ -66,7 +66,6 @@ A PHP-based CLI script (e.g., `scripts/migrate.php`) can implement the above log
 
 ### Integration with Deployment
 
-- **Vagrant**: The `Vagrantfile` provisioning can call the migration script to ensure the local environment is up-to-date.
 - **Production**: The deployment process (e.g., GitHub Actions or manual SSH) should include a step to run the migrations after the code is updated but before the new version is fully active.
 
 ## Best Practices for Patches
