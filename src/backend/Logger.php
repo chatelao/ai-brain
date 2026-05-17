@@ -33,8 +33,11 @@ class Logger
             $stmt = $this->db->getConnection()->prepare(
                 "INSERT INTO task_logs (user_id, task_id, message, level) VALUES (?, ?, ?, ?)"
             );
+            if ($stmt === false) {
+                return false;
+            }
             return $stmt->execute([$userId, $taskId, $message, $level]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             error_log("Failed to log task event: " . $e->getMessage());
             return false;
         }
@@ -62,6 +65,9 @@ class Logger
             $stmt = $this->db->getConnection()->prepare(
                 "INSERT INTO performance_logs (user_id, type, target, duration, context, status_code, error_message) VALUES (?, ?, ?, ?, ?, ?, ?)"
             );
+            if ($stmt === false) {
+                return false;
+            }
             return $stmt->execute([
                 $userId,
                 $type,
@@ -71,7 +77,7 @@ class Logger
                 $statusCode,
                 $errorMessage
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             error_log("Failed to log performance event: " . $e->getMessage());
             return false;
         }

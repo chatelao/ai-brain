@@ -130,6 +130,18 @@ $errorMessage = $errorMessage ?? null;
                 <div class="flex items-center">
                     <?php if ($user) : ?>
                         <?php include 'navbar-icons.php'; ?>
+                        <div class="flex items-center ml-3">
+                            <div>
+                                <button type="button" class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300">
+                                    <img class="w-8 h-8 rounded-full" src="<?= htmlspecialchars($user['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="user photo">
+                                </button>
+                            </div>
+                            <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($user['name'] ?? '') ?></div>
+                            <a href="templates.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Templates</a>
+                        <a href="logs.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Logs</a>
+                            <a href="settings.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Settings</a>
+                            <a href="logout.php" class="ml-4 text-sm font-medium text-red-600 hover:underline">Logout</a>
+                        </div>
                     <?php else : ?>
                         <a href="login.php" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 focus:outline-none">Login with Google</a>
                     <?php endif; ?>

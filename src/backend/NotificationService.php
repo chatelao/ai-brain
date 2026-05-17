@@ -341,29 +341,26 @@ class NotificationService
     private function getEnabledChannels(int $userId): array
     {
         $stmt = $this->db->getConnection()->prepare(
-            "SELECT channel, is_enabled FROM user_notification_settings WHERE user_id = ?"
+            "SELECT channel FROM user_notification_settings WHERE user_id = ? AND is_enabled = 1"
         );
         $stmt->execute([$userId]);
-        $settings = $stmt->fetchAll();
+        $channels = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-        $enabledChannels = [];
-        $inAppExplicitlySet = false;
-
-        foreach ($settings as $row) {
-            if ($row['is_enabled']) {
-                $enabledChannels[] = $row['channel'];
-            }
-            if ($row['channel'] === 'in_app') {
-                $inAppExplicitlySet = true;
+        // In-app channel is always "persisted", but we only explicitly return it if it's not disabled.
+        // Actually, 'in_app' should probably be in user_notification_settings too if they want to toggle it.
+        // If no settings exist, default to in_app enabled.
+        if (empty($channels)) {
+            // Check if user has ANY settings
+            $stmt = $this->db->getConnection()->prepare(
+                "SELECT COUNT(*) FROM user_notification_settings WHERE user_id = ?"
+            );
+            $stmt->execute([$userId]);
+            if ($stmt->fetchColumn() == 0) {
+                return ['in_app'];
             }
         }
 
-        // If 'in_app' is not explicitly configured, default it to enabled
-        if (!$inAppExplicitlySet) {
-            $enabledChannels[] = 'in_app';
-        }
-
-        return $enabledChannels;
+        return $channels;
     }
 
     public function markAsRead(int $notificationId): bool
