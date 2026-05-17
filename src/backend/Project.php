@@ -74,6 +74,23 @@ class Project
         return $project ?: null;
     }
 
+    public function update(int $projectId, int $userId, int $githubAccountId, string $githubRepo): bool
+    {
+        // Verify that the github account belongs to the user
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT github_account_id FROM user_github_accounts WHERE github_account_id = ? AND user_id = ?"
+        );
+        $stmt->execute([$githubAccountId, $userId]);
+        if (!$stmt->fetch()) {
+            throw new Exception("Invalid GitHub account selected.");
+        }
+
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE projects SET github_account_id = ?, github_repo = ? WHERE project_id = ? AND user_id = ?"
+        );
+        return $stmt->execute([$githubAccountId, $githubRepo, $projectId, $userId]);
+    }
+
     public function delete(int $id, int $userId): bool
     {
         $stmt = $this->db->getConnection()->prepare(
