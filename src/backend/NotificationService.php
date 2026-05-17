@@ -290,17 +290,52 @@ class NotificationService
 
     private function persistNotification(int $userId, string $type, string $title, string $message, array $data): int
     {
+        $projectId = isset($data['project_id']) ? (int)$data['project_id'] : null;
+
         $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO notifications (user_id, type, title, message, data) VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO notifications (user_id, project_id, type, title, message, data) VALUES (?, ?, ?, ?, ?, ?)"
         );
         $stmt->execute([
             $userId,
+            $projectId,
             $type,
             $title,
             $message,
             json_encode($data)
         ]);
-        return (int)$this->db->getConnection()->lastInsertId();
+        $notificationId = (int)$this->db->getConnection()->lastInsertId();
+
+        if ($projectId !== null) {
+            $this->limitNotificationsByProject($projectId);
+        }
+
+        return $notificationId;
+    }
+
+    private function limitNotificationsByProject(int $projectId): void
+    {
+        $db = $this->db->getConnection();
+        $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+        // We use a very large number for the LIMIT to effectively mean "all remaining"
+        // MySQL: 18446744073709551615, SQLite: -1
+        $limit = ($driver === 'sqlite') ? -1 : '18446744073709551615';
+
+        $stmt = $db->prepare(
+            "SELECT notification_id FROM notifications
+             WHERE project_id = ?
+             ORDER BY created_at DESC, notification_id DESC
+             LIMIT $limit OFFSET 25"
+        );
+
+        $stmt->execute([$projectId]);
+        $idsToDelete = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        if (!empty($idsToDelete)) {
+            $placeholders = implode(',', array_fill(0, count($idsToDelete), '?'));
+            $stmt = $db->prepare("DELETE FROM notifications WHERE notification_id IN ($placeholders)");
+            $stmt->execute($idsToDelete);
+        }
     }
 
     private function getEnabledChannels(int $userId): array
