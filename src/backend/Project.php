@@ -51,7 +51,7 @@ class Project
     public function findByUserId(int $userId): array
     {
         $stmt = $this->db->getConnection()->prepare(
-            "SELECT p.*, a.github_username
+            "SELECT p.*, a.github_username, a.github_token
              FROM projects p
              JOIN user_github_accounts a ON p.github_account_id = a.github_account_id
              WHERE p.user_id = ?
