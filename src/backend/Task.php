@@ -102,6 +102,42 @@ class Task
         ];
     }
 
+    public function findByFilter(int $userId, string $filter): array
+    {
+        $sql = "SELECT t.*, p.github_repo
+                FROM tasks t
+                JOIN projects p ON t.project_id = p.project_id
+                WHERE t.user_id = ?";
+        $params = [$userId];
+
+        switch ($filter) {
+            case 'github_running':
+                $sql .= " AND t.github_state = 'open' AND t.status = 'implemented'";
+                break;
+            case 'github_passed':
+                $sql .= " AND t.github_state = 'open' AND t.status = 'completed'";
+                break;
+            case 'github_failed':
+                $sql .= " AND t.github_state = 'open' AND t.status = 'failed_pr'";
+                break;
+            case 'jules_running':
+                $sql .= " AND t.github_state = 'open' AND t.status IN ('researching', 'planning', 'in_progress', 'coding', 'testing')";
+                break;
+            case 'jules_failed':
+                $sql .= " AND t.github_state = 'open' AND t.status IN ('failed', 'failed_jules')";
+                break;
+            case 'open_issues':
+                $sql .= " AND t.github_state = 'open'";
+                break;
+        }
+
+        $sql .= " ORDER BY t.created_at DESC";
+
+        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
     public function getRunningAutorepeatTasks(int $userId): array
     {
         $stmt = $this->db->getConnection()->prepare(
