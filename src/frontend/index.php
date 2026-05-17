@@ -187,7 +187,7 @@ $errorMessage = $errorMessage ?? null;
                                                     </a>
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                                    <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap bg-green-100 text-green-800">
                                                         🚧 Active
                                                     </span>
                                                 </td>
