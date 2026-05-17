@@ -51,7 +51,6 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 | **Telegram Connectivity** | Mobile Control | Interact with agents and receive status notifications via a dedicated Telegram Bot. |
 | **Telegram Connectivity** | Secure Webhooks | Robust webhook handling with secret token validation. |
 | **Telegram Connectivity** | Asynchronous Processing | Optimized response times using fast-cgi finish request for immediate acknowledgement. |
-| **Developer Experience** | Vagrant Environment | Pre-configured virtualized development environment for consistent setups. |
 | **Developer Experience** | CI/CD Pipeline | Automated testing (PHPUnit, Playwright) and documentation builds via GitHub Actions. |
 | **Developer Experience** | Comprehensive Documentation | Integrated Sphinx documentation (Read the Docs) and OpenAPI 3.0 specification. |
 
@@ -81,26 +80,6 @@ Start the local development server:
 ```bash
 php -S localhost:8080 -t src/frontend
 ```
-
-### Local Development with Vagrant
-If you prefer to use a virtualized environment, you can use Vagrant:
-1. Ensure you have Vagrant and VirtualBox installed.
-2. Run `vagrant up` to start the VM and provision it.
-3. The application will be accessible at `http://localhost:8080`.
-4. You may need to update the environment variables in `/etc/nginx/sites-available/aibrain` inside the VM if you want to use GitHub or Google SSO.
-
-### Troubleshooting Vagrant
-
-#### Error: E_ACCESSDENIED (0x80070005)
-If you encounter `VBoxManage.exe: error: Details: code E_ACCESSDENIED (0x80070005)` when running `vagrant up`:
-- **Dropbox/OneDrive:** This error often occurs if the project is located in a folder synced by Dropbox or OneDrive. These services lock files that VirtualBox needs to access.
-  - **Solution:** Move the project to a non-synced folder (e.g., `C:\ws\ai-brain`) or temporarily pause syncing while using Vagrant.
-- **VM Name Collisions:** A VM with the same name might already exist in VirtualBox, causing registration conflicts.
-  - **Solution:** Open the VirtualBox GUI and check for any VMs named `ai-brain-dev-*`. Remove them if they are stale.
-- **Permissions:** Sometimes VirtualBox requires elevated permissions to manage VM sessions.
-  - **Solution:** Try running your terminal (Command Prompt or PowerShell) as **Administrator**.
-- **Stale VM Locks:** Sometimes VirtualBox background processes hang.
-  - **Solution:** Kill all `VBoxSVC.exe` and `VBoxManage.exe` processes in Task Manager, delete the `.vagrant` folder in your project, and try again.
 
 ## Project Structure
 - `src/frontend/`: Web entry points (index.php, login.php, etc.) and frontend assets.
