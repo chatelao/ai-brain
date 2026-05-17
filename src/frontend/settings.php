@@ -259,7 +259,55 @@ $errorMessage = $errorMessage ?? null;
                     </div>
                     </div> <!-- End General Tab -->
 
-                    <div x-show="activeTab === 'notifications'" class="pt-4" x-cloak>
+                    <div x-show="activeTab === 'notifications'" class="pt-4" x-cloak x-data="{
+                        testing: false,
+                        testMessage: null,
+                        testStatus: null,
+                        requestPermission() {
+                            if ('Notification' in window) {
+                                Notification.requestPermission();
+                            }
+                        },
+                        sendTest() {
+                            this.testing = true;
+                            this.testMessage = null;
+                            const formData = new FormData();
+                            formData.append('csrf_token', '<?= $auth->getCsrfToken() ?>');
+
+                            const basePath = window.location.pathname.includes('/admin/') ? '../' : '';
+                            fetch(basePath + 'ajax-notifications.php?action=test_broadcast', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                this.testing = false;
+                                if (data.status === 'success') {
+                                    this.testStatus = 'success';
+                                    let channels = Object.keys(data.channels).filter(c => data.channels[c]);
+                                    this.testMessage = 'Test broadcast sent to: ' + channels.join(', ');
+
+                                    if (data.channels.in_app) {
+                                        if ('Notification' in window && Notification.permission === 'granted') {
+                                            new Notification('Test Broadcast', {
+                                                body: 'This is a test notification from Agent Control.'
+                                            });
+                                        } else {
+                                            alert('Test Broadcast: This is a test notification from Agent Control.');
+                                        }
+                                    }
+                                } else {
+                                    this.testStatus = 'error';
+                                    this.testMessage = data.error || data.message || 'Test failed';
+                                }
+                            })
+                            .catch(err => {
+                                this.testing = false;
+                                this.testStatus = 'error';
+                                this.testMessage = 'Connection error';
+                            });
+                        }
+                    }">
                         <?php
                         $notifSettings = $notificationService->getUserSettings($user['user_id']);
                         ?>
@@ -269,8 +317,23 @@ $errorMessage = $errorMessage ?? null;
                             </div>
                         <?php endif; ?>
 
+                        <div x-show="testMessage" class="p-4 mb-4 text-sm rounded-lg" :class="testStatus === 'success' ? 'text-green-800 bg-green-50' : 'text-red-800 bg-red-50'" role="alert">
+                            <span class="font-medium" x-text="testStatus === 'success' ? 'Success!' : 'Error!'"></span> <span x-text="testMessage"></span>
+                        </div>
+
                         <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Notification Channels</h3>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900">Notification Channels</h3>
+                                <div class="flex space-x-2">
+                                    <button @click="requestPermission()" class="text-gray-600 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-xs px-3 py-1.5 focus:outline-none">
+                                        Enable Browser Notifications
+                                    </button>
+                                    <button @click="sendTest()" :disabled="testing" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-xs px-3 py-1.5 focus:outline-none disabled:opacity-50">
+                                        <span x-show="!testing">Test Broadcast</span>
+                                        <span x-show="testing">Sending...</span>
+                                    </button>
+                                </div>
+                            </div>
                             <form method="POST" class="space-y-4">
                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">

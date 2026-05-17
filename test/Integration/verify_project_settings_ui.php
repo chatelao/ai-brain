@@ -52,6 +52,13 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS task_notification_settings (
     is_muted BOOLEAN DEFAULT 0
 )");
 
+$pdo->exec("CREATE TABLE IF NOT EXISTS project_status_notification_settings (
+    project_id INTEGER NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    is_enabled BOOLEAN DEFAULT 1,
+    PRIMARY KEY (project_id, status)
+)");
+
 $pdo->exec("CREATE TABLE IF NOT EXISTS user_telegram_accounts (
     telegram_account_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INT NOT NULL,

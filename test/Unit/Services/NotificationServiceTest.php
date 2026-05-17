@@ -179,4 +179,41 @@ class NotificationServiceTest extends TestCase
 
         $this->assertEquals(1, $this->notificationService->getUnreadCount($userId));
     }
+
+    public function testSendTestNotificationDispatchesToChannelsWithoutPersisting()
+    {
+        $userId = 1;
+        $channel = $this->createMock(NotificationChannelInterface::class);
+        $channel->expects($this->once())
+                ->method('send')
+                ->willReturn(true);
+
+        $this->notificationService->registerChannel('test_channel', $channel);
+
+        // Enable test_channel and in_app
+        $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'test_channel', 1)");
+        $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'in_app', 1)");
+
+        $result = $this->notificationService->sendTestNotification($userId);
+
+        $this->assertEquals('success', $result['status']);
+        $this->assertTrue($result['channels']['test_channel']);
+        $this->assertTrue($result['channels']['in_app']);
+
+        // Verify NO persistence
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM notifications WHERE user_id = $userId");
+        $this->assertEquals(0, $stmt->fetchColumn());
+    }
+
+    public function testSendTestNotificationReturnsErrorIfNoChannelsEnabled()
+    {
+        $userId = 1;
+        // Explicitly disable everything
+        $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'in_app', 0)");
+
+        $result = $this->notificationService->sendTestNotification($userId);
+
+        $this->assertEquals('error', $result['status']);
+        $this->assertEquals('No notification channels enabled.', $result['message']);
+    }
 }
