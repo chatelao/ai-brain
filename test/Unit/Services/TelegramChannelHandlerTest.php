@@ -85,4 +85,40 @@ class TelegramChannelHandlerTest extends TestCase
         $result = $this->handler->send($notification);
         $this->assertFalse($result);
     }
+
+    public function testSendWithCustomUserToken()
+    {
+        $notification = [
+            'user_id' => 1,
+            'title' => 'Test Notification',
+            'message' => 'This is a test message.'
+        ];
+
+        $this->userModel->expects($this->once())
+            ->method('getTelegramChatId')
+            ->with(1)
+            ->willReturn(123456);
+
+        $this->userModel->expects($this->once())
+            ->method('findById')
+            ->with(1)
+            ->willReturn([
+                'user_id' => 1,
+                'telegram_bot_token' => 'custom-token'
+            ]);
+
+        $customService = $this->createMock(TelegramService::class);
+        $this->telegramService->expects($this->once())
+            ->method('withToken')
+            ->with('custom-token')
+            ->willReturn($customService);
+
+        $customService->expects($this->once())
+            ->method('sendMessage')
+            ->with(123456, $this->stringContains('Test Notification'))
+            ->willReturn(true);
+
+        $result = $this->handler->send($notification);
+        $this->assertTrue($result);
+    }
 }
