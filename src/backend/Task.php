@@ -12,14 +12,26 @@ class Task
 
     public function findByProjectId(int $projectId, bool $showAll = true): array
     {
-        $sql = "SELECT * FROM tasks WHERE project_id = ?";
+        $sql = "SELECT t1.* FROM tasks t1 WHERE t1.project_id = ?";
+        $params = [$projectId];
+
         if (!$showAll) {
-            $sql .= " AND (github_state = 'open' OR status NOT IN ('completed', 'failed'))";
+            $sql .= " AND (t1.github_state = 'open' OR (
+                t1.github_state = 'closed' AND t1.status = 'completed'
+                AND (
+                    SELECT COUNT(*) FROM tasks t2
+                    WHERE t2.project_id = t1.project_id
+                    AND t2.github_state = 'closed'
+                    AND t2.status = 'completed'
+                    AND (t2.created_at > t1.created_at OR (t2.created_at = t1.created_at AND t2.task_id > t1.task_id))
+                ) < 3
+            ))";
         }
-        $sql .= " ORDER BY created_at DESC";
+
+        $sql .= " ORDER BY t1.created_at DESC";
 
         $stmt = $this->db->getConnection()->prepare($sql);
-        $stmt->execute([$projectId]);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
@@ -36,7 +48,16 @@ class Task
              WHERE p.user_id = ?";
 
         if (!$showAll) {
-            $sql .= " AND (t.github_state = 'open' OR t.status NOT IN ('completed', 'failed'))";
+            $sql .= " AND (t.github_state = 'open' OR (
+                t.github_state = 'closed' AND t.status = 'completed'
+                AND (
+                    SELECT COUNT(*) FROM tasks t3
+                    WHERE t3.project_id = t.project_id
+                    AND t3.github_state = 'closed'
+                    AND t3.status = 'completed'
+                    AND (t3.created_at > t.created_at OR (t3.created_at = t.created_at AND t3.task_id > t.task_id))
+                ) < 3
+            ))";
         }
 
         $sql .= " ORDER BY t.created_at DESC";
@@ -107,6 +128,16 @@ class Task
             "SELECT * FROM tasks WHERE task_id = ?"
         );
         $stmt->execute([$id]);
+        $task = $stmt->fetch();
+        return $task ?: null;
+    }
+
+    public function findByPrUrl(string $prUrl): ?array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT * FROM tasks WHERE pr_url = ?"
+        );
+        $stmt->execute([$prUrl]);
         $task = $stmt->fetch();
         return $task ?: null;
     }
@@ -229,7 +260,7 @@ class Task
 
         $status = $task['status'] ?? 'pending';
 
-        if ($status === 'failed') {
+        if ($status === 'failed' || str_starts_with($status, 'failed_')) {
             return 'red';
         }
 
@@ -294,11 +325,11 @@ class Task
         $issueUrl = "https://github.com/" . ($repo ?? $task['github_repo']) . "/issues/" . $task['issue_number'];
         $status = $task['status'] ?? 'pending';
 
-        if ($status === 'completed') {
+        if ($status === 'completed' || $status === 'failed_pr') {
             return $task['pr_url'] ?: $issueUrl;
         }
 
-        if ($status === 'in_progress') {
+        if ($status === 'in_progress' || $status === 'failed_jules') {
             return $task['jules_url'] ?: $issueUrl;
         }
 
@@ -320,7 +351,7 @@ class Task
              JOIN projects p ON t.project_id = p.project_id
              WHERE t.user_id = ?
              AND (t.last_synced_at IS NULL OR t.last_synced_at < ?)
-             AND (t.status NOT IN ('completed', 'failed') OR t.jules_status NOT IN ('completed', 'failed'))"
+             AND (t.status NOT IN ('completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))"
         );
         $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
         $stmt->execute([$userId, $fiveMinutesAgo]);
@@ -422,7 +453,7 @@ class Task
                     } elseif ($newStatus === 'completed' || $newStatus === 'finished') {
                         $mappedStatus = !empty($prUrl) ? 'completed' : 'implemented';
                     } elseif ($newStatus === 'failed' || $newStatus === 'error') {
-                        $mappedStatus = 'failed';
+                        $mappedStatus = 'failed_jules';
                     }
 
                     if ($mappedStatus !== $task['status'] || $newStatus !== $task['jules_status']) {
@@ -436,9 +467,12 @@ class Task
                             $message = "Task \"" . $task['title'] . "\" status changed to " . $mappedStatus . ".";
                             if ($mappedStatus === 'completed' || $mappedStatus === 'implemented') {
                                 $title = "✅ Task Completed: #" . $task['issue_number'];
-                            } elseif ($mappedStatus === 'failed') {
-                                $title = "❌ Task Failed: #" . $task['issue_number'];
-                                $message = "Task \"" . $task['title'] . "\" failed.";
+                            } elseif ($mappedStatus === 'failed_jules') {
+                                $title = "❌ Jules Failed: #" . $task['issue_number'];
+                                $message = "Jules session for \"" . $task['title'] . "\" failed.";
+                            } elseif ($mappedStatus === 'failed_pr') {
+                                $title = "❌ PR Failed: #" . $task['issue_number'];
+                                $message = "PR checks for \"" . $task['title'] . "\" failed.";
                             }
 
                             $notificationService->notify($userId, 'task_status', $title, $message, [

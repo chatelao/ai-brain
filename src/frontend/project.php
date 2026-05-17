@@ -97,7 +97,7 @@ $triggerAgent = function($taskId) use ($taskModel, $logger, $user, $project, $ju
         } catch (\Exception $e) {
             $errorMessage = "Error triggering agent: " . $e->getMessage();
             $logger->log($user['user_id'], $taskId, "Error: " . $e->getMessage(), "error");
-            $taskModel->updateStatus($taskId, 'failed');
+            $taskModel->updateStatus($taskId, 'failed_jules');
             if (isset($githubService) && $githubService) {
                 try {
                     $githubService->postComment($project['github_repo'], $task['issue_number'], "❌ Agent failed to process this issue: " . $e->getMessage());
@@ -486,11 +486,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                         $githubData = json_decode($task['github_data'] ?? '{}', true);
                                                         if (($githubData['state'] ?? 'open') === 'closed') echo '✅ ';
                                                         elseif ($task['status'] === 'completed') echo '✅ ';
-                                                        elseif ($task['status'] === 'failed') echo '❌ ';
+                                                        elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') echo '❌ Jules ';
+                                                        elseif ($task['status'] === 'failed_pr') echo '❌ PR ';
                                                         elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) echo '🚧 ';
                                                         else echo '⏳ ';
                                                         ?>
-                                                        <?= htmlspecialchars($task['status'] ?? '') ?>
+                                                        <?= htmlspecialchars(str_replace(['failed_jules', 'failed_pr'], 'failed', $task['status'] ?? '')) ?>
                                                     </span>
                                                 </td>
                                                 <td class="px-6 py-4">

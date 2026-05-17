@@ -30,7 +30,7 @@ $notificationService = new NotificationService($db);
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
 $event = $_SERVER['HTTP_X_GITHUB_EVENT'] ?? '';
 
-if (empty($payload) || empty($signature) || !in_array($event, ['issues', 'ping'])) {
+if (empty($payload) || empty($signature) || !in_array($event, ['issues', 'ping', 'check_suite'])) {
     http_response_code(400);
     exit('Invalid request');
 }
