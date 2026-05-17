@@ -14,8 +14,6 @@ $db = new Database();
 $userModel = new User($db);
 $projectModel = new Project($db);
 $taskModel = new Task($db);
-$parsedown = new \Parsedown();
-$parsedown->setSafeMode(true);
 
 if (!$auth->isLoggedIn()) {
     header('Location: login.php');
@@ -23,6 +21,14 @@ if (!$auth->isLoggedIn()) {
 }
 
 $user = $userModel->findById($auth->getUserId());
+
+// Initialize Markdown parser
+if (!class_exists('\Parsedown')) {
+    die("Error: Class 'Parsedown' not found. Please run 'composer install' to install dependencies.");
+}
+$parsedown = new \Parsedown();
+$parsedown->setSafeMode(true);
+
 $taskId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $task = $taskModel->findById($taskId);
 
