@@ -8,6 +8,7 @@ use App\User;
 use App\Task;
 use App\WebhookLogger;
 use App\NotificationService;
+use App\TelegramService;
 
 $auth = new Auth();
 $db = new Database();
@@ -42,9 +43,43 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_teleg
     if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
         die("CSRF token validation failed.");
     }
-    $botToken = trim($_POST['telegram_bot_token']);
-    $webhookSecret = trim($_POST['telegram_webhook_secret']);
-    if ($userModel->updateTelegramConfig($user['user_id'], $botToken, $webhookSecret)) {
+    $newBotToken = trim($_POST['telegram_bot_token']);
+    $newWebhookSecret = trim($_POST['telegram_webhook_secret']);
+
+    $oldBotToken = $user['telegram_bot_token'] ?? '';
+
+    // Unregister old webhook if token changed and wasn't empty
+    if (!empty($oldBotToken) && $oldBotToken !== $newBotToken) {
+        try {
+            $oldTelegramService = new TelegramService(null, $oldBotToken);
+            $oldTelegramService->deleteWebhook();
+        } catch (\Exception $e) {
+            // Silently fail if old token was already invalid or other API issues
+        }
+    }
+
+    if ($userModel->updateTelegramConfig($user['user_id'], $newBotToken, $newWebhookSecret)) {
+        // Register new webhook if token is provided
+        if (!empty($newBotToken)) {
+            try {
+                $telegramService = new TelegramService(null, $newBotToken);
+
+                $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+                if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+                    $protocol = "https://";
+                }
+
+                $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                $webhookUrl = $protocol . $host . "/telegram-webhook.php?user_id=" . $user['user_id'];
+
+                $telegramService->setWebhook($webhookUrl, $newWebhookSecret);
+            } catch (\Exception $e) {
+                // If webhook registration fails, we still updated the config, but warn the user
+                header('Location: settings.php?success=telegram_updated&warning=webhook_failed&error=' . urlencode($e->getMessage()));
+                exit;
+            }
+        }
+
         header('Location: settings.php?success=telegram_updated');
         exit;
     } else {
@@ -157,6 +192,12 @@ $errorMessage = $errorMessage ?? null;
                     <?php if (isset($_GET['success']) && $_GET['success'] === 'telegram_updated'): ?>
                         <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
                             <span class="font-medium">Success!</span> Telegram configuration updated successfully.
+                            <?php if (isset($_GET['warning']) && $_GET['warning'] === 'webhook_failed'): ?>
+                                <div class="mt-2 text-yellow-800 font-normal">
+                                    <strong>Warning:</strong> Automated webhook registration failed: <?= htmlspecialchars($_GET['error'] ?? 'Unknown error') ?>.
+                                    You may need to register it manually.
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
 

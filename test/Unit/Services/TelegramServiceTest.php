@@ -76,4 +76,34 @@ class TelegramServiceTest extends TestCase
 
         $this->assertTrue($result);
     }
+
+    public function testSetWebhookSuccess()
+    {
+        $mock = new MockHandler([
+            new Response(200, [], json_encode(['ok' => true])),
+        ]);
+
+        $handlerStack = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handlerStack]);
+
+        $service = new TelegramService($client, 'fake-token');
+        $result = $service->setWebhook('https://example.com/webhook', 'secret123');
+
+        $this->assertTrue($result);
+    }
+
+    public function testDeleteWebhookSuccess()
+    {
+        $mock = new MockHandler([
+            new Response(200, [], json_encode(['ok' => true])),
+        ]);
+
+        $handlerStack = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handlerStack]);
+
+        $service = new TelegramService($client, 'fake-token');
+        $result = $service->deleteWebhook();
+
+        $this->assertTrue($result);
+    }
 }
