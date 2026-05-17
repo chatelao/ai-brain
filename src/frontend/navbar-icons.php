@@ -110,7 +110,15 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
+                    const oldCount = this.unreadNotifications;
                     this.unreadNotifications = data.unread_count;
+
+                    // Trigger browser notification if count increased
+                    if (data.unread_count > oldCount && 'Notification' in window && Notification.permission === 'granted') {
+                        new Notification('New Notification', {
+                            body: 'You have ' + (data.unread_count - oldCount) + ' new notification(s) in Agent Control.'
+                        });
+                    }
                 }
             });
     },
