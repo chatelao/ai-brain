@@ -11,48 +11,33 @@ class Logger
         self::$instance = $this;
     }
 
-    public static function getInstance(?Database $db = null): mixed
+    public static function getInstance(?Database $db = null): Logger
     {
         if (self::$instance === null) {
             if ($db === null) {
-                try {
-                    $db = new Database();
-                    $db->getConnection(); // Trigger connection error if not configured
-                    // Also check if performance_logs table exists
-                    $db->getConnection()->query("SELECT 1 FROM performance_logs LIMIT 1");
-                } catch (\Exception $e) {
-                    // Fallback for environments where Database cannot be initialized (e.g. some tests)
-                    return new class {
-                        public function log()
-                        {
-                            return false;
-                        }
-                        public function logPerformance()
-                        {
-                            return false;
-                        }
-                        public function getPerformanceLogs()
-                        {
-                            return [];
-                        }
-                        public function getLogsByTaskId()
-                        {
-                            return [];
-                        }
-                    } ;
-                }
+                $db = new Database();
             }
             self::$instance = new Logger($db);
         }
         return self::$instance;
     }
 
+    public static function resetInstance(): void
+    {
+        self::$instance = null;
+    }
+
     public function log(int $userId, int $taskId, string $message, string $level = 'info'): bool
     {
-        $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO task_logs (user_id, task_id, message, level) VALUES (?, ?, ?, ?)"
-        );
-        return $stmt->execute([$userId, $taskId, $message, $level]);
+        try {
+            $stmt = $this->db->getConnection()->prepare(
+                "INSERT INTO task_logs (user_id, task_id, message, level) VALUES (?, ?, ?, ?)"
+            );
+            return $stmt->execute([$userId, $taskId, $message, $level]);
+        } catch (\Exception $e) {
+            error_log("Failed to log task event: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function getLogsByTaskId(int $taskId): array
@@ -73,18 +58,23 @@ class Logger
         ?int $statusCode = null,
         ?string $errorMessage = null
     ): bool {
-        $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO performance_logs (user_id, type, target, duration, context, status_code, error_message) VALUES (?, ?, ?, ?, ?, ?, ?)"
-        );
-        return $stmt->execute([
-            $userId,
-            $type,
-            $target,
-            $duration,
-            $context ? json_encode($context) : null,
-            $statusCode,
-            $errorMessage
-        ]);
+        try {
+            $stmt = $this->db->getConnection()->prepare(
+                "INSERT INTO performance_logs (user_id, type, target, duration, context, status_code, error_message) VALUES (?, ?, ?, ?, ?, ?, ?)"
+            );
+            return $stmt->execute([
+                $userId,
+                $type,
+                $target,
+                $duration,
+                $context ? json_encode($context) : null,
+                $statusCode,
+                $errorMessage
+            ]);
+        } catch (\Exception $e) {
+            error_log("Failed to log performance event: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function getPerformanceLogs(?int $userId = null, int $limit = 100): array
