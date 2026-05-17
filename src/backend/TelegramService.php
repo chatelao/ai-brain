@@ -20,6 +20,11 @@ class TelegramService
         $this->botToken = $botToken ?? (getenv('TELEGRAM_BOT_TOKEN') ?: '');
     }
 
+    public function withToken(string $botToken): self
+    {
+        return new self($this->client, $botToken);
+    }
+
     /**
      * @throws GuzzleException
      * @throws Exception
