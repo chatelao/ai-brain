@@ -24,7 +24,9 @@ class TelegramChannelHandlerTest extends TestCase
     protected function setUp(): void
     {
         $this->pdo = $this->getTestPdo();
-        $this->pdo->exec("CREATE TABLE IF NOT EXISTS task_logs (task_log_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, task_id INTEGER, message TEXT, level TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+        $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = $driver === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS task_logs (task_log_id $pk, user_id INTEGER, task_id INTEGER, message TEXT, level TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 
         $this->db = $this->createMock(Database::class);
         $this->db->method('getConnection')->willReturn($this->pdo);
