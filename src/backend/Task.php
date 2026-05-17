@@ -338,6 +338,56 @@ class Task
         }, $text);
     }
 
+    /**
+     * Converts <img> tags from trusted GitHub domains into HTML links
+     * suitable for Telegram notifications.
+     * This method handles HTML escaping for Telegram.
+     */
+    public function convertImagesToLinks(string $text): string
+    {
+        $trustedDomains = [
+            'https://github.com/user-attachments/assets/',
+            'https://raw.githubusercontent.com/',
+            'https://user-images.githubusercontent.com/',
+            'https://github-production-user-asset-6210df.s3.amazonaws.com/'
+        ];
+
+        // First, find all matches to preserve them
+        $placeholders = [];
+        $text = preg_replace_callback('/<img\s+[^>]*src="([^"]+)"[^>]*>/i', function($matches) use ($trustedDomains, &$placeholders) {
+            $src = $matches[1];
+            $isTrusted = false;
+            foreach ($trustedDomains as $domain) {
+                if (strpos($src, $domain) === 0) {
+                    $isTrusted = true;
+                    break;
+                }
+            }
+
+            if ($isTrusted) {
+                $alt = 'Image';
+                if (preg_match('/alt="([^"]+)"/i', $matches[0], $altMatches)) {
+                    $alt = $altMatches[1];
+                }
+                $placeholder = "____IMG_PLACEHOLDER_" . count($placeholders) . "____";
+                $placeholders[$placeholder] = "<a href=\"" . htmlspecialchars($src) . "\">[" . htmlspecialchars($alt) . "]</a>";
+                return $placeholder;
+            }
+
+            return $matches[0];
+        }, $text);
+
+        // Now escape the rest of the text for Telegram HTML
+        $text = htmlspecialchars($text);
+
+        // Put back the links (which are already safely prepared)
+        foreach ($placeholders as $placeholder => $link) {
+            $text = str_replace(htmlspecialchars($placeholder), $link, $text);
+        }
+
+        return $text;
+    }
+
     public function extractSessionId(string $text): ?string
     {
         // 1. Markdown links like [Jules Task](.../sessions/ID) or .../task/ID

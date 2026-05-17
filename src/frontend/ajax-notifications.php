@@ -17,7 +17,17 @@ if (!$auth->isLoggedIn()) {
 
 $db = new Database();
 $notificationService = new NotificationService($db);
+$taskModel = new \App\Task($db);
 $userId = $auth->getUserId();
+
+// Initialize Markdown parser
+if (!class_exists('\Parsedown')) {
+    http_response_code(500);
+    echo json_encode(['error' => "Class 'Parsedown' not found."]);
+    exit;
+}
+$parsedown = new \Parsedown();
+$parsedown->setSafeMode(true);
 
 $action = $_GET['action'] ?? 'unread_count';
 
@@ -34,6 +44,8 @@ try {
             if (isset($n['data']) && is_string($n['data'])) {
                 $n['data'] = json_decode($n['data'], true);
             }
+            $n['title'] = $parsedown->text($taskModel->processGitHubImages($n['title']));
+            $n['message'] = $parsedown->text($taskModel->processGitHubImages($n['message']));
         }
         echo json_encode([
             'status' => 'success',

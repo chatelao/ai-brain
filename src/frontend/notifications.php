@@ -36,6 +36,13 @@ $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $limit = 20;
 $offset = ($page - 1) * $limit;
 
+// Initialize Markdown parser
+if (!class_exists('\Parsedown')) {
+    die("Error: Class 'Parsedown' not found. Please run 'composer install' to install dependencies.");
+}
+$parsedown = new \Parsedown();
+$parsedown->setSafeMode(true);
+
 $notifications = $notificationService->getNotifications($userId, $limit, $offset);
 $totalNotifications = $notificationService->getTotalCount($userId);
 $totalPages = ceil($totalNotifications / $limit);
@@ -125,12 +132,16 @@ $totalPages = ceil($totalNotifications / $limit);
                                         <div class="flex justify-between items-start">
                                             <div class="flex-1">
                                                 <div class="flex items-center">
-                                                    <h4 class="text-sm font-bold text-gray-900"><?= htmlspecialchars($n['title']) ?></h4>
+                                                    <h4 class="text-sm font-bold text-gray-900 markdown-body">
+                                                        <?= $parsedown->text($taskModel->processGitHubImages($n['title'])) ?>
+                                                    </h4>
                                                     <?php if (!$n['is_read']): ?>
                                                         <span class="ml-2 w-2 h-2 bg-blue-600 rounded-full"></span>
                                                     <?php endif; ?>
                                                 </div>
-                                                <p class="text-sm text-gray-600 mt-1"><?= htmlspecialchars($n['message']) ?></p>
+                                                <div class="text-sm text-gray-600 mt-1 markdown-body">
+                                                    <?= $parsedown->text($taskModel->processGitHubImages($n['message'])) ?>
+                                                </div>
                                                 <div class="mt-2 flex items-center space-x-4">
                                                     <span class="text-xs text-gray-400 font-mono"><?= htmlspecialchars($n['created_at']) ?></span>
                                                     <?php if (!empty($data['source_url'])): ?>

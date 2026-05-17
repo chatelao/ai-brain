@@ -216,10 +216,10 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
                          :class="{'bg-blue-50/30': !n.is_read}"
                          @click="markAsRead(n.notification_id, n.data?.source_url)">
                         <div class="flex justify-between items-start">
-                            <span class="text-xs font-bold text-gray-900" x-text="n.title"></span>
-                            <span class="text-[10px] text-gray-400" x-text="new Date(n.created_at).toLocaleDateString()"></span>
+                            <div class="text-xs font-bold text-gray-900 markdown-body" x-html="n.title"></div>
+                            <span class="text-[10px] text-gray-400 shrink-0 ml-2" x-text="new Date(n.created_at).toLocaleDateString()"></span>
                         </div>
-                        <p class="text-xs text-gray-600 mt-1" x-text="n.message"></p>
+                        <div class="text-xs text-gray-600 mt-1 markdown-body" x-html="n.message"></div>
                         <template x-if="!n.is_read">
                             <div class="absolute top-3 right-3 w-2 h-2 bg-blue-600 rounded-full"></div>
                         </template>
