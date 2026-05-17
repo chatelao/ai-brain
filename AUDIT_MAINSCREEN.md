@@ -21,7 +21,8 @@ The main grid displays all projects owned by the user, each containing a collect
 ### Task Filtering Rules
 Tasks displayed within a project card are filtered by `App\Task::findActiveByUserProjects($userId)` with the following rules:
 - **Open Tasks**: All tasks where `github_state = 'open'` are shown.
-- **Closed Tasks**: Only the **3 most recent** tasks where `github_state = 'closed'` AND `status = 'completed'` are shown per project.
+- **Closed Tasks**: Only the **3 most recent** tasks where `github_state = 'closed'` AND `status = 'completed'` are shown **across all projects** for the user.
+- **Orphan Prevention**: Tasks with `issue_number = 0` or an empty title are **never** shown.
 - **Sorting**: Tasks are sorted by `created_at` in descending order.
 
 ### Status Squares (Visual Indicators)
