@@ -243,6 +243,35 @@ class Task
         return $stmt->execute([$response, $status, $id]);
     }
 
+    public function updateGitHubCache(int $taskId, ?array $prData = null, ?array $commentsData = null): bool
+    {
+        $updates = [];
+        $params = [];
+
+        if ($prData !== null) {
+            $updates[] = "github_pr_data = ?";
+            $params[] = json_encode($prData);
+        }
+
+        if ($commentsData !== null) {
+            $updates[] = "github_comments_data = ?";
+            $params[] = json_encode($commentsData);
+        }
+
+        if (empty($updates)) {
+            return true;
+        }
+
+        $updates[] = "github_data_updated_at = ?";
+        $params[] = date('Y-m-d H:i:s');
+
+        $params[] = $taskId;
+
+        $sql = "UPDATE tasks SET " . implode(', ', $updates) . " WHERE task_id = ?";
+        $stmt = $this->db->getConnection()->prepare($sql);
+        return $stmt->execute($params);
+    }
+
     public function create(array $data): bool
     {
         $stmt = $this->db->getConnection()->prepare(

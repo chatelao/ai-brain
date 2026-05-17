@@ -98,4 +98,16 @@ class Project
         );
         return $stmt->execute([$id, $userId]);
     }
+
+    public function updateRoadmapCache(int $projectId, array $roadmapData): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE projects SET roadmap_data = ?, roadmap_updated_at = ? WHERE project_id = ?"
+        );
+        return $stmt->execute([
+            json_encode($roadmapData),
+            date('Y-m-d H:i:s'),
+            $projectId
+        ]);
+    }
 }

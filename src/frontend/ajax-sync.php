@@ -20,6 +20,9 @@ if (!$auth->isLoggedIn()) {
     exit;
 }
 
+// Release session lock to prevent blocking other requests
+session_write_close();
+
 $db = new Database();
 $userModel = new User($db);
 $projectModel = new Project($db);
@@ -38,8 +41,7 @@ try {
             $githubToken = $project['github_token'] ?? null;
             if ($githubToken) {
                 $githubService = new GitHubService(null, $githubToken);
-                $taskModel->syncIssues($userId, $projectId, $project['github_repo'], $githubService);
-                $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
+                $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService, null, $projectId);
             }
         }
     } else {
