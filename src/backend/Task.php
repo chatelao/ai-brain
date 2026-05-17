@@ -12,14 +12,26 @@ class Task
 
     public function findByProjectId(int $projectId, bool $showAll = true): array
     {
-        $sql = "SELECT * FROM tasks WHERE project_id = ?";
+        $sql = "SELECT t1.* FROM tasks t1 WHERE t1.project_id = ?";
+        $params = [$projectId];
+
         if (!$showAll) {
-            $sql .= " AND (github_state = 'open' OR status NOT IN ('completed', 'failed'))";
+            $sql .= " AND (t1.github_state = 'open' OR (
+                t1.github_state = 'closed' AND t1.status = 'completed'
+                AND (
+                    SELECT COUNT(*) FROM tasks t2
+                    WHERE t2.project_id = t1.project_id
+                    AND t2.github_state = 'closed'
+                    AND t2.status = 'completed'
+                    AND (t2.created_at > t1.created_at OR (t2.created_at = t1.created_at AND t2.task_id > t1.task_id))
+                ) < 3
+            ))";
         }
-        $sql .= " ORDER BY created_at DESC";
+
+        $sql .= " ORDER BY t1.created_at DESC";
 
         $stmt = $this->db->getConnection()->prepare($sql);
-        $stmt->execute([$projectId]);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
@@ -36,7 +48,16 @@ class Task
              WHERE p.user_id = ?";
 
         if (!$showAll) {
-            $sql .= " AND (t.github_state = 'open' OR t.status NOT IN ('completed', 'failed'))";
+            $sql .= " AND (t.github_state = 'open' OR (
+                t.github_state = 'closed' AND t.status = 'completed'
+                AND (
+                    SELECT COUNT(*) FROM tasks t3
+                    WHERE t3.project_id = t.project_id
+                    AND t3.github_state = 'closed'
+                    AND t3.status = 'completed'
+                    AND (t3.created_at > t.created_at OR (t3.created_at = t.created_at AND t3.task_id > t.task_id))
+                ) < 3
+            ))";
         }
 
         $sql .= " ORDER BY t.created_at DESC";
