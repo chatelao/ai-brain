@@ -138,6 +138,7 @@ $errorMessage = $errorMessage ?? null;
                             </div>
                             <div class="ml-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($user['name'] ?? '') ?></div>
                             <a href="templates.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Templates</a>
+                        <a href="logs.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Logs</a>
                             <a href="settings.php" class="ml-4 text-sm font-medium text-blue-600 hover:underline">Settings</a>
                             <a href="logout.php" class="ml-4 text-sm font-medium text-red-600 hover:underline">Logout</a>
                         </div>

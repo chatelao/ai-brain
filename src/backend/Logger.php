@@ -52,4 +52,22 @@ class Logger
             $context ? json_encode($context) : null
         ]);
     }
+
+    public function getPerformanceLogs(?int $userId = null, int $limit = 100): array
+    {
+        $query = "SELECT p.*, u.email as user_email FROM performance_logs p
+                  LEFT JOIN users u ON p.user_id = u.user_id";
+        $params = [];
+
+        if ($userId !== null) {
+            $query .= " WHERE p.user_id = ?";
+            $params[] = $userId;
+        }
+
+        $query .= " ORDER BY p.created_at DESC LIMIT " . (int)$limit;
+
+        $stmt = $this->db->getConnection()->prepare($query);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
 }
