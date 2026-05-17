@@ -174,33 +174,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['rerun_task'])) {
     }
 }
 
-// Handle Quick Create Issue
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_quick_issue'])) {
-    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
-        die("CSRF token validation failed.");
-    }
-
-    $title = $_POST['title'] ?? '';
-    if (!empty($title)) {
-        try {
-            $githubToken = $project['github_token'] ?? null;
-            if (!$githubToken) {
-                throw new Exception("GitHub token not found for this project.");
-            }
-
-            $githubService = new GitHubService(null, $githubToken);
-            $githubService->createIssue($project['github_repo'], $title, '', ['jules']);
-
-            header("Location: project.php?id=$projectId&success=quick_issue_created");
-            exit;
-        } catch (Exception $e) {
-            $errorMessage = "Error creating quick issue: " . $e->getMessage();
-        }
-    } else {
-        $errorMessage = "Issue title cannot be empty.";
-    }
-}
-
 // Handle Create Issue from Template
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'])) {
     if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
@@ -320,16 +293,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                 <?= htmlspecialchars($project['github_repo'] ?? '') ?>
                             </a>
                         </h1>
-                        <a href="project-settings.php?id=<?= $projectId ?>" class="text-gray-500 hover:text-gray-900 focus:outline-none" title="Project Settings">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        </a>
-                    </div>
-
-                        <form method="POST" class="flex items-center w-full md:max-w-md lg:max-w-xl">
-                            <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                            <input type="text" name="title" placeholder="Quick create issue title..." class="bg-white border border-gray-300 text-gray-900 text-lg rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-4" required>
-                            <button type="submit" name="create_quick_issue" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-r-lg text-lg px-8 py-4 focus:outline-none whitespace-nowrap">Submit</button>
-                        </form>
+                        <div class="flex items-center space-x-2">
+                            <form method="POST" class="inline">
+                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                <button type="submit" name="sync_issues" class="text-gray-500 hover:text-gray-900 focus:outline-none" title="Sync Issues">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                </button>
+                            </form>
+                            <a href="project-settings.php?id=<?= $projectId ?>" class="text-gray-500 hover:text-gray-900 focus:outline-none" title="Project Settings">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            </a>
+                        </div>
                     </div>
 
                     <?php if ($errorMessage): ?>
@@ -344,11 +318,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                         </div>
                     <?php endif; ?>
 
-                    <?php if (isset($_GET['success']) && $_GET['success'] === 'quick_issue_created'): ?>
-                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
-                            <span class="font-medium">Success!</span> Quick issue created. It may take a few seconds to appear in the list (synced via webhook).
-                        </div>
-                    <?php endif; ?>
 
 
 
@@ -433,18 +402,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                         </div>
 
                         <div class="lg:col-span-3 order-2 lg:order-1 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                            <div class="flex justify-between items-center mb-4">
-                                <div class="flex items-center space-x-4">
-                                    <h3 class="text-lg font-bold text-gray-900">Tasks synced from GitHub</h3>
-                                    <a href="?id=<?= $projectId ?>&all=<?= $showAll ? '0' : '1' ?>" class="text-xs text-blue-600 hover:underline">
-                                        <?= $showAll ? 'Show Only Active' : 'Show All' ?>
-                                    </a>
-                                </div>
-                                <form method="POST">
-                                    <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                    <button type="submit" name="sync_issues" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none">Sync Issues</button>
-                                </form>
-                            </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm text-left text-gray-500">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-50">
