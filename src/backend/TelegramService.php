@@ -27,6 +27,11 @@ class TelegramService
         return $new;
     }
 
+    public function withToken(string $botToken): self
+    {
+        return new self($this->client, $botToken);
+    }
+
     /**
      * @throws GuzzleException
      * @throws Exception

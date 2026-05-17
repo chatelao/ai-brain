@@ -92,7 +92,9 @@ if (!empty($matchingProject['github_token'])) {
     $githubService = new GitHubService(null, $matchingProject['github_token']);
 }
 
-$julesService = new JulesService();
+$userModel = new User($db);
+$user = $userModel->findById($matchingProject['user_id']);
+$julesService = new JulesService(null, $user['jules_api_key'] ?? null);
 
 if ($handler->handle($matchingProject, $data, $githubService, $notificationService, $julesService)) {
     $logger->log($matchingProject['user_id'], 'github', $payload, $headersStr, 200);

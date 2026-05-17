@@ -211,6 +211,22 @@ class Task
         return $stmt->execute([$projectId, $issueNumber]);
     }
 
+    public function deleteByIssueNumbersNotIn(int $projectId, array $issueNumbers): bool
+    {
+        if (empty($issueNumbers)) {
+            $stmt = $this->db->getConnection()->prepare(
+                "DELETE FROM tasks WHERE project_id = ?"
+            );
+            return $stmt->execute([$projectId]);
+        }
+
+        $placeholders = implode(',', array_fill(0, count($issueNumbers), '?'));
+        $stmt = $this->db->getConnection()->prepare(
+            "DELETE FROM tasks WHERE project_id = ? AND issue_number NOT IN ($placeholders)"
+        );
+        return $stmt->execute(array_merge([$projectId], $issueNumbers));
+    }
+
     public function updateStatus(int $id, string $status): bool
     {
         $stmt = $this->db->getConnection()->prepare(
@@ -247,6 +263,7 @@ class Task
     public function syncIssues(int $userId, int $projectId, string $repo, GitHubService $githubService): void
     {
         $issues = $githubService->listIssues($repo, 'all');
+        $issueNumbers = [];
 
         foreach ($issues as $issue) {
             // Check if it's really an issue (not a PR)
@@ -254,7 +271,10 @@ class Task
                 continue;
             }
             $this->upsert($userId, $projectId, $issue);
+            $issueNumbers[] = $issue['number'];
         }
+
+        $this->deleteByIssueNumbersNotIn($projectId, $issueNumbers);
     }
 
     public function upsert(int $userId, int $projectId, array $issue): bool
@@ -480,7 +500,7 @@ class Task
         return $issueUrl;
     }
 
-    public function refreshJulesStatus(int $userId, GitHubService $githubService, JulesService $julesService, ?NotificationService $notificationService = null, ?int $taskId = null): void
+    public function refreshJulesStatus(int $userId, GitHubService $githubService, JulesService $julesService, ?NotificationService $notificationService = null, ?int $taskId = null, ?int $projectId = null): void
     {
         $sql = "SELECT t.*, p.github_repo
              FROM tasks t
@@ -492,6 +512,13 @@ class Task
         if ($taskId) {
             $sql .= " AND t.task_id = ?";
             $params[] = $taskId;
+        } elseif ($projectId) {
+            $sql .= " AND t.project_id = ?";
+            $params[] = $projectId;
+            $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
+            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ?)
+                      AND (t.status NOT IN ('completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))";
+            $params[] = $fiveMinutesAgo;
         } else {
             $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
             $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ?)
