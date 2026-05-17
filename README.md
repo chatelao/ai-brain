@@ -10,6 +10,9 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 ### Database Schema
 ![Database Schema](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/schema.puml)
 
+### Task Lifecycle
+![Task States](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/TASK_STATE_EVENTS.puml)
+
 ### Used APIs and Interfaces
 
 #### Production

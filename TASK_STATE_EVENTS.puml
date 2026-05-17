@@ -1,0 +1,64 @@
+@startuml
+title Task State-Event Diagram
+
+state "GitHub Issue" as GitHubIssue {
+    [*] --> Open
+    Open --> Closed : Issue closed (Webhook)
+    Closed --> Open : Issue reopened (Webhook)
+}
+
+state "Jules Session" as JulesSession {
+    [*] --> Created : triggerAgent()
+    Created --> researching : STATE_RESEARCHING
+    researching --> planning : STATE_PLANNING
+    planning --> in_progress : STATE_IN_PROGRESS
+    in_progress --> coding : STATE_CODING
+    coding --> testing : STATE_TESTING
+    testing --> finished : STATE_FINISHED / STATE_COMPLETED
+
+    researching --> failed : STATE_FAILED / STATE_ERROR
+    planning --> failed
+    in_progress --> failed
+    coding --> failed
+    testing --> failed
+}
+
+state "Task Status (Internal)" as TaskStatus {
+    [*] --> pending
+    pending --> analyzed : triggerAgent() (project.php)
+
+    analyzed --> researching : refreshJulesStatus (polling)
+    researching --> planning : refreshJulesStatus (polling)
+    planning --> awaiting_plan_approval : External/Manual update
+    awaiting_plan_approval --> planning : External/Manual update
+    planning --> in_progress : refreshJulesStatus (polling)
+    in_progress --> coding : refreshJulesStatus (polling)
+    coding --> testing : refreshJulesStatus (polling)
+
+    testing --> implemented : Jules finished & no PR URL
+    testing --> completed : Jules finished & PR URL exists
+    implemented --> completed : PR URL detected (sync)
+
+    researching --> failed_jules : Jules failed/error
+    planning --> failed_jules
+    in_progress --> failed_jules
+    coding --> failed_jules
+    testing --> failed_jules
+
+    completed --> failed_pr : check_suite failure (Webhook)
+    failed_pr --> completed : check_suite success (Webhook)
+}
+
+state "Pull Request" as PR {
+    [*] --> None
+    None --> Open : PR created (polling/Webhook)
+    Open --> Merged : PR merged (Webhook)
+    Open --> ClosedPR : PR closed (Webhook)
+}
+
+Open -[dashed]-> pending : Sync / Webhook
+TaskStatus -[dashed]-> GitHubIssue : Status influences UI badges
+JulesSession -[dashed]-> TaskStatus : Jules status maps to Task status
+PR -[dashed]-> TaskStatus : PR presence/checks affect status
+
+@enduml
