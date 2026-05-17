@@ -122,6 +122,9 @@ class NotificationService
                 $telegramService = new TelegramService();
                 $channel = new TelegramChannelHandler($userModel, $telegramService);
                 $this->registerChannel('telegram', $channel);
+            } elseif ($channelName === 'browser') {
+                $channel = new BrowserChannelHandler();
+                $this->registerChannel('browser', $channel);
             }
         }
 
@@ -174,7 +177,7 @@ class NotificationService
         }
 
         // Default settings if not present
-        $types = ['github_issue', 'task_status', 'agent_event'];
+        $types = ['github_issue', 'github_pr', 'task_status', 'agent_event'];
         foreach ($types as $type) {
             if (!isset($settings[$type])) {
                 $settings[$type] = true;
@@ -422,6 +425,9 @@ class NotificationService
         // Default settings if not present
         if (!isset($settings['in_app'])) {
             $settings['in_app'] = true;
+        }
+        if (!isset($settings['browser'])) {
+            $settings['browser'] = false;
         }
 
         return $settings;

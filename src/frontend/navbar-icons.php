@@ -66,10 +66,60 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     notifications: [],
     showNotifications: false,
     loadingNotifications: false,
+    lastSeenNotificationId: 0,
     csrfToken: '<?= $auth->getCsrfToken() ?>',
     basePath: window.location.pathname.includes('/admin/') ? '../' : '',
     init() {
         const basePath = this.basePath;
+
+        // Initial fetch for last seen ID
+        fetch(basePath + 'ajax-notifications.php?action=unread_count')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    this.unreadNotifications = data.unread_count;
+                    if (data.notifications && data.notifications.length > 0) {
+                        this.lastSeenNotificationId = data.notifications[0].notification_id;
+                    }
+                }
+            });
+
+        // Polling for updates
+        setInterval(() => {
+            fetch(basePath + 'ajax-notifications.php?action=unread_count')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Check for new notifications
+                        if (data.notifications && data.notifications.length > 0) {
+                            const newNotifications = data.notifications.filter(n => n.notification_id > this.lastSeenNotificationId);
+                            if (newNotifications.length > 0) {
+                                this.lastSeenNotificationId = data.notifications[0].notification_id;
+
+                                // Dispatch event for other components
+                                window.dispatchEvent(new CustomEvent('sync-updated', { detail: data }));
+
+                                // Trigger Browser Notification
+                                if (data.settings?.browser && 'Notification' in window && Notification.permission === 'granted') {
+                                    newNotifications.forEach(n => {
+                                        const notification = new Notification(n.title_plain, {
+                                            body: n.message_plain,
+                                            icon: basePath + 'favicon.svg'
+                                        });
+                                        notification.onclick = () => {
+                                            window.focus();
+                                            if (n.data?.source_url) {
+                                                window.open(n.data.source_url, '_blank');
+                                            }
+                                        };
+                                    });
+                                }
+                            }
+                        }
+                        this.unreadNotifications = data.unread_count;
+                    }
+                });
+        }, 15000);
 
         // Fetch Sync Status
         if (!this.syncStatus) {
@@ -105,14 +155,6 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
                 });
         }
 
-        // Fetch Unread Notification Count
-        fetch(basePath + 'ajax-notifications.php?action=unread_count')
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    this.unreadNotifications = data.unread_count;
-                }
-            });
     },
     fetchNotifications() {
         this.loadingNotifications = true;

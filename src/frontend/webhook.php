@@ -31,7 +31,7 @@ $notificationService = new NotificationService($db);
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
 $event = $_SERVER['HTTP_X_GITHUB_EVENT'] ?? '';
 
-if (empty($payload) || empty($signature) || !in_array($event, ['issues', 'ping', 'check_suite'])) {
+if (empty($payload) || empty($signature) || !in_array($event, ['issues', 'ping', 'check_suite', 'pull_request'])) {
     http_response_code(400);
     exit('Invalid request');
 }
@@ -86,6 +86,17 @@ if ($event === 'ping') {
     http_response_code(200);
     exit('PONG');
 }
+
+// Optimization: Return 200 OK immediately and continue in background if possible
+if (function_exists('fastcgi_finish_request')) {
+    ignore_user_abort(true);
+    session_write_close();
+    header("Content-Length: 2");
+    header("Connection: close");
+    echo "OK";
+    fastcgi_finish_request();
+}
+
 
 $githubService = null;
 if (!empty($matchingProject['github_token'])) {
