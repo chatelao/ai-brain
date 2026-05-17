@@ -22,13 +22,6 @@ class TelegramService
 
     public function withToken(string $botToken): self
     {
-        $new = clone $this;
-        $new->botToken = $botToken;
-        return $new;
-    }
-
-    public function withToken(string $botToken): self
-    {
         return new self($this->client, $botToken);
     }
 
