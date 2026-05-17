@@ -30,8 +30,8 @@ class TelegramChannelHandler implements NotificationChannelInterface
         $message = $notification['message'];
         $sourceUrl = $notification['data']['source_url'] ?? null;
 
-        $text = "<b>" . htmlspecialchars($title) . "</b>\n\n";
-        $text .= htmlspecialchars($message);
+        $text = "<b>" . $title . "</b>\n\n";
+        $text .= $message;
 
         if ($sourceUrl) {
             $text .= "\n\n<a href=\"" . htmlspecialchars($sourceUrl) . "\">View Source</a>";
