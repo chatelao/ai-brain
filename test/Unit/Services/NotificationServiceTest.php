@@ -45,6 +45,7 @@ class NotificationServiceTest extends TestCase
         $this->pdo->exec("CREATE TABLE notifications (
             notification_id $pk,
             user_id INT,
+            project_id INT,
             type VARCHAR(50),
             title VARCHAR(255),
             message TEXT,
@@ -215,5 +216,39 @@ class NotificationServiceTest extends TestCase
 
         $this->assertEquals('error', $result['status']);
         $this->assertEquals('No notification channels enabled.', $result['message']);
+    }
+
+    public function testNotifyLimitsNotificationsPerProject()
+    {
+        $userId = 1;
+        $projectId = 123;
+        $limit = 25;
+
+        // Insert 30 notifications for the same project
+        for ($i = 1; $i <= 30; $i++) {
+            $this->notificationService->notify(
+                $userId,
+                'test_type',
+                "Title $i",
+                "Message $i",
+                ['project_id' => $projectId]
+            );
+        }
+
+        // Verify that only 25 notifications remain for this project
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM notifications");
+        $stmt->execute();
+        $totalCount = $stmt->fetchColumn();
+
+        $this->assertEquals($limit, $totalCount, "Should limit notifications to $limit per project");
+
+        // Verify that the remaining ones are the most recent ones (Title 6 to Title 30)
+        $stmt = $this->pdo->prepare("SELECT title FROM notifications ORDER BY notification_id ASC");
+        $stmt->execute();
+        $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $this->assertCount($limit, $titles);
+        $this->assertEquals("Title 6", $titles[0]);
+        $this->assertEquals("Title 30", $titles[24]);
     }
 }
