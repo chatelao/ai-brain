@@ -52,7 +52,6 @@ jobs:
             --exclude=docs/
             --exclude=specification/
             --exclude=scripts/
-            --exclude=Vagrantfile
             --exclude=CONCEPT.md
             --exclude=DESIGN.md
             --exclude=GEMINI.md
