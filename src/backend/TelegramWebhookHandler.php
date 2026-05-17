@@ -41,8 +41,13 @@ class TelegramWebhookHandler
         }
 
         if ($text === '/start') {
-            $this->telegramService->sendMessage($chatId, "Welcome! To link your account, please use the link provided in the Agent Control dashboard.");
-            return true;
+            try {
+                $this->telegramService->sendMessage($chatId, "Welcome! To link your account, please use the link provided in the Agent Control dashboard.");
+                return true;
+            } catch (\Exception $e) {
+                error_log("Telegram Webhook Error (welcome): " . $e->getMessage());
+                return false;
+            }
         }
 
         return false;
@@ -51,10 +56,19 @@ class TelegramWebhookHandler
     private function handleLink(int $chatId, string $token): bool
     {
         if ($this->userModel->linkTelegramAccount($token, $chatId)) {
-            $this->telegramService->sendMessage($chatId, "Success! Your Telegram account has been linked to Agent Control.");
-            return true;
+            try {
+                $this->telegramService->sendMessage($chatId, "Success! Your Telegram account has been linked to Agent Control.");
+                return true;
+            } catch (\Exception $e) {
+                error_log("Telegram Webhook Error (link success): " . $e->getMessage());
+                return true; // Token was linked, but message failed
+            }
         } else {
-            $this->telegramService->sendMessage($chatId, "Invalid or expired linking token.");
+            try {
+                $this->telegramService->sendMessage($chatId, "Invalid or expired linking token.");
+            } catch (\Exception $e) {
+                error_log("Telegram Webhook Error (link failure): " . $e->getMessage());
+            }
             return false;
         }
     }

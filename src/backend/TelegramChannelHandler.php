@@ -26,8 +26,10 @@ class TelegramChannelHandler implements NotificationChannelInterface
             $telegramService = $this->telegramService->withToken($user['telegram_bot_token']);
         }
 
-        $title = $notification['title'];
-        $message = $notification['message'];
+        $taskModel = new Task($this->userModel->getDb());
+        $title = htmlspecialchars($notification['title']);
+        // Task::convertImagesToLinks already handles htmlspecialchars of the non-image parts
+        $message = $taskModel->convertImagesToLinks($notification['message']);
         $sourceUrl = $notification['data']['source_url'] ?? null;
 
         $text = "<b>" . $title . "</b>\n\n";
