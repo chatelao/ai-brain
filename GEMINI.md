@@ -37,6 +37,9 @@ running on a php webserver using a MySQL database and Google SSO login for multi
 - The progress is updated with every increment.
 - The finished tasks are linked to the corresponding issue and timestamped at the end of the line.
 
+## Database
+- If SQL statements are required, use the oldest, most common standard dialect available to improve cross-plattform compatibility.
+- Draw database schematics as plantUML entities with crowfoot notation.
 
 # Testing Locally & with Github Action Workflow
 
