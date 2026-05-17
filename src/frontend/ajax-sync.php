@@ -9,6 +9,7 @@ use App\Project;
 use App\Task;
 use App\JulesService;
 use App\GitHubService;
+use App\NotificationService;
 
 header('Content-Type: application/json');
 
@@ -28,6 +29,7 @@ $user = $userModel->findById($userId);
 
 $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $julesService = new JulesService(null, $user['jules_api_key'] ?? null);
+$notificationService = new NotificationService($db);
 
 try {
     if ($projectId > 0) {
@@ -37,7 +39,7 @@ try {
             if ($githubToken) {
                 $githubService = new GitHubService(null, $githubToken);
                 $taskModel->syncIssues($userId, $projectId, $project['github_repo'], $githubService);
-                $taskModel->refreshJulesStatus($userId, $githubService, $julesService);
+                $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
             }
         }
     } else {
@@ -46,11 +48,11 @@ try {
         if (!empty($githubAccounts)) {
             // Use the first account's token for refreshing Jules status
             $githubService = new GitHubService(null, $githubAccounts[0]['github_token']);
-            $taskModel->refreshJulesStatus($userId, $githubService, $julesService);
+            $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
         } else {
             // Fallback without token
             $githubService = new GitHubService();
-            $taskModel->refreshJulesStatus($userId, $githubService, $julesService);
+            $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
         }
     }
 

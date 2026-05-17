@@ -36,8 +36,8 @@
 - [ ] Implement per-task "Mute" functionality.
 
 ## Phase 6: Event Integration
-- [ ] Integrate `NotificationService` with GitHub webhooks (e.g., `check_run.completed` for build failures).
+- [x] Integrate `NotificationService` with GitHub webhooks (e.g., issue opened/closed/reopened).
 - [ ] Trigger notifications on PR creation/updates.
-- [ ] Trigger notifications on Jules session failures or completions.
-- [ ] Trigger notifications on task status changes.
+- [x] Trigger notifications on Jules session failures or completions.
+- [x] Trigger notifications on task status changes.
 - [ ] Final end-to-end testing of all notification flows.

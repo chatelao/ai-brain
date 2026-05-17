@@ -16,7 +16,7 @@ class WebhookHandler
         return hash_equals($hash, $signature);
     }
 
-    public function handle(array $project, array $event, ?GitHubService $githubService = null): bool
+    public function handle(array $project, array $event, ?GitHubService $githubService = null, ?NotificationService $notificationService = null): bool
     {
         $action = $event['action'] ?? '';
         $issue = $event['issue'] ?? null;
@@ -36,6 +36,28 @@ class WebhookHandler
         }
 
         $result = $taskModel->upsert($project['user_id'], $project['project_id'], $issue);
+
+        if ($result && $notificationService) {
+            if ($action === 'opened') {
+                $notificationService->notify($project['user_id'], 'github_issue', "🆕 Issue Opened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was opened in " . $project['github_repo'], [
+                    'project_id' => $project['project_id'],
+                    'issue_number' => $issue['number'],
+                    'source_url' => $issue['html_url']
+                ]);
+            } elseif ($action === 'closed') {
+                $notificationService->notify($project['user_id'], 'github_issue', "🔒 Issue Closed: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was closed in " . $project['github_repo'], [
+                    'project_id' => $project['project_id'],
+                    'issue_number' => $issue['number'],
+                    'source_url' => $issue['html_url']
+                ]);
+            } elseif ($action === 'reopened') {
+                $notificationService->notify($project['user_id'], 'github_issue', "🔓 Issue Reopened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was reopened in " . $project['github_repo'], [
+                    'project_id' => $project['project_id'],
+                    'issue_number' => $issue['number'],
+                    'source_url' => $issue['html_url']
+                ]);
+            }
+        }
 
         if ($result && $action === 'closed' && $githubService) {
             $stateReason = $issue['state_reason'] ?? '';
