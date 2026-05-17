@@ -410,7 +410,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                     <?= htmlspecialchars($file['name'] ?? '') ?>
                                                 </a>
                                                 <?php if (!empty($file['next_task'])): ?>
-                                                    <span class="text-[10px] text-gray-500 ml-6 italic">
+                                                    <span class="text-[10px] text-gray-500 ml-6 italic whitespace-nowrap">
                                                         🚧 <?= htmlspecialchars($file['next_task'] ?? '') ?>
                                                     </span>
                                                 <?php endif; ?>
@@ -559,7 +559,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                     elseif ($statusColor === 'red') $bgClass = 'bg-red-100 text-red-800';
                                                     elseif ($statusColor === 'purple') $bgClass = 'bg-purple-100 text-purple-800';
                                                     ?>
-                                                    <span class="px-2 py-1 text-xs font-medium rounded-full <?= $bgClass ?>">
+                                                    <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
                                                         <?php
                                                         $githubData = json_decode($task['github_data'] ?? '{}', true);
                                                         if (($githubData['state'] ?? 'open') === 'closed') echo '✅ ';

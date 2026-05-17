@@ -105,7 +105,7 @@ $logs = $taskModel->getLogs($taskId);
                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                                 <div class="flex justify-between items-start mb-4">
                                     <h1 class="text-2xl font-bold text-gray-900"><?= htmlspecialchars($task['title'] ?? '') ?></h1>
-                                    <span class="px-3 py-1 text-sm font-medium rounded-full bg-<?= $statusColor ?>-100 text-<?= $statusColor ?>-800 flex items-center">
+                                    <span class="px-3 py-1 text-sm font-medium rounded-full whitespace-nowrap bg-<?= $statusColor ?>-100 text-<?= $statusColor ?>-800 flex items-center">
                                         <?php
                                         if ($task['status'] === 'completed') echo '✅ ';
                                         elseif (in_array($task['status'], ['in_progress', 'coding', 'testing'])) echo '🚧 ';
