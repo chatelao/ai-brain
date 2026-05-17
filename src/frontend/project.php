@@ -351,16 +351,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                         </ol>
                     </nav>
 
-                    <div class="mb-4">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0 md:space-x-4">
                         <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">
                             <a href="https://github.com/<?= htmlspecialchars($project['github_repo'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
                                 <?= htmlspecialchars($project['github_repo'] ?? '') ?>
                             </a>
                         </h1>
-                    </div>
 
-                    <div class="mb-6">
-                        <form method="POST" class="flex items-center">
+                        <form method="POST" class="flex items-center w-full md:max-w-md lg:max-w-xl">
                             <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                             <input type="text" name="title" placeholder="Quick create issue title..." class="bg-white border border-gray-300 text-gray-900 text-lg rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-4" required>
                             <button type="submit" name="create_quick_issue" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-r-lg text-lg px-8 py-4 focus:outline-none whitespace-nowrap">Submit</button>
