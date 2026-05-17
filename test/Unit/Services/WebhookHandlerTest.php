@@ -46,11 +46,18 @@ class WebhookHandlerTest extends TestCase
 
         $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
+        $stmt->method('fetch')->willReturn(['task_id' => 456, 'project_id' => 1, 'issue_number' => 123]);
 
         $this->pdo->method('getAttribute')->with(PDO::ATTR_DRIVER_NAME)->willReturn('mysql');
         $this->pdo->method('prepare')->willReturn($stmt);
 
-        $this->assertTrue($this->handler->handle($project, $event));
+        $githubService = $this->createMock(\App\GitHubService::class);
+        $julesService = $this->createMock(\App\JulesService::class);
+
+        // We expect Task::refreshJulesStatus to be called eventually.
+        // But since we can't easily mock the Task object created inside WebhookHandler,
+        // we'll at least verify the handle method completes successfully with the new services.
+        $this->assertTrue($this->handler->handle($project, $event, $githubService, null, $julesService));
     }
 
     public function testHandleClosedIssueWithAutorepeat()
