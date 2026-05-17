@@ -126,6 +126,16 @@ if ($task['github_state'] === 'closed' && !empty($task['pr_url'])) {
     $prStatus = 'Passed';
 }
 
+$prBadgeClasses = "bg-{$prColor}-100 text-{$prColor}-800";
+if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
+    $mergeState = $prDetails['mergeable_state'] ?? '';
+    if ($mergeState === 'clean') {
+        $prBadgeClasses = "bg-green-200 text-green-900";
+    } elseif ($mergeState === 'behind') {
+        $prBadgeClasses = "bg-green-600 text-white";
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -257,7 +267,7 @@ if ($task['github_state'] === 'closed' && !empty($task['pr_url'])) {
                                             <h4 class="text-lg font-bold text-gray-900 leading-tight">
                                                 <?= htmlspecialchars($prDetails['title'] ?? 'PR Details') ?>
                                             </h4>
-                                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium <?= $prDetails['state'] === 'open' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800' ?> border border-current shadow-sm">
+                                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium <?= $prBadgeClasses ?> border border-current shadow-sm">
                                                 <?= ucfirst($prDetails['state'] ?? 'unknown') ?>
                                             </span>
                                         </div>
