@@ -21,6 +21,29 @@ class GitHubService
     /**
      * @throws Exception
      */
+    public function getPullRequest(string $repo, int $prNumber): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        return $this->client->api('pull_request')->show($username, $repository, $prNumber);
+    }
+
+    public function extractPrNumber(string $prUrl): ?int
+    {
+        if (preg_match('/\/pull\/(\d+)/', $prUrl, $matches)) {
+            return (int)$matches[1];
+        }
+        return null;
+    }
+
+    /**
+     * @throws Exception
+     */
     public function listWebhooks(string $repo): array
     {
         $parts = explode('/', $repo);
