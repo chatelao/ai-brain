@@ -20,12 +20,12 @@ Users can toggle notifications for the following event types:
 -   **Task Completed**: Success notification when a task or issue is resolved.
 
 ## Use Cases
--   **Jump to Source (Deep Linking)**: A user clicks on a "PR Available" notification and is immediately taken to the corresponding GitHub Pull Request page.
--   **Immediate Build Failure Response**: A developer receives a "Build Failed" notification on Telegram and can quickly initiate a fix, even when away from their primary workstation.
--   **Streamlined PR Review Workflow**: Reviewers are notified as soon as a new PR is ready for feedback, accelerating the path to merging.
--   **Passive Progress Monitoring**: A developer receives a "Task Completed" notification when Jules finishes a long-running task, allowing them to switch contexts at the optimal time.
--   **Noise Management for Experimental Projects**: A user mutes all notifications for a specific experimental repository to maintain focus on stable production repositories.
--   **Unified Task Oversight**: A user scans their In-App Inbox to catch up on all completed and failed tasks across multiple projects in a single view.
+-   **<a name="UC-N1"></a>Jump to Source (Deep Linking) (UC-N1)**: A user clicks on a "PR Available" notification and is immediately taken to the corresponding GitHub Pull Request page.
+-   **<a name="UC-N2"></a>Immediate Build Failure Response (UC-N2)**: A developer receives a "Build Failed" notification on Telegram and can quickly initiate a fix, even when away from their primary workstation.
+-   **<a name="UC-N3"></a>Streamlined PR Review Workflow (UC-N3)**: Reviewers are notified as soon as a new PR is ready for feedback, accelerating the path to merging.
+-   **<a name="UC-N4"></a>Passive Progress Monitoring (UC-N4)**: A developer receives a "Task Completed" notification when Jules finishes a long-running task, allowing them to switch contexts at the optimal time.
+-   **<a name="UC-N5"></a>Noise Management for Experimental Projects (UC-N5)**: A user mutes all notifications for a specific experimental repository to maintain focus on stable production repositories.
+-   **<a name="UC-N6"></a>Unified Task Oversight (UC-N6)**: A user scans their In-App Inbox to catch up on all completed and failed tasks across multiple projects in a single view.
 
 ## Configuration & Customization
 To avoid notification fatigue, users can customize their preferences at multiple levels:
