@@ -62,30 +62,38 @@ class TaskFilteringTest extends TestCase
         // Project 1
         $this->createTask(1, 1, 'open', 'pending', '2023-01-01 10:00:00');
         $this->createTask(1, 2, 'open', 'in_progress', '2023-01-01 11:00:00');
-        $this->createTask(1, 3, 'closed', 'completed', '2023-01-01 12:00:00'); // 4th completed
-        $this->createTask(1, 4, 'closed', 'completed', '2023-01-01 13:00:00'); // 3rd completed
-        $this->createTask(1, 5, 'closed', 'completed', '2023-01-01 14:00:00'); // 2nd completed
-        $this->createTask(1, 6, 'closed', 'completed', '2023-01-01 15:00:00'); // 1st completed
+        $this->createTask(1, 3, 'closed', 'completed', '2023-01-01 12:00:00'); // 5th completed globally
+        $this->createTask(1, 4, 'closed', 'completed', '2023-01-01 13:00:00'); // 4th completed globally
+        $this->createTask(1, 5, 'closed', 'completed', '2023-01-01 14:00:00'); // 3rd completed globally
+        $this->createTask(1, 6, 'closed', 'completed', '2023-01-01 15:00:00'); // 2nd completed globally
         $this->createTask(1, 7, 'closed', 'failed', '2023-01-01 16:00:00');    // failed, should be hidden
-
-        // findByProjectId(1, false)
-        $tasks = $this->taskModel->findByProjectId(1, false);
-
-        // Expected issues: 1, 2 (open), 4, 5, 6 (last 3 completed)
-        $issueNumbers = array_column($tasks, 'issue_number');
-        sort($issueNumbers);
-
-        $this->assertEquals([1, 2, 4, 5, 6], $issueNumbers, "Should only show open issues and last 3 completed issues for Project 1");
 
         // Project 2 (just to test findByUserProjects)
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'repo1'), (2, 1, 'repo2')");
         $this->createTask(2, 10, 'open', 'pending', '2023-01-01 10:00:00');
-        $this->createTask(2, 11, 'closed', 'completed', '2023-01-01 11:00:00');
+        $this->createTask(2, 11, 'closed', 'completed', '2023-01-01 17:00:00'); // 1st completed globally
 
+        // Orphan and invalid tasks
+        $this->createTask(1, 0, 'open', 'pending', '2023-01-01 18:00:00'); // issue_number 0
+        $stmt = $this->pdo->prepare("INSERT INTO tasks (user_id, project_id, issue_number, title, github_state, status) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([1, 1, 99, "", "open", "pending"]); // empty title
+
+        // findByProjectId(1, false)
+        $tasks = $this->taskModel->findByProjectId(1, false);
+
+        // Expected issues for Project 1: 1, 2 (open), 4, 5, 6 (last 3 completed for this project)
+        $issueNumbers = array_column($tasks, 'issue_number');
+        sort($issueNumbers);
+        $this->assertEquals([1, 2, 4, 5, 6], $issueNumbers, "Should only show open issues and last 3 completed issues for Project 1");
+
+        // findActiveByUserProjects(1)
         $activeTasks = $this->taskModel->findActiveByUserProjects(1);
         $issueNumbers = array_column($activeTasks, 'issue_number');
         sort($issueNumbers);
 
-        $this->assertEquals([1, 2, 4, 5, 6, 10, 11], $issueNumbers, "Should only show active issues for all user projects");
+        // Globally open: 1, 2, 10
+        // Globally completed (last 3): 11 (17:00), 6 (15:00), 5 (14:00)
+        // Hidden orphans: 0, 99 (empty title)
+        $this->assertEquals([1, 2, 5, 6, 10, 11], $issueNumbers, "Should only show active issues and last 3 globally completed issues");
     }
 }

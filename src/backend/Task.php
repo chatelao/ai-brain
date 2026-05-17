@@ -12,7 +12,8 @@ class Task
 
     public function findByProjectId(int $projectId, bool $showAll = true): array
     {
-        $sql = "SELECT t1.* FROM tasks t1 WHERE t1.project_id = ?";
+        $sql = "SELECT t1.* FROM tasks t1 WHERE t1.project_id = ?
+                AND t1.issue_number > 0 AND t1.title != ''";
         $params = [$projectId];
 
         if (!$showAll) {
@@ -45,25 +46,29 @@ class Task
         $sql = "SELECT t.*, p.github_repo
              FROM tasks t
              JOIN projects p ON t.project_id = p.project_id
-             WHERE p.user_id = ?";
+             WHERE p.user_id = ?
+             AND t.issue_number > 0 AND t.title != ''";
+
+        $params = [$userId];
 
         if (!$showAll) {
             $sql .= " AND (t.github_state = 'open' OR (
                 t.github_state = 'closed' AND t.status = 'completed'
                 AND (
                     SELECT COUNT(*) FROM tasks t3
-                    WHERE t3.project_id = t.project_id
+                    WHERE t3.user_id = ?
                     AND t3.github_state = 'closed'
                     AND t3.status = 'completed'
                     AND (t3.created_at > t.created_at OR (t3.created_at = t.created_at AND t3.task_id > t.task_id))
                 ) < 3
             ))";
+            $params[] = $userId;
         }
 
         $sql .= " ORDER BY t.created_at DESC";
 
         $stmt = $this->db->getConnection()->prepare($sql);
-        $stmt->execute([$userId]);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
