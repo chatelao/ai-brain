@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<ruleset name="Project Rules">
+    <description>Project coding standard.</description>
+    <arg name="colors"/>
+    <arg value="sp"/>
+    <rule ref="PSR12"/>
+
+    <file>src/backend</file>
+    <file>src/frontend</file>
+
+    <exclude-pattern>src/frontend/vendor/*</exclude-pattern>
+</ruleset>
