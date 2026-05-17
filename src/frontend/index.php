@@ -219,8 +219,7 @@ $errorMessage = $errorMessage ?? null;
                                                     foreach ($tasks as $task):
                                                         $color = $taskModel->getStatusColor($task);
                                                         $isAutorepeat = $taskModel->hasAutorepeatLabel($task);
-                                                        $githubData = json_decode($task['github_data'] ?? '{}', true);
-                                                        $state = $githubData['state'] ?? 'open';
+                                                        $state = $task['github_state'] ?? 'open';
 
                                                         $emoji = '⏳';
                                                         $statusLabel = $task['status'] ?? '';
