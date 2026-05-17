@@ -77,7 +77,12 @@ class Task
         $sql = "SELECT
                     COUNT(*) as total,
                     SUM(CASE WHEN github_state = 'open' THEN 1 ELSE 0 END) as open_issues,
-                    SUM(CASE WHEN github_state = 'closed' OR status = 'completed' THEN 1 ELSE 0 END) as completed_tasks
+                    SUM(CASE WHEN github_state = 'closed' OR status = 'completed' THEN 1 ELSE 0 END) as completed_tasks,
+                    SUM(CASE WHEN github_state = 'open' AND status IN ('researching', 'planning', 'in_progress', 'coding', 'testing') THEN 1 ELSE 0 END) as jules_running,
+                    SUM(CASE WHEN github_state = 'open' AND status IN ('failed', 'failed_jules') THEN 1 ELSE 0 END) as jules_failed,
+                    SUM(CASE WHEN github_state = 'open' AND status = 'implemented' THEN 1 ELSE 0 END) as github_running,
+                    SUM(CASE WHEN github_state = 'open' AND status = 'completed' THEN 1 ELSE 0 END) as github_passed,
+                    SUM(CASE WHEN github_state = 'open' AND status = 'failed_pr' THEN 1 ELSE 0 END) as github_failed
                 FROM tasks
                 WHERE user_id = ?";
 
@@ -88,7 +93,12 @@ class Task
         return [
             'total' => (int)($counts['total'] ?? 0),
             'open_issues' => (int)($counts['open_issues'] ?? 0),
-            'completed_tasks' => (int)($counts['completed_tasks'] ?? 0)
+            'completed_tasks' => (int)($counts['completed_tasks'] ?? 0),
+            'jules_running' => (int)($counts['jules_running'] ?? 0),
+            'jules_failed' => (int)($counts['jules_failed'] ?? 0),
+            'github_running' => (int)($counts['github_running'] ?? 0),
+            'github_passed' => (int)($counts['github_passed'] ?? 0),
+            'github_failed' => (int)($counts['github_failed'] ?? 0)
         ];
     }
 
@@ -289,6 +299,43 @@ class Task
             }
         }
         return false;
+    }
+
+    /**
+     * Pre-processes Markdown/HTML text to trust and render GitHub image links.
+     * This converts <img> tags from trusted GitHub domains into Markdown image syntax
+     * so they can be rendered by Parsedown even when safe mode is enabled.
+     */
+    public function processGitHubImages(string $text): string
+    {
+        $trustedDomains = [
+            'https://github.com/user-attachments/assets/',
+            'https://raw.githubusercontent.com/',
+            'https://user-images.githubusercontent.com/',
+            'https://github-production-user-asset-6210df.s3.amazonaws.com/'
+        ];
+
+        return preg_replace_callback('/<img\s+[^>]*src="([^"]+)"[^>]*>/i', function($matches) use ($trustedDomains) {
+            $src = $matches[1];
+            $isTrusted = false;
+            foreach ($trustedDomains as $domain) {
+                if (strpos($src, $domain) === 0) {
+                    $isTrusted = true;
+                    break;
+                }
+            }
+
+            if ($isTrusted) {
+                // Extract alt text if present
+                $alt = 'image';
+                if (preg_match('/alt="([^"]+)"/i', $matches[0], $altMatches)) {
+                    $alt = $altMatches[1];
+                }
+                return "![$alt]($src)";
+            }
+
+            return $matches[0];
+        }, $text);
     }
 
     public function extractSessionId(string $text): ?string
