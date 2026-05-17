@@ -1,5 +1,23 @@
 # Roadmap: Notification System Implementation
 
+## Progress Overview
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 1 | Core Infrastructure | ✅ |
+| 2 | In-App Inbox & Deep Linking | ✅ |
+| 3 | Telegram Integration | 🚧 |
+| 4 | Browser Notifications | ⏳ |
+| 5 | Settings & Customization | 🚧 |
+| 6 | Event Integration | 🚧 |
+
+## Goals
+
+- Multi-channel notification delivery (In-App, Telegram, Browser) 🚧
+- Real-time alerts for critical events (Build failures, Task completion) 🚧
+- User-customizable notification preferences (Global, Per-project, Per-task) 🚧
+- Seamless navigation via deep linking ✅
+
 ## Phase 1: Core Infrastructure
 - [x] Create database migration for `notifications` table.
 - [x] Create database migration for `user_notification_settings` table.
