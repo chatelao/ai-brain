@@ -4,6 +4,7 @@ namespace App;
 
 use Github\Client;
 use Github\AuthMethod;
+use Github\ResultPager;
 use Exception;
 
 class GitHubService
@@ -141,9 +142,10 @@ class GitHubService
 
         [$username, $repository] = $parts;
 
-        return $this->client->api('issue')->all($username, $repository, [
+        $pager = new ResultPager($this->client);
+        return $pager->fetchAll($this->client->api('issue'), 'all', [$username, $repository, [
             'state' => $state
-        ]);
+        ]]);
     }
 
     /**
