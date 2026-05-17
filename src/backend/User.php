@@ -10,6 +10,11 @@ class User
     {
     }
 
+    public function getDb(): Database
+    {
+        return $this->db;
+    }
+
     public function findByGoogleId(string $googleId): ?array
     {
         $stmt = $this->db->getConnection()->prepare("SELECT * FROM users WHERE google_id = ?");

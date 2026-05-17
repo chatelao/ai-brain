@@ -19,12 +19,13 @@ class TelegramChannelHandler implements NotificationChannelInterface
             return false;
         }
 
-        $title = $notification['title'];
-        $message = $notification['message'];
+        $taskModel = new Task($this->userModel->getDb());
+        $title = $taskModel->convertImagesToLinks($notification['title']);
+        $message = $taskModel->convertImagesToLinks($notification['message']);
         $sourceUrl = $notification['data']['source_url'] ?? null;
 
-        $text = "<b>" . htmlspecialchars($title) . "</b>\n\n";
-        $text .= htmlspecialchars($message);
+        $text = "<b>" . $title . "</b>\n\n";
+        $text .= $message;
 
         if ($sourceUrl) {
             $text .= "\n\n<a href=\"" . htmlspecialchars($sourceUrl) . "\">View Source</a>";

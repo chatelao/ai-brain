@@ -64,6 +64,15 @@ $taskModel = new Task($db);
 
 $autorepeatTasks = $user ? $taskModel->getRunningAutorepeatTasks($user['user_id']) : [];
 
+// Initialize Markdown parser
+if ($user && !class_exists('\Parsedown')) {
+    die("Error: Class 'Parsedown' not found. Please run 'composer install' to install dependencies.");
+}
+$parsedown = $user ? new \Parsedown() : null;
+if ($parsedown) {
+    $parsedown->setSafeMode(true);
+}
+
 $projectTasks = [];
 if ($user) {
     $activeTasks = $taskModel->findActiveByUserProjects($user['user_id']);
@@ -172,8 +181,8 @@ $errorMessage = $errorMessage ?? null;
                                                 </td>
                                                 <td class="px-6 py-4 font-normal">
                                                     <a href="https://github.com/<?= htmlspecialchars($task['github_repo'] ?? '') ?>/issues/<?= htmlspecialchars($task['issue_number'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">#<?= htmlspecialchars($task['issue_number'] ?? '') ?></a>
-                                                    <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task)) ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
-                                                        <?= htmlspecialchars($task['title'] ?? '') ?>
+                                                    <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task)) ?>" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline markdown-body inline">
+                                                        <?= $parsedown->text($taskModel->processGitHubImages($task['title'] ?? '')) ?>
                                                     </a>
                                                 </td>
                                                 <td class="px-6 py-4">

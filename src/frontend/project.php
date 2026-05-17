@@ -44,6 +44,14 @@ $templateModel = new IssueTemplate($db);
 $templates = $templateModel->findByUserId($user['user_id']);
 
 $showAll = isset($_GET['all']) && $_GET['all'] == '1';
+
+// Initialize Markdown parser
+if (!class_exists('\Parsedown')) {
+    die("Error: Class 'Parsedown' not found. Please run 'composer install' to install dependencies.");
+}
+$parsedown = new \Parsedown();
+$parsedown->setSafeMode(true);
+
 $tasks = $taskModel->findByProjectId($projectId, $showAll);
 $lastAgentResponse = null;
 $errorMessage = null;
@@ -420,13 +428,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                         <?php foreach ($tasks as $task): ?>
                                             <tr class="bg-white border-b">
                                                 <td class="px-6 py-4">
-                                                    <div class="text-base text-gray-900 font-normal">
+                                                    <div class="text-base text-gray-900 font-normal markdown-body">
                                                         <a href="task.php?id=<?= $task['task_id'] ?>" class="hover:underline">#<?= htmlspecialchars($task['issue_number'] ?? '') ?></a>
-                                                        <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task, $project['github_repo'])) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
-                                                            <?= htmlspecialchars($task['title'] ?? '') ?>
+                                                        <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task, $project['github_repo'])) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline inline">
+                                                            <?= $parsedown->text($taskModel->processGitHubImages($task['title'] ?? '')) ?>
                                                         </a>
                                                     </div>
-                                                    <div class="text-xs text-gray-500"><?= htmlspecialchars(mb_substr($task['body'] ?? '', 0, 100)) ?>...</div>
+                                                    <div class="text-xs text-gray-500 markdown-body">
+                                                        <?= $parsedown->text($taskModel->processGitHubImages(mb_substr($task['body'] ?? '', 0, 100) . (mb_strlen($task['body'] ?? '') > 100 ? '...' : ''))) ?>
+                                                    </div>
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <?php
