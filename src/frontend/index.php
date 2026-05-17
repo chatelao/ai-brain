@@ -261,19 +261,39 @@ $errorMessage = $errorMessage ?? null;
                                             <?php if (empty($githubAccounts)): ?>
                                                 <p class="text-sm text-gray-500 text-center">Please link a GitHub account first.</p>
                                             <?php else: ?>
-                                                <form method="POST" class="w-full">
+                                                <form method="POST" class="w-full" x-data="{
+                                                    repo: '',
+                                                    selectedAccountId: '<?= $githubAccounts[0]['github_account_id'] ?>',
+                                                    accounts: <?= htmlspecialchars(json_encode($githubAccounts)) ?>,
+                                                    get recommendedId() {
+                                                        const owner = this.repo.split('/')[0]?.trim();
+                                                        if (!owner) return null;
+                                                        const match = this.accounts.find(a => a.github_username.toLowerCase() === owner.toLowerCase());
+                                                        return match ? match.github_account_id : null;
+                                                    },
+                                                    init() {
+                                                        this.$watch('repo', (value) => {
+                                                            const recId = this.recommendedId;
+                                                            if (recId) {
+                                                                this.selectedAccountId = recId;
+                                                            }
+                                                        });
+                                                    }
+                                                }">
                                                     <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                                     <div class="mb-2">
                                                         <label class="block mb-1 text-xs font-medium text-gray-900">GitHub Account</label>
-                                                        <select name="github_account_id" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                                        <select name="github_account_id" x-model="selectedAccountId" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                                                             <?php foreach ($githubAccounts as $account): ?>
-                                                                <option value="<?= $account['github_account_id'] ?>"><?= htmlspecialchars($account['github_username'] ?? '') ?></option>
+                                                                <option value="<?= $account['github_account_id'] ?>" x-text="'<?= htmlspecialchars($account['github_username'] ?? '') ?>' + (recommendedId == <?= $account['github_account_id'] ?> ? ' (Recommended)' : '')">
+                                                                    <?= htmlspecialchars($account['github_username'] ?? '') ?>
+                                                                </option>
                                                             <?php endforeach; ?>
                                                         </select>
                                                     </div>
                                                     <div class="mb-2">
                                                         <label class="block mb-1 text-xs font-medium text-gray-900">Repository (owner/repo)</label>
-                                                        <input type="text" name="github_repo" placeholder="owner/repo" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                                        <input type="text" name="github_repo" x-model="repo" placeholder="owner/repo" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                                                     </div>
                                                     <button type="submit" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Link New Repository</button>
                                                 </form>
