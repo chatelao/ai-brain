@@ -119,10 +119,17 @@ class WebhookHandlerTest extends TestCase
 
     public function testHandleDeletedIssue()
     {
-        $project = ['user_id' => 1, 'project_id' => 1];
+        $project = [
+            'user_id' => 1,
+            'project_id' => 1,
+            'github_repo' => 'owner/repo'
+        ];
         $event = [
             'action' => 'deleted',
-            'issue' => ['number' => 123]
+            'issue' => [
+                'number' => 123,
+                'title' => 'Deleted Issue'
+            ]
         ];
 
         $stmt = $this->createMock(PDOStatement::class);
@@ -130,7 +137,20 @@ class WebhookHandlerTest extends TestCase
 
         $this->pdo->method('prepare')->with($this->stringContains('DELETE FROM tasks'))->willReturn($stmt);
 
-        $this->assertTrue($this->handler->handle($project, $event));
+        $notificationService = $this->createMock(\App\NotificationService::class);
+        $notificationService->expects($this->once())
+            ->method('notify')
+            ->with(
+                1,
+                'github_issue',
+                $this->stringContains('Issue Deleted: #123'),
+                $this->stringContains('Issue "Deleted Issue" was deleted'),
+                $this->callback(function($data) {
+                    return $data['issue_number'] === 123 && $data['project_id'] === 1;
+                })
+            );
+
+        $this->assertTrue($this->handler->handle($project, $event, null, $notificationService));
     }
 
     public function testHandleUnsupportedAction()
