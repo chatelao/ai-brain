@@ -25,11 +25,47 @@ class JulesService
                     return $handler($request, $options)->then(
                         function (ResponseInterface $response) use ($request, $start) {
                             $duration = microtime(true) - $start;
-                            if ($duration > 1.0) {
-                                $target = $request->getMethod() . ' ' . $request->getUri();
-                                Logger::getInstance()->logPerformance(null, 'Jules API', $target, $duration);
+                            $statusCode = $response->getStatusCode();
+                            $target = $request->getMethod() . ' ' . $request->getUri();
+
+                            if ($statusCode >= 400 || $duration > 1.0) {
+                                Logger::getInstance()->logPerformance(
+                                    null,
+                                    'Jules API',
+                                    $target,
+                                    $duration,
+                                    null,
+                                    $statusCode
+                                );
                             }
                             return $response;
+                        },
+                        function ($reason) use ($request, $start) {
+                            $duration = microtime(true) - $start;
+                            $target = $request->getMethod() . ' ' . $request->getUri();
+                            $statusCode = null;
+                            $errorMessage = null;
+
+                            if ($reason instanceof \GuzzleHttp\Exception\RequestException && $reason->hasResponse()) {
+                                $statusCode = $reason->getResponse()->getStatusCode();
+                                $errorMessage = $reason->getMessage();
+                            } elseif ($reason instanceof \Throwable) {
+                                $errorMessage = $reason->getMessage();
+                            } else {
+                                $errorMessage = (string)$reason;
+                            }
+
+                            Logger::getInstance()->logPerformance(
+                                null,
+                                'Jules API',
+                                $target,
+                                $duration,
+                                null,
+                                $statusCode ?: 500,
+                                $errorMessage
+                            );
+
+                            return \GuzzleHttp\Promise\Create::rejectionFor($reason);
                         }
                     );
                 };

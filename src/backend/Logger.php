@@ -22,12 +22,25 @@ class Logger
         return self::$instance;
     }
 
+    public static function resetInstance(): void
+    {
+        self::$instance = null;
+    }
+
     public function log(int $userId, int $taskId, string $message, string $level = 'info'): bool
     {
-        $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO task_logs (user_id, task_id, message, level) VALUES (?, ?, ?, ?)"
-        );
-        return $stmt->execute([$userId, $taskId, $message, $level]);
+        try {
+            $stmt = $this->db->getConnection()->prepare(
+                "INSERT INTO task_logs (user_id, task_id, message, level) VALUES (?, ?, ?, ?)"
+            );
+            if ($stmt === false) {
+                return false;
+            }
+            return $stmt->execute([$userId, $taskId, $message, $level]);
+        } catch (\Throwable $e) {
+            error_log("Failed to log task event: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function getLogsByTaskId(int $taskId): array
@@ -39,18 +52,35 @@ class Logger
         return $stmt->fetchAll();
     }
 
-    public function logPerformance(?int $userId, string $type, string $target, float $duration, ?array $context = null): bool
-    {
-        $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO performance_logs (user_id, type, target, duration, context) VALUES (?, ?, ?, ?, ?)"
-        );
-        return $stmt->execute([
-            $userId,
-            $type,
-            $target,
-            $duration,
-            $context ? json_encode($context) : null
-        ]);
+    public function logPerformance(
+        ?int $userId,
+        string $type,
+        string $target,
+        float $duration,
+        ?array $context = null,
+        ?int $statusCode = null,
+        ?string $errorMessage = null
+    ): bool {
+        try {
+            $stmt = $this->db->getConnection()->prepare(
+                "INSERT INTO performance_logs (user_id, type, target, duration, context, status_code, error_message) VALUES (?, ?, ?, ?, ?, ?, ?)"
+            );
+            if ($stmt === false) {
+                return false;
+            }
+            return $stmt->execute([
+                $userId,
+                $type,
+                $target,
+                $duration,
+                $context ? json_encode($context) : null,
+                $statusCode,
+                $errorMessage
+            ]);
+        } catch (\Throwable $e) {
+            error_log("Failed to log performance event: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function getPerformanceLogs(?int $userId = null, int $limit = 100): array

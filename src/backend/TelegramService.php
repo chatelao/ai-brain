@@ -83,19 +83,36 @@ class TelegramService
             $options['json'] = $params;
         }
 
+        $start = microtime(true);
+        $target = "POST $method";
         try {
             $response = $this->client->post("/bot" . $this->botToken . "/" . $method, $options);
+            $duration = microtime(true) - $start;
             $data = json_decode($response->getBody()->getContents(), true);
 
             if (!isset($data['ok']) || $data['ok'] !== true) {
-                throw new Exception("Telegram API Error: " . ($data['description'] ?? 'Unknown error'));
+                $errorMessage = $data['description'] ?? 'Unknown error';
+                Logger::getInstance()->logPerformance(null, 'Telegram API', $target, $duration, null, 400, $errorMessage);
+                throw new Exception("Telegram API Error: " . $errorMessage);
+            }
+
+            if ($duration > 1.0) {
+                Logger::getInstance()->logPerformance(null, 'Telegram API', $target, $duration, null, 200);
             }
 
             return $data;
         } catch (GuzzleException $e) {
+            $duration = microtime(true) - $start;
             $message = $e->getMessage();
             // Sanitize potential token leaks in Guzzle error messages (which often include the URL)
             $message = preg_replace('/bot\d+:[a-zA-Z0-9_-]+/', 'bot[REDACTED]', $message);
+
+            $statusCode = 500;
+            if ($e instanceof \GuzzleHttp\Exception\RequestException && $e->hasResponse()) {
+                $statusCode = $e->getResponse()->getStatusCode();
+            }
+
+            Logger::getInstance()->logPerformance(null, 'Telegram API', $target, $duration, null, $statusCode, $message);
             throw new Exception("Telegram Connection Error: " . $message);
         }
     }

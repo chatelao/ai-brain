@@ -26,8 +26,6 @@ class TelegramChannelHandler implements NotificationChannelInterface
         $botToken = $user['telegram_bot_token'] ?? '';
 
         if (!$chatId || !$botToken) {
-            $reason = !$chatId ? "Missing Chat ID" : "Missing Bot Token";
-            Logger::getInstance($this->userModel->getDb())->log($userId, 0, "Telegram Delivery Failed: $reason", 'error');
             return false;
         }
 
