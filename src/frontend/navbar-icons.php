@@ -88,8 +88,6 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
             });
     },
     fetchNotifications() {
-        if (this.showNotifications) return;
-        this.showNotifications = true;
         this.loadingNotifications = true;
         const basePath = window.location.pathname.includes('/admin/') ? '../' : '';
         fetch(basePath + 'ajax-notifications.php?action=list')
@@ -161,8 +159,8 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     </div>
 
     <!-- Notification Bell -->
-    <div class="relative">
-        <button @click="fetchNotifications()" class="flex items-center text-gray-500 hover:text-gray-700 focus:outline-none">
+    <div class="relative" @keydown.escape.window="showNotifications = false">
+        <button @click="showNotifications = !showNotifications; if (showNotifications) fetchNotifications()" class="flex items-center text-gray-500 hover:text-gray-700 focus:outline-none">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
             </svg>
@@ -172,7 +170,7 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
         </button>
 
         <!-- Dropdown menu -->
-        <div x-show="showNotifications" @click.away="showNotifications = false" x-cloak
+        <div x-show="showNotifications" @click.outside="showNotifications = false" x-cloak
              class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
             <div class="p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <span class="text-sm font-bold text-gray-700">Notifications</span>
