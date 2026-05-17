@@ -4,17 +4,13 @@ require 'vendor/autoload.php';
 
 use GuzzleHttp\Client;
 
-$apiKey = getenv('GOOGLE_JULES_API_KEY');
-if (!$apiKey) {
-    echo "GOOGLE_JULES_API_KEY not set\n";
+if ($argc < 3) {
+    echo "Usage: php discover_quota.php <API_KEY> <SESSION_ID>\n";
     exit(1);
 }
 
-$sessionId = getenv('JULES_SESSION_ID');
-if (!$sessionId) {
-    echo "JULES_SESSION_ID not set\n";
-    exit(1);
-}
+$apiKey = $argv[1];
+$sessionId = $argv[2];
 
 $client = new Client();
 $url = "https://jules.googleapis.com/v1alpha/sessions/{$sessionId}?key={$apiKey}";
@@ -36,7 +32,6 @@ try {
     }
     echo "\nBody:\n";
     echo $response->getBody()->getContents() . "\n";
-
 } catch (\Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
     if (method_exists($e, 'getResponse') && $e->getResponse()) {

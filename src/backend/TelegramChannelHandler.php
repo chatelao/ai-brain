@@ -13,17 +13,16 @@ class TelegramChannelHandler implements NotificationChannelInterface
     public function send(array $notification): bool
     {
         $userId = $notification['user_id'];
-        $chatId = $this->userModel->getTelegramChatId($userId);
-
-        if (!$chatId) {
+        $user = $this->userModel->findById($userId);
+        if (!$user) {
             return false;
         }
 
-        $user = $this->userModel->findById($userId);
-        $telegramService = $this->telegramService;
+        $chatId = $this->userModel->getTelegramChatId($userId);
+        $botToken = $user['telegram_bot_token'] ?? '';
 
-        if ($user && !empty($user['telegram_bot_token'])) {
-            $telegramService = $this->telegramService->withToken($user['telegram_bot_token']);
+        if (!$chatId || !$botToken) {
+            return false;
         }
 
         $title = $notification['title'];
@@ -38,7 +37,7 @@ class TelegramChannelHandler implements NotificationChannelInterface
         }
 
         try {
-            return $telegramService->sendMessage($chatId, $text);
+            return $this->telegramService->withToken($botToken)->sendMessage($chatId, $text);
         } catch (\Exception $e) {
             error_log("Telegram Send Error for user $userId: " . $e->getMessage());
             return false;

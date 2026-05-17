@@ -34,13 +34,7 @@ This guide explains how to install the AI Brain application on a web server.
 5.  Click **Register application**.
 6.  Copy the **Client ID** and click **Generate a new client secret** to get your secret.
 
-### 3. Google Gemini (AI Agent)
-1.  Visit [Google AI Studio](https://aistudio.google.com/).
-2.  Click on **Get API key** in the sidebar.
-3.  Click **Create API key** (either in a new or existing Google Cloud project).
-4.  Copy the generated key for `GOOGLE_JULES_API_KEY`. (Note: Users can also provide their own keys in the application dashboard).
-
-### 4. GitHub Webhook Configuration
+### 3. GitHub Webhook Configuration
 To receive real-time updates for issue events, you must configure a webhook for each repository you link.
 1.  In the application, go to the **Project Details** page for your linked repository.
 2.  Copy the **Payload URL** and **Secret** from the "Webhook Configuration" section.
@@ -55,7 +49,6 @@ To receive real-time updates for issue events, you must configure a webhook for 
 ### 5. Telegram Bot
 1.  Message [@BotFather](https://t.me/botfather) on Telegram.
 2.  Use the `/newbot` command and follow the instructions to get your **Bot Token**.
-3.  For `TELEGRAM_WEBHOOK_SECRET`, generate a random, secure string (e.g., using `openssl rand -hex 32`). This is used to verify that requests to your webhook are actually coming from Telegram.
 
 ---
 
@@ -176,15 +169,8 @@ Use this method if you want to deploy from your local machine via SSH.
    SetEnv GITHUB_REDIRECT_URI     https://your-domain.com/github-callback.php
 
    #
-   # Google Jules (Optional Global Fallback): https://aistudio.google.com/
-   #
-   # SetEnv GOOGLE_JULES_API_KEY    your_google_jules_api_key
-
-   #
    # Telegram Bot: https://t.me/botfather
    #
-   SetEnv TELEGRAM_BOT_TOKEN      your_telegram_bot_token
-   SetEnv TELEGRAM_WEBHOOK_SECRET your_telegram_webhook_secret
 
    #
    # Administration
@@ -241,9 +227,6 @@ The application requires several environment variables to be set in your web ser
 | `GITHUB_CLIENT_ID` | GitHub OAuth App Client ID |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth App Client Secret |
 | `GITHUB_REDIRECT_URI` | `https://your-domain.com/github-callback.php` |
-| `GOOGLE_JULES_API_KEY` | (Optional/Deprecated) Global fallback API Key for Google Jules/Gemini. Users should now set their own keys in the Dashboard. |
-| `TELEGRAM_BOT_TOKEN` | (Optional) Telegram Bot Token |
-| `TELEGRAM_WEBHOOK_SECRET` | (Optional) Secret token for Telegram webhooks |
 | `UPGRADE_ALLOWED_EMAIL` | (Required for upgrades) Email address of the admin user authorized to trigger database migrations on the Admin Dashboard. |
 | `ENABLE_UPGRADE_PAGE` | (Optional) Set to `true` to enable the interactive database upgrade page at `/upgrade.php`. Useful for initial setup or maintenance. **Disable after use for security.** |
 | `DB_UPGRADE_SECRET` | (Optional) A secret token that allows automated database upgrades via the "Apply DB Patch" workflow. Should be set in `.htaccess` or server configuration. |

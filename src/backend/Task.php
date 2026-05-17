@@ -155,9 +155,11 @@ class Task
         $stmt->execute([$userId]);
         $tasks = $stmt->fetchAll();
 
-        return array_filter($tasks, function($task) {
+        return array_filter($tasks, function ($task) {
             $githubData = json_decode($task['github_data'], true);
-            if (!$githubData) return false;
+            if (!$githubData) {
+                return false;
+            }
 
             $isOpen = ($githubData['state'] ?? '') === 'open';
             $hasAutorepeat = false;
@@ -376,7 +378,7 @@ class Task
             'https://github-production-user-asset-6210df.s3.amazonaws.com/'
         ];
 
-        return preg_replace_callback('/<img\s+[^>]*src="([^"]+)"[^>]*>/i', function($matches) use ($trustedDomains) {
+        return preg_replace_callback('/<img\s+[^>]*src="([^"]+)"[^>]*>/i', function ($matches) use ($trustedDomains) {
             $src = $matches[1];
             $isTrusted = false;
             foreach ($trustedDomains as $domain) {
@@ -415,7 +417,7 @@ class Task
 
         // First, find all matches to preserve them
         $placeholders = [];
-        $text = preg_replace_callback('/<img\s+[^>]*src="([^"]+)"[^>]*>/i', function($matches) use ($trustedDomains, &$placeholders) {
+        $text = preg_replace_callback('/<img\s+[^>]*src="([^"]+)"[^>]*>/i', function ($matches) use ($trustedDomains, &$placeholders) {
             $src = $matches[1];
             $isTrusted = false;
             foreach ($trustedDomains as $domain) {
@@ -577,7 +579,7 @@ class Task
 
                     if (!$sessionId) {
                         // Reverse to find the latest "on it" comment
-                        $julesComments = array_reverse(array_filter($comments, function($c) {
+                        $julesComments = array_reverse(array_filter($comments, function ($c) {
                             $login = strtolower($c['user']['login'] ?? '');
                             return ($login === 'google-labs-jules[bot]' || $login === 'jules') &&
                                 stripos($c['body'] ?? '', 'on it') !== false;
