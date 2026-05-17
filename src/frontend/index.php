@@ -233,17 +233,28 @@ $errorMessage = $errorMessage ?? null;
                                                         $state = $githubData['state'] ?? 'open';
 
                                                         $emoji = '⏳';
-                                                        if ($state === 'closed') $emoji = '✅';
-                                                        elseif ($task['status'] === 'completed') $emoji = '✅';
-                                                        elseif ($task['status'] === 'failed') $emoji = '❌';
-                                                        elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) $emoji = '🚧';
+                                                        $statusLabel = $task['status'] ?? '';
+                                                        if ($state === 'closed') {
+                                                            $emoji = '✅';
+                                                            $statusLabel = 'closed';
+                                                        } elseif ($task['status'] === 'completed') {
+                                                            $emoji = '✅';
+                                                        } elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') {
+                                                            $emoji = '❌';
+                                                            $statusLabel = 'Jules';
+                                                        } elseif ($task['status'] === 'failed_pr') {
+                                                            $emoji = '❌';
+                                                            $statusLabel = 'PR';
+                                                        } elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) {
+                                                            $emoji = '🚧';
+                                                        }
                                                     ?>
                                                         <div class="relative group">
                                                             <a href="task.php?id=<?= $task['task_id'] ?>"
                                                                class="status-square <?= $color ?> <?= $isAutorepeat ? 'auto-repeat-tag' : '' ?>">
                                                             </a>
                                                             <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">
-                                                                #<?= htmlspecialchars($task['issue_number'] ?? '') ?>: <?= $emoji ?> <?= htmlspecialchars(mb_substr($task['title'] ?? '', 0, 30)) ?><?= mb_strlen($task['title'] ?? '') > 30 ? '...' : '' ?>
+                                                                #<?= htmlspecialchars($task['issue_number'] ?? '') ?>: <?= $emoji ?> <?= htmlspecialchars($statusLabel) ?> - <?= htmlspecialchars(mb_substr($task['title'] ?? '', 0, 30)) ?><?= mb_strlen($task['title'] ?? '') > 30 ? '...' : '' ?>
                                                             </div>
                                                         </div>
                                                     <?php endforeach; ?>

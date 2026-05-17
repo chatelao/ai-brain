@@ -196,7 +196,7 @@ class GitHubService
                 'secret' => $secret,
                 'insecure_ssl' => '0'
             ],
-            'events' => ['issues'],
+            'events' => ['issues', 'check_suite'],
             'active' => true,
         ]);
     }
