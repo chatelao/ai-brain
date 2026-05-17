@@ -25,13 +25,6 @@ class TelegramChannelHandler implements NotificationChannelInterface
             return false;
         }
 
-        $user = $this->userModel->findById($userId);
-        $telegramService = $this->telegramService;
-
-        if ($user && !empty($user['telegram_bot_token'])) {
-            $telegramService = $this->telegramService->withToken($user['telegram_bot_token']);
-        }
-
         $title = $notification['title'];
         $message = $notification['message'];
         $sourceUrl = $notification['data']['source_url'] ?? null;

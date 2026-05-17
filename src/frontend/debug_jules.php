@@ -52,7 +52,6 @@ try {
         'headers' => $response->getHeaders(),
         'body' => json_decode($response->getBody()->getContents(), true)
     ], JSON_PRETTY_PRINT);
-
 } catch (\Exception $e) {
     header('Content-Type: text/plain');
     echo "Error: " . $e->getMessage() . "\n";

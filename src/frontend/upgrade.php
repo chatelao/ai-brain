@@ -75,13 +75,13 @@ $appliedPatches = $status['applied'];
                 <p class="text-sm text-gray-600">Apply pending SQL patches to your database.</p>
             </div>
 
-            <?php if ($successMessage): ?>
+            <?php if ($successMessage) : ?>
                 <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 border border-green-200" role="alert">
                     <span class="font-medium">Success!</span> <?= htmlspecialchars($successMessage) ?>
                 </div>
             <?php endif; ?>
 
-            <?php if ($errorMessage): ?>
+            <?php if ($errorMessage) : ?>
                 <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-200" role="alert">
                     <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage) ?>
                 </div>
@@ -94,18 +94,18 @@ $appliedPatches = $status['applied'];
                         Pending Patches (<?= count($pendingPatches) ?>)
                     </h2>
                     <div class="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto border border-gray-200">
-                        <?php if (empty($pendingPatches)): ?>
+                        <?php if (empty($pendingPatches)) : ?>
                             <p class="text-sm text-gray-500 italic">No pending patches. Your database is up to date.</p>
-                        <?php else: ?>
+                        <?php else : ?>
                             <ul class="space-y-2">
-                                <?php foreach ($pendingPatches as $patch): ?>
+                                <?php foreach ($pendingPatches as $patch) : ?>
                                     <li class="text-sm font-mono text-gray-700 bg-white p-2 rounded shadow-sm border border-gray-100"><?= htmlspecialchars($patch) ?></li>
                                 <?php endforeach; ?>
                             </ul>
                         <?php endif; ?>
                     </div>
 
-                    <?php if (!empty($pendingPatches)): ?>
+                    <?php if (!empty($pendingPatches)) : ?>
                         <form method="POST" class="mt-6 space-y-4">
                             <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
 
@@ -113,7 +113,7 @@ $appliedPatches = $status['applied'];
                                 <label for="patch" class="block text-sm font-medium text-gray-700">Select Patch</label>
                                 <select id="patch" name="patch" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border">
                                     <option value="all">Apply All Pending Patches</option>
-                                    <?php foreach ($pendingPatches as $patch): ?>
+                                    <?php foreach ($pendingPatches as $patch) : ?>
                                         <option value="<?= htmlspecialchars($patch) ?>"><?= htmlspecialchars($patch) ?></option>
                                     <?php endforeach; ?>
                                 </select>
@@ -132,11 +132,11 @@ $appliedPatches = $status['applied'];
                         Applied Patches (<?= count($appliedPatches) ?>)
                     </h2>
                     <div class="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto border border-gray-200">
-                        <?php if (empty($appliedPatches)): ?>
+                        <?php if (empty($appliedPatches)) : ?>
                             <p class="text-sm text-gray-500 italic">No patches applied yet.</p>
-                        <?php else: ?>
+                        <?php else : ?>
                             <ul class="space-y-2">
-                                <?php foreach (array_reverse($appliedPatches) as $patch): ?>
+                                <?php foreach (array_reverse($appliedPatches) as $patch) : ?>
                                     <li class="text-sm font-mono text-gray-400 bg-white p-2 rounded shadow-sm border border-gray-100"><?= htmlspecialchars($patch) ?></li>
                                 <?php endforeach; ?>
                             </ul>
@@ -145,14 +145,14 @@ $appliedPatches = $status['applied'];
                 </div>
             </div>
 
-            <?php if (!empty($logs)): ?>
+            <?php if (!empty($logs)) : ?>
                 <div class="mt-8">
                     <h3 class="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">Migration Logs</h3>
                     <div class="bg-gray-900 rounded-lg p-4 border border-gray-700">
                         <pre class="text-xs text-green-400 font-mono whitespace-pre-wrap"><?php
-                            foreach ($logs as $log) {
-                                echo htmlspecialchars($log) . "\n";
-                            }
+                        foreach ($logs as $log) {
+                            echo htmlspecialchars($log) . "\n";
+                        }
                         ?></pre>
                     </div>
                 </div>

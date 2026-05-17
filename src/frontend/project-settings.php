@@ -79,8 +79,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notifications'
         'failed_pr' => isset($_POST['broadcast_failed_pr'])
     ];
 
-    if ($notificationService->updateProjectSettings($projectId, $settings) &&
-        $notificationService->updateStatusSettings($projectId, $statusSettings)) {
+    if (
+        $notificationService->updateProjectSettings($projectId, $settings) &&
+        $notificationService->updateStatusSettings($projectId, $statusSettings)
+    ) {
         $redirectUrl = basename($_SERVER['PHP_SELF']) . "?id=$projectId&success=notifications_updated";
         header("Location: $redirectUrl");
         exit;
@@ -147,9 +149,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_project'])) {
 }
 
 if (isset($_GET['success'])) {
-    if ($_GET['success'] === 'project_updated') $successMessage = "Project settings updated successfully.";
-    if ($_GET['success'] === 'webhook_setup') $successMessage = "Webhook set up successfully.";
-    if ($_GET['success'] === 'notifications_updated') $successMessage = "Notification settings updated successfully.";
+    if ($_GET['success'] === 'project_updated') {
+        $successMessage = "Project settings updated successfully.";
+    }
+    if ($_GET['success'] === 'webhook_setup') {
+        $successMessage = "Webhook set up successfully.";
+    }
+    if ($_GET['success'] === 'notifications_updated') {
+        $successMessage = "Notification settings updated successfully.";
+    }
 }
 
 ?>
@@ -219,13 +227,13 @@ if (isset($_GET['success'])) {
                         <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Project Settings</h1>
                     </div>
 
-                    <?php if ($errorMessage): ?>
+                    <?php if ($errorMessage) : ?>
                         <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
                             <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage) ?>
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($successMessage): ?>
+                    <?php if ($successMessage) : ?>
                         <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
                             <span class="font-medium">Success!</span> <?= htmlspecialchars($successMessage) ?>
                         </div>
@@ -258,7 +266,7 @@ if (isset($_GET['success'])) {
                                     <div>
                                         <label class="block mb-2 text-sm font-medium text-gray-900">GitHub Account</label>
                                         <select name="github_account_id" x-model="selectedAccountId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                                            <?php foreach ($githubAccounts as $account): ?>
+                                            <?php foreach ($githubAccounts as $account) : ?>
                                                 <option value="<?= $account['github_account_id'] ?>" x-text="'<?= htmlspecialchars($account['github_username'] ?? '') ?>' + (recommendedId == <?= $account['github_account_id'] ?> ? ' (Recommended)' : '')">
                                                     <?= htmlspecialchars($account['github_username'] ?? '') ?>
                                                 </option>
@@ -322,8 +330,8 @@ if (isset($_GET['success'])) {
                                             'failed_jules' => 'Jules Failed',
                                             'failed_pr' => 'PR Failed'
                                         ];
-                                        foreach ($statuses as $id => $label):
-                                        ?>
+                                        foreach ($statuses as $id => $label) :
+                                            ?>
                                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100 shadow-sm">
                                             <span class="text-xs font-medium text-gray-600"><?= $label ?></span>
                                             <label class="relative inline-flex items-center cursor-pointer scale-75">
@@ -344,15 +352,15 @@ if (isset($_GET['success'])) {
                             <div class="space-y-4">
                                 <div class="flex items-center justify-between">
                                     <span class="text-sm font-medium text-gray-700">Status</span>
-                                    <?php if ($webhookStatus === 'active'): ?>
+                                    <?php if ($webhookStatus === 'active') : ?>
                                         <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-green-100 text-green-800">Connected</span>
-                                    <?php elseif ($webhookStatus === 'inactive'): ?>
+                                    <?php elseif ($webhookStatus === 'inactive') : ?>
                                         <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800">Inactive</span>
-                                    <?php elseif ($webhookStatus === 'missing'): ?>
+                                    <?php elseif ($webhookStatus === 'missing') : ?>
                                         <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-red-100 text-red-800">Not Found</span>
-                                    <?php elseif ($webhookStatus === 'error'): ?>
+                                    <?php elseif ($webhookStatus === 'error') : ?>
                                         <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-red-100 text-red-800">API Error</span>
-                                    <?php else: ?>
+                                    <?php else : ?>
                                         <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-gray-100 text-gray-800">Unknown</span>
                                     <?php endif; ?>
                                 </div>
@@ -370,7 +378,7 @@ if (isset($_GET['success'])) {
                                     </div>
                                 </div>
 
-                                <?php if ($webhookStatus === 'missing' || $webhookStatus === 'error'): ?>
+                                <?php if ($webhookStatus === 'missing' || $webhookStatus === 'error') : ?>
                                     <form method="POST">
                                         <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                         <button type="submit" name="setup_webhook" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Setup Webhook Automatically</button>

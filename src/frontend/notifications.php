@@ -69,7 +69,7 @@ $totalPages = ceil($totalNotifications / $limit);
                     </a>
                 </div>
                 <div class="flex items-center">
-                    <?php if ($user): ?>
+                    <?php if ($user) : ?>
                         <?php include 'navbar-icons.php'; ?>
                     <?php endif; ?>
                     <div class="flex items-center ml-3">
@@ -107,7 +107,7 @@ $totalPages = ceil($totalNotifications / $limit);
 
                     <div class="mb-4 flex justify-between items-center">
                         <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">All Notifications</h1>
-                        <?php if ($totalNotifications > 0): ?>
+                        <?php if ($totalNotifications > 0) : ?>
                         <form method="POST">
                             <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                             <button type="submit" name="mark_all_read" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Mark all as read</button>
@@ -115,18 +115,18 @@ $totalPages = ceil($totalNotifications / $limit);
                         <?php endif; ?>
                     </div>
 
-                    <?php if (isset($_GET['success']) && $_GET['success'] === 'all_read'): ?>
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'all_read') : ?>
                         <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
                             <span class="font-medium">Success!</span> All notifications marked as read.
                         </div>
                     <?php endif; ?>
 
                     <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                        <?php if (empty($notifications)): ?>
+                        <?php if (empty($notifications)) : ?>
                             <div class="p-8 text-center text-gray-500 italic">No notifications found.</div>
-                        <?php else: ?>
+                        <?php else : ?>
                             <ul class="divide-y divide-gray-200">
-                                <?php foreach ($notifications as $n): ?>
+                                <?php foreach ($notifications as $n) : ?>
                                     <?php $data = json_decode($n['data'] ?? '{}', true); ?>
                                     <li class="p-4 hover:bg-gray-50 transition-colors <?= !$n['is_read'] ? 'bg-blue-50/50' : '' ?>">
                                         <div class="flex justify-between items-start">
@@ -135,7 +135,7 @@ $totalPages = ceil($totalNotifications / $limit);
                                                     <h4 class="text-sm font-bold text-gray-900 markdown-body">
                                                         <?= $parsedown->text($taskModel->processGitHubImages($n['title'])) ?>
                                                     </h4>
-                                                    <?php if (!$n['is_read']): ?>
+                                                    <?php if (!$n['is_read']) : ?>
                                                         <span class="ml-2 w-2 h-2 bg-blue-600 rounded-full"></span>
                                                     <?php endif; ?>
                                                 </div>
@@ -144,7 +144,7 @@ $totalPages = ceil($totalNotifications / $limit);
                                                 </div>
                                                 <div class="mt-2 flex items-center space-x-4">
                                                     <span class="text-xs text-gray-400 font-mono"><?= htmlspecialchars($n['created_at']) ?></span>
-                                                    <?php if (!empty($data['source_url'])): ?>
+                                                    <?php if (!empty($data['source_url'])) : ?>
                                                         <a href="<?= htmlspecialchars($data['source_url']) ?>" target="_blank" class="text-xs text-blue-600 hover:underline flex items-center">
                                                             View Source
                                                             <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
@@ -157,16 +157,16 @@ $totalPages = ceil($totalNotifications / $limit);
                                 <?php endforeach; ?>
                             </ul>
 
-                            <?php if ($totalPages > 1): ?>
+                            <?php if ($totalPages > 1) : ?>
                                 <div class="p-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
                                     <div class="text-sm text-gray-700">
                                         Showing <span class="font-medium"><?= $offset + 1 ?></span> to <span class="font-medium"><?= min($offset + $limit, $totalNotifications) ?></span> of <span class="font-medium"><?= $totalNotifications ?></span> notifications
                                     </div>
                                     <div class="flex-1 flex justify-end space-x-2">
-                                        <?php if ($page > 1): ?>
+                                        <?php if ($page > 1) : ?>
                                             <a href="?page=<?= $page - 1 ?>" class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100">Previous</a>
                                         <?php endif; ?>
-                                        <?php if ($page < $totalPages): ?>
+                                        <?php if ($page < $totalPages) : ?>
                                             <a href="?page=<?= $page + 1 ?>" class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100">Next</a>
                                         <?php endif; ?>
                                     </div>

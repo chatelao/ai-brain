@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['trigger_upgrade']) |
                                         <label for="patch" class="block text-sm font-medium text-gray-700">Select Patch</label>
                                         <select id="patch" name="patch" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border">
                                             <option value="all">Apply All Pending Patches</option>
-                                            <?php foreach ($pendingPatches as $patch): ?>
+                                            <?php foreach ($pendingPatches as $patch) : ?>
                                                 <option value="<?= htmlspecialchars($patch) ?>"><?= htmlspecialchars($patch) ?></option>
                                             <?php endforeach; ?>
                                         </select>
@@ -146,13 +146,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['trigger_upgrade']) |
                         </div>
                     </div>
 
-                    <?php if (!empty($logs)): ?>
+                    <?php if (!empty($logs)) : ?>
                         <div class="p-4 mb-4 bg-gray-900 border border-gray-700 rounded-lg shadow-sm overflow-hidden">
                             <h3 class="text-base font-semibold text-gray-100 mb-2">Migration Logs:</h3>
                             <pre class="text-xs text-green-400 font-mono whitespace-pre-wrap"><?php
-                                foreach ($logs as $log) {
-                                    echo htmlspecialchars($log) . "\n";
-                                }
+                            foreach ($logs as $log) {
+                                echo htmlspecialchars($log) . "\n";
+                            }
                             ?></pre>
                         </div>
                     <?php endif; ?>

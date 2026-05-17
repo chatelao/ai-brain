@@ -86,7 +86,7 @@ $allUsers = $userModel->getAllUsersWithProjectCount();
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
-                                            <?php foreach ($allUsers as $user): ?>
+                                            <?php foreach ($allUsers as $user) : ?>
                                                 <tr class="hover:bg-gray-50">
                                                     <td class="p-4 flex items-center whitespace-nowrap">
                                                         <img class="w-10 h-10 rounded-full" src="<?= htmlspecialchars($user['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="<?= htmlspecialchars($user['name']) ?> avatar">
