@@ -17,7 +17,14 @@ class TelegramService
             'base_uri' => 'https://api.telegram.org/',
             'timeout'  => 10.0,
         ]);
-        $this->botToken = $botToken ?? (getenv('TELEGRAM_BOT_TOKEN') ?: '');
+        $this->botToken = $botToken ?? '';
+    }
+
+    public function withToken(string $botToken): self
+    {
+        $new = clone $this;
+        $new->botToken = $botToken;
+        return $new;
     }
 
     public function withToken(string $botToken): self
