@@ -44,13 +44,16 @@ try {
         }
     } else {
         // Global refresh for dashboard
-        $githubAccounts = $userModel->getGitHubAccounts($userId);
-        if (!empty($githubAccounts)) {
-            // Use the first account's token for refreshing Jules status
-            $githubService = new GitHubService(null, $githubAccounts[0]['github_token']);
-            $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
+        $projects = $projectModel->findByUserId($userId);
+        if (!empty($projects)) {
+            foreach ($projects as $project) {
+                if (!empty($project['github_token'])) {
+                    $githubService = new GitHubService(null, $project['github_token']);
+                    $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService, (int)$project['project_id']);
+                }
+            }
         } else {
-            // Fallback without token
+            // Fallback without token if no projects
             $githubService = new GitHubService();
             $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
         }

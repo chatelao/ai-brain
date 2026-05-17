@@ -198,20 +198,37 @@ if (isset($_GET['success'])) {
                     <div class="grid grid-cols-1 gap-4">
                         <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                             <h3 class="text-lg font-bold text-gray-900 mb-4">General Settings</h3>
-                            <form method="POST">
+                            <form method="POST" x-data="{
+                                repo: '<?= htmlspecialchars($project['github_repo'] ?? '') ?>',
+                                accounts: <?= htmlspecialchars(json_encode(array_map(fn($a) => ['id' => $a['github_account_id'], 'username' => $a['github_username']], $githubAccounts))) ?>,
+                                selectedAccountId: '<?= $project['github_account_id'] ?>',
+                                get repoOwner() {
+                                    return this.repo.split('/')[0].trim().toLowerCase();
+                                },
+                                autoSelect() {
+                                    const owner = this.repoOwner;
+                                    if (!owner) return;
+                                    const match = this.accounts.find(a => a.username.toLowerCase() === owner);
+                                    if (match) {
+                                        this.selectedAccountId = match.id;
+                                    }
+                                }
+                            }">
                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <label class="block mb-2 text-sm font-medium text-gray-900">GitHub Account</label>
-                                        <select name="github_account_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                        <select name="github_account_id" x-model="selectedAccountId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                                             <?php foreach ($githubAccounts as $account): ?>
-                                                <option value="<?= $account['github_account_id'] ?>" <?= $account['github_account_id'] == $project['github_account_id'] ? 'selected' : '' ?>><?= htmlspecialchars($account['github_username'] ?? '') ?></option>
+                                                <option value="<?= $account['github_account_id'] ?>" x-text="'<?= htmlspecialchars($account['github_username'] ?? '') ?>' + (repoOwner === '<?= strtolower($account['github_username'] ?? '') ?>' ? ' (Recommended)' : '')">
+                                                    <?= htmlspecialchars($account['github_username'] ?? '') ?>
+                                                </option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block mb-2 text-sm font-medium text-gray-900">Repository (owner/repo)</label>
-                                        <input type="text" name="github_repo" value="<?= htmlspecialchars($project['github_repo'] ?? '') ?>" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                        <input type="text" name="github_repo" x-model="repo" @input="autoSelect()" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                                     </div>
                                 </div>
                                 <button type="submit" name="update_project" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Save Changes</button>

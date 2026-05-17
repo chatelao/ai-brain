@@ -17,6 +17,7 @@ if ($cronSecret && ($_GET['key'] ?? '') !== $cronSecret) {
 
 $db = new Database();
 $userModel = new User($db);
+$projectModel = new Project($db);
 $taskModel = new Task($db);
 $githubService = new GitHubService();
 $julesService = new JulesService();
@@ -29,16 +30,16 @@ foreach ($users as $user) {
     $userId = (int)$user['user_id'];
     echo "Refreshing for user: " . $user['name'] . " (ID: $userId)...\n";
 
-    // We need a GitHub token to fetch comments.
-    // refreshJulesStatus currently takes one GitHubService.
-    // If a user has multiple GitHub accounts, we might need to iterate.
-    $githubAccounts = $userModel->getGitHubAccounts($userId);
+    // We need GitHub tokens to fetch comments.
+    // Each project might use a different GitHub account.
+    $projects = $projectModel->findByUserId($userId);
+    $scopedJulesService = new JulesService(null, $user['jules_api_key'] ?? null);
 
-    foreach ($githubAccounts as $account) {
-        $scopedGithubService = new GitHubService(null, $account['github_token']);
-        $scopedJulesService = new JulesService(null, $user['jules_api_key'] ?? null);
-
-        $taskModel->refreshJulesStatus($userId, $scopedGithubService, $scopedJulesService);
+    foreach ($projects as $project) {
+        if (!empty($project['github_token'])) {
+            $scopedGithubService = new GitHubService(null, $project['github_token']);
+            $taskModel->refreshJulesStatus($userId, $scopedGithubService, $scopedJulesService, null, (int)$project['project_id']);
+        }
     }
 }
 
