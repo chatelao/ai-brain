@@ -20,9 +20,14 @@ class WebhookHandler
     {
         $action = $event['action'] ?? '';
         $issue = $event['issue'] ?? null;
+        $pullRequest = $event['pull_request'] ?? null;
         $checkSuite = $event['check_suite'] ?? null;
 
         $taskModel = new Task($this->db);
+
+        if ($pullRequest) {
+            return $this->handlePullRequest($project, $event, $notificationService);
+        }
 
         if ($checkSuite) {
             return $this->handleCheckSuite($project, $event, $taskModel, $notificationService);
@@ -101,6 +106,43 @@ class WebhookHandler
         }
 
         return $result;
+    }
+
+    private function handlePullRequest(array $project, array $event, ?NotificationService $notificationService): bool
+    {
+        $action = $event['action'] ?? '';
+        $pr = $event['pull_request'] ?? null;
+
+        if (!$pr || !$notificationService) {
+            return true;
+        }
+
+        if (in_array($action, ['opened', 'closed', 'reopened', 'synchronize'])) {
+            $emoji = '🔗';
+            $actionText = 'Updated';
+
+            if ($action === 'opened') {
+                $emoji = '🆕';
+                $actionText = 'Opened';
+            } elseif ($action === 'closed') {
+                $emoji = $pr['merged'] ? '💜' : '❌';
+                $actionText = $pr['merged'] ? 'Merged' : 'Closed';
+            } elseif ($action === 'reopened') {
+                $emoji = '🔓';
+                $actionText = 'Reopened';
+            } elseif ($action === 'synchronize') {
+                $emoji = '🔄';
+                $actionText = 'Pushed';
+            }
+
+            $notificationService->notify($project['user_id'], 'github_pr', "$emoji PR $actionText: #" . $pr['number'], "Pull Request \"" . $pr['title'] . "\" was $actionText in " . $project['github_repo'], [
+                'project_id' => $project['project_id'],
+                'pr_number' => $pr['number'],
+                'source_url' => $pr['html_url']
+            ]);
+        }
+
+        return true;
     }
 
     private function handleCheckSuite(array $project, array $event, Task $taskModel, ?NotificationService $notificationService): bool

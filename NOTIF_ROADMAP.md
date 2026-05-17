@@ -7,13 +7,13 @@
 | 1 | Core Infrastructure | ✅ |
 | 2 | In-App Inbox & Deep Linking | ✅ |
 | 3 | Telegram Integration | 🚧 |
-| 4 | Browser Notifications | ⏳ |
-| 5 | Settings & Customization | 🚧 |
+| 4 | Browser Notifications | ✅ |
+| 5 | Settings & Customization | ✅ |
 | 6 | Event Integration | 🚧 |
 
 ## Goals
 
-- Multi-channel notification delivery (In-App, Telegram, Browser) 🚧
+- Multi-channel notification delivery (In-App, Telegram, Browser) ✅
 - Real-time alerts for critical events (Build failures, Task completion) 🚧
 - User-customizable notification preferences (Global, Per-project, Per-task) 🚧
 - Seamless navigation via deep linking ✅
@@ -41,24 +41,24 @@
 - [x] Test Telegram notification delivery.
 
 ## Phase 4: Browser Notifications
-- [ ] Implement `BrowserChannelHandler` using Web Notifications API.
-- [ ] Add "Request Browser Notification Permission" logic in settings.
-- [ ] Implement polling or lightweight event mechanism for real-time alerts.
-- [ ] Test browser notification delivery across different browsers.
+- [x] Implement `BrowserChannelHandler` using Web Notifications API.
+- [x] Add "Request Browser Notification Permission" logic in settings.
+- [x] Implement polling or lightweight event mechanism for real-time alerts.
+- [x] Test browser notification delivery across different browsers.
 
 ## Phase 5: Settings & Customization
 - [x] Update `src/frontend/settings.php` with global notification preferences.
-- [ ] Implement channel toggles (In-App, Browser, Telegram) in settings.
+- [x] Implement channel toggles (In-App, Browser, Telegram) in settings.
     - [x] In-App Inbox
     - [x] Telegram
-    - [ ] Browser
+    - [x] Browser
 - [ ] Implement global event type toggles in settings.
 - [x] Add notification settings to the project page (`src/frontend/project-settings.php`).
 - [x] Implement per-task "Mute" functionality.
 
 ## Phase 6: Event Integration
 - [x] Integrate `NotificationService` with GitHub webhooks (e.g., issue opened/closed/reopened).
-- [ ] Trigger notifications on PR creation/updates.
+- [x] Trigger notifications on PR creation/updates.
 - [x] Trigger notifications on Jules session failures or completions.
 - [x] Trigger notifications on task status changes.
 - [ ] Final end-to-end testing of all notification flows.

@@ -63,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notifications'
     }
     $settings = [
         'github_issue' => isset($_POST['notify_github_issue']),
+        'github_pr' => isset($_POST['notify_github_pr']),
         'task_status' => isset($_POST['notify_task_status']),
         'agent_event' => isset($_POST['notify_agent_event'])
     ];
@@ -290,11 +291,18 @@ if (isset($_GET['success'])) {
                             ?>
                             <form method="POST" class="space-y-6">
                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                         <span class="text-sm font-medium text-gray-700">GitHub Issues</span>
                                         <label class="relative inline-flex items-center cursor-pointer">
                                             <input type="checkbox" name="notify_github_issue" class="sr-only peer" <?= ($projectNotifSettings['github_issue'] ?? true) ? 'checked' : '' ?>>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <span class="text-sm font-medium text-gray-700">GitHub PRs</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" name="notify_github_pr" class="sr-only peer" <?= ($projectNotifSettings['github_pr'] ?? true) ? 'checked' : '' ?>>
                                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                                         </label>
                                     </div>

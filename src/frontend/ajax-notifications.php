@@ -36,9 +36,31 @@ $action = $_GET['action'] ?? 'unread_count';
 
 try {
     if ($action === 'unread_count') {
+        $unreadCount = $notificationService->getUnreadCount($userId);
+        $latestUnread = [];
+        if ($unreadCount > 0) {
+            // Get latest 5 unread notifications
+            $stmt = $db->getConnection()->prepare(
+                "SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC, notification_id DESC LIMIT 5"
+            );
+            $stmt->execute([$userId]);
+            $latestUnread = $stmt->fetchAll();
+            foreach ($latestUnread as &$n) {
+                if (isset($n['data']) && is_string($n['data'])) {
+                    $n['data'] = json_decode($n['data'], true);
+                }
+                // We keep titles/messages raw for browser notifications (browser handles escaping)
+                // but we process GitHub images if they are embedded.
+                $n['title_plain'] = strip_tags($n['title']);
+                $n['message_plain'] = strip_tags($n['message']);
+            }
+        }
+
         echo json_encode([
             'status' => 'success',
-            'unread_count' => $notificationService->getUnreadCount($userId)
+            'unread_count' => $unreadCount,
+            'notifications' => $latestUnread,
+            'settings' => $notificationService->getUserSettings($userId)
         ]);
     } elseif ($action === 'list') {
         $notifications = $notificationService->getNotifications($userId);
