@@ -3,7 +3,11 @@
 namespace App;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
 use GuzzleHttp\Exception\GuzzleException;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use Exception;
 
 class JulesService
@@ -13,11 +17,32 @@ class JulesService
 
     public function __construct(?Client $client = null, ?string $apiKey = null)
     {
-        $this->client = $client ?? new Client([
-            'base_uri' => 'https://generativelanguage.googleapis.com/',
-            'timeout'  => 30.0,
-        ]);
-        $this->apiKey = $apiKey ?? '';
+        if ($client === null) {
+            $stack = HandlerStack::create();
+            $stack->push(function (callable $handler) {
+                return function (RequestInterface $request, array $options) use ($handler) {
+                    $start = microtime(true);
+                    return $handler($request, $options)->then(
+                        function (ResponseInterface $response) use ($request, $start) {
+                            $duration = microtime(true) - $start;
+                            if ($duration > 1.0) {
+                                $target = $request->getMethod() . ' ' . $request->getUri();
+                                Logger::getInstance()->logPerformance(null, 'Jules API', $target, $duration);
+                            }
+                            return $response;
+                        }
+                    );
+                };
+            });
+
+            $client = new Client([
+                'base_uri' => 'https://generativelanguage.googleapis.com/',
+                'timeout'  => 30.0,
+                'handler'  => $stack,
+            ]);
+        }
+        $this->client = $client;
+        $this->apiKey = (!empty($apiKey)) ? $apiKey : (getenv('GOOGLE_JULES_API_KEY') ?: '');
     }
 
     /**
