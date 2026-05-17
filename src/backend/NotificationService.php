@@ -42,7 +42,17 @@ class NotificationService
             $notificationId = $this->persistNotification($userId, $type, $title, $message, $data);
         }
 
-        // 5. Dispatch to other enabled channels
+        // 5. Check if broadcast is enabled for this status (if it's a task_status event)
+        $shouldBroadcast = true;
+        if ($type === 'task_status' && isset($data['project_id']) && isset($data['status'])) {
+            $shouldBroadcast = $this->isStatusBroadcastEnabled((int)$data['project_id'], $data['status']);
+        }
+
+        if (!$shouldBroadcast) {
+            return true;
+        }
+
+        // 6. Dispatch to other enabled channels
         $notification = [
             'notification_id' => $notificationId,
             'user_id' => $userId,
@@ -164,6 +174,61 @@ class NotificationService
         }
     }
 
+    public function getStatusSettings(int $projectId): array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT status, is_enabled FROM project_status_notification_settings WHERE project_id = ?"
+        );
+        $stmt->execute([$projectId]);
+        $rows = $stmt->fetchAll();
+
+        $settings = [];
+        foreach ($rows as $row) {
+            $settings[$row['status']] = (bool)$row['is_enabled'];
+        }
+
+        // Default settings if not present
+        $statuses = ['researching', 'planning', 'coding', 'testing', 'in_progress', 'implemented', 'completed', 'failed_jules', 'failed_pr'];
+        foreach ($statuses as $status) {
+            if (!isset($settings[$status])) {
+                $settings[$status] = true;
+            }
+        }
+
+        return $settings;
+    }
+
+    public function updateStatusSettings(int $projectId, array $settings): bool
+    {
+        $db = $this->db->getConnection();
+        $db->beginTransaction();
+
+        try {
+            foreach ($settings as $status => $enabled) {
+                $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+                if ($driver === 'sqlite') {
+                    $stmt = $db->prepare(
+                        "INSERT INTO project_status_notification_settings (project_id, status, is_enabled)
+                         VALUES (?, ?, ?)
+                         ON CONFLICT(project_id, status) DO UPDATE SET is_enabled = excluded.is_enabled"
+                    );
+                } else {
+                    $stmt = $db->prepare(
+                        "INSERT INTO project_status_notification_settings (project_id, status, is_enabled)
+                         VALUES (?, ?, ?)
+                         ON DUPLICATE KEY UPDATE is_enabled = VALUES(is_enabled)"
+                    );
+                }
+                $stmt->execute([$projectId, $status, (int)$enabled]);
+            }
+            $db->commit();
+            return true;
+        } catch (\Exception $e) {
+            $db->rollBack();
+            return false;
+        }
+    }
+
     private function isTaskMuted(int $taskId): bool
     {
         $settings = $this->getTaskSettings($taskId);
@@ -174,6 +239,12 @@ class NotificationService
     {
         $settings = $this->getProjectSettings($projectId);
         return $settings[$type] ?? true;
+    }
+
+    private function isStatusBroadcastEnabled(int $projectId, string $status): bool
+    {
+        $settings = $this->getStatusSettings($projectId);
+        return $settings[$status] ?? true;
     }
 
     private function persistNotification(int $userId, string $type, string $title, string $message, array $data): int
