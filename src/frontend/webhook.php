@@ -6,6 +6,7 @@ use App\Database;
 use App\Project;
 use App\WebhookHandler;
 use App\GitHubService;
+use App\JulesService;
 use App\RateLimiter;
 use App\WebhookLogger;
 use App\NotificationService;
@@ -91,7 +92,9 @@ if (!empty($matchingProject['github_token'])) {
     $githubService = new GitHubService(null, $matchingProject['github_token']);
 }
 
-if ($handler->handle($matchingProject, $data, $githubService, $notificationService)) {
+$julesService = new JulesService();
+
+if ($handler->handle($matchingProject, $data, $githubService, $notificationService, $julesService)) {
     $logger->log($matchingProject['user_id'], 'github', $payload, $headersStr, 200);
     http_response_code(200);
     echo 'OK';

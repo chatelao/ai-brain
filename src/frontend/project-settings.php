@@ -8,12 +8,14 @@ use App\User;
 use App\Project;
 use App\Task;
 use App\GitHubService;
+use App\NotificationService;
 
 $auth = new Auth();
 $db = new Database();
 $userModel = new User($db);
 $projectModel = new Project($db);
 $taskModel = new Task($db);
+$notificationService = new NotificationService($db);
 
 if (!$auth->isLoggedIn()) {
     header('Location: login.php');
@@ -51,6 +53,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
         }
     } else {
         $errorMessage = "Repository and GitHub Account are required.";
+    }
+}
+
+// Handle Notification Settings Update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notifications'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+    $settings = [
+        'github_issue' => isset($_POST['notify_github_issue']),
+        'task_status' => isset($_POST['notify_task_status']),
+        'agent_event' => isset($_POST['notify_agent_event'])
+    ];
+    if ($notificationService->updateProjectSettings($projectId, $settings)) {
+        $redirectUrl = basename($_SERVER['PHP_SELF']) . "?id=$projectId&success=notifications_updated";
+        header("Location: $redirectUrl");
+        exit;
+    } else {
+        $errorMessage = "Failed to update notification settings.";
     }
 }
 
@@ -114,6 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_project'])) {
 if (isset($_GET['success'])) {
     if ($_GET['success'] === 'project_updated') $successMessage = "Project settings updated successfully.";
     if ($_GET['success'] === 'webhook_setup') $successMessage = "Webhook set up successfully.";
+    if ($_GET['success'] === 'notifications_updated') $successMessage = "Notification settings updated successfully.";
 }
 
 ?>
@@ -235,6 +257,40 @@ if (isset($_GET['success'])) {
                                     </div>
                                 </div>
                                 <button type="submit" name="update_project" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Save Changes</button>
+                            </form>
+                        </div>
+
+                        <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">Notification Preferences</h3>
+                            <?php
+                            $projectNotifSettings = $notificationService->getProjectSettings($projectId);
+                            ?>
+                            <form method="POST" class="space-y-4">
+                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <span class="text-sm font-medium text-gray-700">GitHub Issues</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" name="notify_github_issue" class="sr-only peer" <?= ($projectNotifSettings['github_issue'] ?? true) ? 'checked' : '' ?>>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <span class="text-sm font-medium text-gray-700">Task Status</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" name="notify_task_status" class="sr-only peer" <?= ($projectNotifSettings['task_status'] ?? true) ? 'checked' : '' ?>>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <span class="text-sm font-medium text-gray-700">Agent Events</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" name="notify_agent_event" class="sr-only peer" <?= ($projectNotifSettings['agent_event'] ?? true) ? 'checked' : '' ?>>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <button type="submit" name="update_notifications" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Save Notification Settings</button>
                             </form>
                         </div>
 

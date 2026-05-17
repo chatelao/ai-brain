@@ -8,12 +8,14 @@ use App\User;
 use App\Project;
 use App\Task;
 use App\GitHubService;
+use App\NotificationService;
 
 $auth = new Auth();
 $db = new Database();
 $userModel = new User($db);
 $projectModel = new Project($db);
 $taskModel = new Task($db);
+$notificationService = new NotificationService($db);
 
 if (!$auth->isLoggedIn()) {
     header('Location: login.php');
@@ -42,6 +44,19 @@ if (!$project || $project['user_id'] !== $user['user_id']) {
     die("Access denied.");
 }
 
+// Handle Notification Settings Update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_task_notifications'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+    $isMuted = isset($_POST['is_muted']);
+    if ($notificationService->updateTaskSettings($taskId, $isMuted)) {
+        $redirectUrl = basename($_SERVER['PHP_SELF']) . "?id=$taskId&success=notifications_updated";
+        header("Location: $redirectUrl");
+        exit;
+    }
+}
+
 $githubData = json_decode($task['github_data'] ?? '{}', true);
 $labels = $githubData['labels'] ?? [];
 $statusColor = $taskModel->getStatusColor($task);
@@ -51,6 +66,8 @@ $githubToken = $project['github_token'] ?? null;
 $githubService = null;
 $prDetails = null;
 $julesMessages = [];
+
+$taskNotifSettings = $notificationService->getTaskSettings($taskId);
 
 if ($githubToken) {
     $githubService = new GitHubService(null, $githubToken);
@@ -181,6 +198,12 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                             </li>
                         </ol>
                     </nav>
+
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'notifications_updated'): ?>
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                            <span class="font-medium">Success!</span> Notification settings updated.
+                        </div>
+                    <?php endif; ?>
 
                     <div class="mb-6">
                         <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
@@ -322,55 +345,55 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
 
                         <div class="lg:col-span-1 space-y-6">
                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                                <h3 class="text-lg font-bold text-gray-900 mb-4">Status Overview</h3>
-                                <div class="space-y-3">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">Status & Links</h3>
+                                <div class="space-y-4">
+                                    <!-- GitHub Issue -->
                                     <div class="flex items-center justify-between">
-                                        <span class="text-sm font-medium text-gray-600">GH issue</span>
+                                        <a href="https://github.com/<?= htmlspecialchars($project['github_repo'] ?? '') ?>/issues/<?= htmlspecialchars($task['issue_number'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="flex items-center text-sm text-blue-600 hover:underline">
+                                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+                                            GitHub Issue
+                                        </a>
                                         <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-<?= $githubIssueColor ?>-100 text-<?= $githubIssueColor ?>-800">
                                             <?= htmlspecialchars($githubIssueStatus) ?>
                                         </span>
                                     </div>
+
+                                    <!-- Jules Session -->
                                     <div class="flex items-center justify-between">
-                                        <span class="text-sm font-medium text-gray-600">Jules session</span>
+                                        <?php if (!empty($task['jules_url'])): ?>
+                                            <a href="<?= htmlspecialchars($task['jules_url'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="flex items-center text-sm text-purple-600 hover:underline">
+                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 5.586 3.004 3.004 0 0 0 5.193 2.019A4 4 0 0 1 12 18c.35 0 .692.045 1.02.13a3.004 3.004 0 0 0 5.193-2.019 4 4 0 0 0 .52-5.586 4 4 0 0 0-2.526-5.77A3 3 0 1 0 12 5M9 14.5a2.5 2.5 0 0 0 2.46-2.019M15 14.5a2.5 2.5 0 0 1-2.46-2.019"/></svg>
+                                                Jules Session
+                                            </a>
+                                        <?php else: ?>
+                                            <div class="flex items-center text-sm text-gray-500">
+                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 5.586 3.004 3.004 0 0 0 5.193 2.019A4 4 0 0 1 12 18c.35 0 .692.045 1.02.13a3.004 3.004 0 0 0 5.193-2.019 4 4 0 0 0 .52-5.586 4 4 0 0 0-2.526-5.77A3 3 0 1 0 12 5M9 14.5a2.5 2.5 0 0 0 2.46-2.019M15 14.5a2.5 2.5 0 0 1-2.46-2.019"/></svg>
+                                                Jules Session
+                                            </div>
+                                        <?php endif; ?>
                                         <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-<?= $julesColor ?>-100 text-<?= $julesColor ?>-800">
                                             <?= htmlspecialchars($julesDisplayStatus) ?>
                                         </span>
                                     </div>
+
+                                    <!-- Pull Request -->
                                     <div class="flex items-center justify-between">
-                                        <span class="text-sm font-medium text-gray-600">GH PR</span>
-                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium <?= $prBadgeClasses ?>">
+                                        <?php if (!empty($task['pr_url'])): ?>
+                                            <a href="<?= htmlspecialchars($task['pr_url'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="flex items-center text-sm text-<?= $prColor ?>-600 hover:underline">
+                                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M11 19.25c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 14.5c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 9.75c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 19.25c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 14.5c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 9.75c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM20.5 2h-17C2.673 2 2 2.673 2 3.5v17c0 .827.673 1.5 1.5 1.5h17c.827 0 1.5-.673 1.5-1.5v-17C22 2.673 21.327 2 20.5 2zM20 18H4V4h16v14z"/></svg>
+                                                Pull Request
+                                            </a>
+                                        <?php else: ?>
+                                            <div class="flex items-center text-sm text-gray-500">
+                                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M11 19.25c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 14.5c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 9.75c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 19.25c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 14.5c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 9.75c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM20.5 2h-17C2.673 2 2 2.673 2 3.5v17c0 .827.673 1.5 1.5 1.5h17c.827 0 1.5-.673 1.5-1.5v-17C22 2.673 21.327 2 20.5 2zM20 18H4V4h16v14z"/></svg>
+                                                Pull Request
+                                            </div>
+                                        <?php endif; ?>
+                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-<?= $prColor ?>-100 text-<?= $prColor ?>-800">
                                             <?= htmlspecialchars($prStatus) ?>
                                         </span>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                                <h3 class="text-lg font-bold text-gray-900 mb-4">Links & Status</h3>
-                                <ul class="space-y-3">
-                                    <li>
-                                        <a href="https://github.com/<?= htmlspecialchars($project['github_repo'] ?? '') ?>/issues/<?= htmlspecialchars($task['issue_number'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="flex items-center text-blue-600 hover:underline">
-                                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-                                            View on GitHub Issue
-                                        </a>
-                                    </li>
-                                    <?php if (!empty($task['pr_url'])): ?>
-                                        <li>
-                                            <a href="<?= htmlspecialchars($task['pr_url'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="flex items-center text-<?= $prColor ?>-600 hover:underline font-bold">
-                                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M11 19.25c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 14.5c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 9.75c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 19.25c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 14.5c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 9.75c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM20.5 2h-17C2.673 2 2 2.673 2 3.5v17c0 .827.673 1.5 1.5 1.5h17c.827 0 1.5-.673 1.5-1.5v-17C22 2.673 21.327 2 20.5 2zM20 18H4V4h16v14z"/></svg>
-                                                View Pull Request
-                                            </a>
-                                        </li>
-                                    <?php endif; ?>
-                                    <?php if (!empty($task['jules_url'])): ?>
-                                        <li>
-                                            <a href="<?= htmlspecialchars($task['jules_url'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="flex items-center text-purple-600 hover:underline">
-                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 5.586 3.004 3.004 0 0 0 5.193 2.019A4 4 0 0 1 12 18c.35 0 .692.045 1.02.13a3.004 3.004 0 0 0 5.193-2.019 4 4 0 0 0 .52-5.586 4 4 0 0 0-2.526-5.77A3 3 0 1 0 12 5M9 14.5a2.5 2.5 0 0 0 2.46-2.019M15 14.5a2.5 2.5 0 0 1-2.46-2.019"/></svg>
-                                                View Jules Session
-                                            </a>
-                                        </li>
-                                    <?php endif; ?>
-                                </ul>
 
                                 <div class="mt-6 pt-6 border-t border-gray-100">
                                     <div class="text-xs text-gray-500 space-y-1">
@@ -388,6 +411,22 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                                 <p class="text-sm font-medium text-gray-900 mb-1"><?= htmlspecialchars($project['github_repo'] ?? '') ?></p>
                                 <p class="text-xs text-gray-500 mb-4">Linked account: <?= htmlspecialchars($project['github_username'] ?? '') ?></p>
                                 <a href="project.php?id=<?= $project['project_id'] ?>" class="text-blue-600 hover:underline text-sm font-medium">Back to Project &rarr;</a>
+                            </div>
+
+                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">Notification Settings</h3>
+                                <form method="POST" class="space-y-4">
+                                    <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-gray-700">Mute Notifications</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" name="is_muted" class="sr-only peer" <?= ($taskNotifSettings['is_muted'] ?? false) ? 'checked' : '' ?> onchange="this.form.submit()">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <input type="hidden" name="update_task_notifications" value="1">
+                                    <p class="text-xs text-gray-500">Silence all notifications for this specific task.</p>
+                                </form>
                             </div>
                         </div>
                     </div>

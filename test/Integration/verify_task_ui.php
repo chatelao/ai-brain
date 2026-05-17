@@ -41,6 +41,18 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS user_telegram_accounts (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 )");
 
+$pdo->exec("CREATE TABLE IF NOT EXISTS task_notification_settings (
+    task_id INTEGER NOT NULL PRIMARY KEY,
+    is_muted BOOLEAN DEFAULT 0
+)");
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS project_notification_settings (
+    project_id INTEGER NOT NULL,
+    notification_type VARCHAR(50) NOT NULL,
+    is_enabled BOOLEAN DEFAULT 1,
+    PRIMARY KEY (project_id, notification_type)
+)");
+
 $pdo->exec("CREATE TABLE IF NOT EXISTS user_github_accounts (
     github_account_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INT NOT NULL,
