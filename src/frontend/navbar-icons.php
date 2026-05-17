@@ -1,18 +1,19 @@
 <?php
+
 /** @var array $user */
 /** @var App\User $userModel */
 /** @var App\Task $taskModel */
 
 if ($user) {
     $counts = $taskModel->getTaskCounts($user['user_id']);
-    $totalTasks = $counts['total'];
-    $openIssues = $counts['open_issues'];
-    $completedTasks = $counts['completed_tasks'];
-    $julesRunning = $counts['jules_running'];
-    $julesFailed = $counts['jules_failed'];
-    $githubRunning = $counts['github_running'];
-    $githubPassed = $counts['github_passed'];
-    $githubFailed = $counts['github_failed'];
+    $totalTasks = $counts['total'] ?? 0;
+    $openIssues = $counts['open_issues'] ?? 0;
+    $completedTasks = $counts['completed_tasks'] ?? 0;
+    $julesRunning = $counts['jules_running'] ?? 0;
+    $julesFailed = $counts['jules_failed'] ?? 0;
+    $githubRunning = $counts['github_running'] ?? 0;
+    $githubPassed = $counts['github_passed'] ?? 0;
+    $githubFailed = $counts['github_failed'] ?? 0;
 
     $quotaUsage = (int)($user['jules_quota_usage'] ?? 0);
     $quotaLimit = (int)($user['jules_quota_limit'] ?? 0);
@@ -51,8 +52,8 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     syncing: <?= $syncStatus ? 'false' : 'true' ?>,
     syncStatus: <?= htmlspecialchars(json_encode($syncStatus)) ?>,
     syncMessage: <?= htmlspecialchars(json_encode($syncMessage)) ?>,
-    quotaUsage: <?= (int)($user['jules_quota_usage'] ?? 0) ?>,
-    quotaLimit: <?= (int)($user['jules_quota_limit'] ?? 0) ?>,
+    quotaUsage: <?= (int)$quotaUsage ?>,
+    quotaLimit: <?= (int)$quotaLimit ?>,
     openIssues: <?= (int)$openIssues ?>,
     totalTasks: <?= (int)$totalTasks ?>,
     completedTasks: <?= (int)$completedTasks ?>,
@@ -66,8 +67,9 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     showNotifications: false,
     loadingNotifications: false,
     csrfToken: '<?= $auth->getCsrfToken() ?>',
+    basePath: window.location.pathname.includes('/admin/') ? '../' : '',
     init() {
-        const basePath = window.location.pathname.includes('/admin/') ? '../' : '';
+        const basePath = this.basePath;
 
         // Fetch Sync Status
         if (!this.syncStatus) {
@@ -164,9 +166,9 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     <div class="flex items-center <?= $totalTasks > 0 ? 'text-black' : 'text-gray-300' ?>" title="GitHub PR Status: Running (Yellow), Passed (Green), Failed (Red)">
         <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.43.372.823 1.102.823 2.222 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
         <span class="text-xs font-bold space-x-1">
-            <span class="text-yellow-600" x-text="githubRunning"><?= $githubRunning ?></span>
-            <span class="text-green-600" x-text="githubPassed"><?= $githubPassed ?></span>
-            <span class="text-red-600" x-text="githubFailed"><?= $githubFailed ?></span>
+            <a :href="basePath + 'tasks.php?filter=github_running'" class="text-yellow-600 hover:underline" x-text="githubRunning"><?= $githubRunning ?></a>
+            <a :href="basePath + 'tasks.php?filter=github_passed'" class="text-green-600 hover:underline" x-text="githubPassed"><?= $githubPassed ?></a>
+            <a :href="basePath + 'tasks.php?filter=github_failed'" class="text-red-600 hover:underline" x-text="githubFailed"><?= $githubFailed ?></a>
         </span>
     </div>
 
@@ -175,9 +177,9 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
          title="Jules Sessions: Remaining (Green), Running (Yellow), Failed (Red)">
         <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 5.586 3.004 3.004 0 0 0 5.193 2.019A4 4 0 0 1 12 18c.35 0 .692.045 1.02.13a3.004 3.004 0 0 0 5.193-2.019 4 4 0 0 0 .52-5.586 4 4 0 0 0-2.526-5.77A3 3 0 1 0 12 5M9 14.5a2.5 2.5 0 0 0 2.46-2.019M15 14.5a2.5 2.5 0 0 1-2.46-2.019"/></svg>
         <span class="text-xs font-bold space-x-1">
-            <span class="text-green-600" x-text="quotaLimit > 0 ? (quotaLimit - quotaUsage) : 0"><?= max(0, $quotaLimit - $quotaUsage) ?></span>
-            <span class="text-yellow-600" x-text="julesRunning"><?= $julesRunning ?></span>
-            <span class="text-red-600" x-text="julesFailed"><?= $julesFailed ?></span>
+            <a :href="basePath + 'tasks.php?filter=open_issues'" class="text-green-600 hover:underline" x-text="quotaLimit > 0 ? (quotaLimit - quotaUsage) : 0"><?= max(0, $quotaLimit - $quotaUsage) ?></a>
+            <a :href="basePath + 'tasks.php?filter=jules_running'" class="text-yellow-600 hover:underline" x-text="julesRunning"><?= $julesRunning ?></a>
+            <a :href="basePath + 'tasks.php?filter=jules_failed'" class="text-red-600 hover:underline" x-text="julesFailed"><?= $julesFailed ?></a>
         </span>
     </div>
 
