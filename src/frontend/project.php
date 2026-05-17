@@ -12,6 +12,7 @@ use App\JulesService;
 use App\GitHubService;
 use App\TelegramService;
 use App\Logger;
+use App\NotificationService;
 
 $auth = new Auth();
 $db = new Database();
@@ -19,6 +20,7 @@ $userModel = new User($db);
 $projectModel = new Project($db);
 $taskModel = new Task($db);
 $telegramService = new TelegramService();
+$notificationService = new NotificationService($db);
 $logger = new Logger($db);
 
 if (!$auth->isLoggedIn()) {
@@ -46,7 +48,7 @@ $tasks = $taskModel->findByProjectId($projectId, $showAll);
 $lastAgentResponse = null;
 $errorMessage = null;
 
-$triggerAgent = function($taskId) use ($taskModel, $logger, $user, $project, $julesService, $telegramService, $telegramChatId, &$lastAgentResponse, &$errorMessage, &$tasks, $projectId) {
+$triggerAgent = function($taskId) use ($taskModel, $logger, $user, $project, $julesService, $notificationService, &$lastAgentResponse, &$errorMessage, &$tasks, $projectId, $showAll) {
     $task = $taskModel->findById($taskId);
     if ($task && $task['project_id'] === $project['project_id']) {
         try {
@@ -66,9 +68,11 @@ $triggerAgent = function($taskId) use ($taskModel, $logger, $user, $project, $ju
                 $logger->log($user['user_id'], $taskId, "Posted 'started' comment to GitHub");
             }
 
-            if ($telegramChatId) {
-                $telegramService->sendMessage($telegramChatId, "🤖 <b>Agent Started</b>\nProject: {$project['github_repo']}\nIssue: #{$task['issue_number']} {$task['title']}");
-            }
+            $notificationService->notify($user['user_id'], 'agent_event', "🤖 Agent Started: #" . $task['issue_number'], "Agent started processing \"" . $task['title'] . "\" in " . $project['github_repo'], [
+                'task_id' => $taskId,
+                'project_id' => $project['project_id'],
+                'source_url' => $taskModel->getTargetUrl($task)
+            ]);
 
             $logger->log($user['user_id'], $taskId, "Calling Jules API...");
             $lastAgentResponse = $julesService->triggerAgent($task);
@@ -82,9 +86,11 @@ $triggerAgent = function($taskId) use ($taskModel, $logger, $user, $project, $ju
                 $logger->log($user['user_id'], $taskId, "Posted 'completed' comment to GitHub");
             }
 
-            if ($telegramChatId) {
-                $telegramService->sendMessage($telegramChatId, "✅ <b>Agent Completed</b>\nProject: {$project['github_repo']}\nIssue: #{$task['issue_number']}\n\n" . mb_substr($lastAgentResponse, 0, 1000));
-            }
+            $notificationService->notify($user['user_id'], 'agent_event', "✅ Agent Completed: #" . $task['issue_number'], "Agent completed analysis for \"" . $task['title'] . "\" in " . $project['github_repo'], [
+                'task_id' => $taskId,
+                'project_id' => $project['project_id'],
+                'source_url' => $taskModel->getTargetUrl($task)
+            ]);
 
             // Refresh tasks
             $tasks = $taskModel->findByProjectId($projectId, $showAll);
@@ -101,9 +107,11 @@ $triggerAgent = function($taskId) use ($taskModel, $logger, $user, $project, $ju
                 }
             }
 
-            if ($telegramChatId) {
-                $telegramService->sendMessage($telegramChatId, "❌ <b>Agent Failed</b>\nProject: {$project['github_repo']}\nIssue: #{$task['issue_number']}\nError: " . $e->getMessage());
-            }
+            $notificationService->notify($user['user_id'], 'agent_event', "❌ Agent Failed: #" . $task['issue_number'], "Agent failed processing \"" . $task['title'] . "\": " . $e->getMessage(), [
+                'task_id' => $taskId,
+                'project_id' => $project['project_id'],
+                'source_url' => $taskModel->getTargetUrl($task)
+            ]);
         }
     }
 };

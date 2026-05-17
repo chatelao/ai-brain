@@ -312,7 +312,7 @@ class Task
         return $issueUrl;
     }
 
-    public function refreshJulesStatus(int $userId, GitHubService $githubService, JulesService $julesService): void
+    public function refreshJulesStatus(int $userId, GitHubService $githubService, JulesService $julesService, ?NotificationService $notificationService = null): void
     {
         $stmt = $this->db->getConnection()->prepare(
             "SELECT t.*, p.github_repo
@@ -425,10 +425,30 @@ class Task
                         $mappedStatus = 'failed';
                     }
 
-                    $updateStmt = $this->db->getConnection()->prepare(
-                        "UPDATE tasks SET jules_status = ?, status = ?, jules_url = ?, last_synced_at = ? WHERE task_id = ?"
-                    );
-                    $updateStmt->execute([$newStatus, $mappedStatus, $julesUrl, date('Y-m-d H:i:s'), $task['task_id']]);
+                    if ($mappedStatus !== $task['status'] || $newStatus !== $task['jules_status']) {
+                        $updateStmt = $this->db->getConnection()->prepare(
+                            "UPDATE tasks SET jules_status = ?, status = ?, jules_url = ?, last_synced_at = ? WHERE task_id = ?"
+                        );
+                        $updateStmt->execute([$newStatus, $mappedStatus, $julesUrl, date('Y-m-d H:i:s'), $task['task_id']]);
+
+                        if ($notificationService && $mappedStatus !== $task['status']) {
+                            $title = "Task Update: #" . $task['issue_number'];
+                            $message = "Task \"" . $task['title'] . "\" status changed to " . $mappedStatus . ".";
+                            if ($mappedStatus === 'completed' || $mappedStatus === 'implemented') {
+                                $title = "✅ Task Completed: #" . $task['issue_number'];
+                            } elseif ($mappedStatus === 'failed') {
+                                $title = "❌ Task Failed: #" . $task['issue_number'];
+                                $message = "Task \"" . $task['title'] . "\" failed.";
+                            }
+
+                            $notificationService->notify($userId, 'task_status', $title, $message, [
+                                'task_id' => $task['task_id'],
+                                'project_id' => $task['project_id'],
+                                'status' => $mappedStatus,
+                                'source_url' => $this->getTargetUrl($task)
+                            ]);
+                        }
+                    }
                 }
             } else {
                 // Still update last_synced_at even if no sessionId or apiKey to avoid constant retries

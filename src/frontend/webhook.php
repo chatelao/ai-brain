@@ -8,6 +8,7 @@ use App\WebhookHandler;
 use App\GitHubService;
 use App\RateLimiter;
 use App\WebhookLogger;
+use App\NotificationService;
 
 $db = new Database();
 $rateLimiter = new RateLimiter($db);
@@ -24,6 +25,7 @@ if (!$rateLimiter->check("webhook_$ip", 100, 60)) {
 }
 $projectModel = new Project($db);
 $handler = new WebhookHandler($db);
+$notificationService = new NotificationService($db);
 
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
 $event = $_SERVER['HTTP_X_GITHUB_EVENT'] ?? '';
@@ -89,7 +91,7 @@ if (!empty($matchingProject['github_token'])) {
     $githubService = new GitHubService(null, $matchingProject['github_token']);
 }
 
-if ($handler->handle($matchingProject, $data, $githubService)) {
+if ($handler->handle($matchingProject, $data, $githubService, $notificationService)) {
     $logger->log($matchingProject['user_id'], 'github', $payload, $headersStr, 200);
     http_response_code(200);
     echo 'OK';
