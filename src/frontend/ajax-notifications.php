@@ -15,6 +15,9 @@ if (!$auth->isLoggedIn()) {
     exit;
 }
 
+// Release session lock to prevent blocking other requests
+session_write_close();
+
 $db = new Database();
 $notificationService = new NotificationService($db);
 $taskModel = new \App\Task($db);

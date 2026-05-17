@@ -69,34 +69,47 @@ $julesMessages = [];
 
 $taskNotifSettings = $notificationService->getTaskSettings($taskId);
 
+$cacheTimeout = 15 * 60; // 15 minutes
+$cacheUpdatedAt = strtotime($task['github_data_updated_at'] ?? '2000-01-01');
+$isCacheValid = (time() - $cacheUpdatedAt) < $cacheTimeout;
+
 if ($githubToken) {
     $githubService = new GitHubService(null, $githubToken);
 
-    // Fetch PR details if available
-    if (!empty($task['pr_url'])) {
+    if ($isCacheValid && !empty($task['github_pr_data'])) {
+        $prDetails = json_decode($task['github_pr_data'], true);
+    } elseif (!empty($task['pr_url'])) {
+        // Fetch PR details if available
         $prNumber = $githubService->extractPrNumber($task['pr_url']);
         if ($prNumber) {
             try {
                 $prDetails = $githubService->getPullRequest($project['github_repo'], $prNumber);
+                $taskModel->updateGitHubCache($taskId, $prDetails, null);
             } catch (Exception $e) {
                 // Ignore PR fetch errors
             }
         }
     }
 
-    // Fetch last comments to find Jules messages
-    try {
-        $comments = $githubService->getIssueComments($project['github_repo'], $task['issue_number']);
-        // Filter for Jules comments
-        $julesMessages = array_filter($comments, function ($comment) {
-            $login = strtolower($comment['user']['login'] ?? '');
-            return $login === 'jules' || $login === 'google-labs-jules[bot]';
-        });
-        // Take the last few
-        $julesMessages = array_slice(array_reverse($julesMessages), 0, 3);
-    } catch (Exception $e) {
-        // Ignore comment fetch errors
+    if ($isCacheValid && !empty($task['github_comments_data'])) {
+        $comments = json_decode($task['github_comments_data'], true);
+    } else {
+        // Fetch last comments to find Jules messages
+        try {
+            $comments = $githubService->getIssueComments($project['github_repo'], $task['issue_number']);
+            $taskModel->updateGitHubCache($taskId, null, $comments);
+        } catch (Exception $e) {
+            $comments = [];
+        }
     }
+
+    // Filter for Jules comments
+    $julesMessages = array_filter($comments, function($comment) {
+        $login = strtolower($comment['user']['login'] ?? '');
+        return $login === 'jules' || $login === 'google-labs-jules[bot]';
+    });
+    // Take the last few
+    $julesMessages = array_slice(array_reverse($julesMessages), 0, 3);
 }
 
 // Status logic for the right sidebar overview

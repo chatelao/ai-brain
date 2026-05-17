@@ -126,10 +126,18 @@ $triggerAgent = function ($taskId) use ($taskModel, $logger, $user, $project, $j
 
 $githubToken = $project['github_token'] ?? null;
 $roadmapFiles = [];
-if ($githubToken) {
+
+$roadmapCacheTimeout = 3600; // 1 hour
+$roadmapUpdatedAt = strtotime($project['roadmap_updated_at'] ?? '2000-01-01');
+$isRoadmapCacheValid = (time() - $roadmapUpdatedAt) < $roadmapCacheTimeout;
+
+if ($isRoadmapCacheValid && !empty($project['roadmap_data'])) {
+    $roadmapFiles = json_decode($project['roadmap_data'], true);
+} elseif ($githubToken) {
     try {
         $githubService = new GitHubService(null, $githubToken);
         $roadmapFiles = $githubService->getRoadmapFiles($project['github_repo']);
+        $projectModel->updateRoadmapCache($projectId, $roadmapFiles);
     } catch (Exception $e) {
         // Silently fail or log roadmap fetching
     }
