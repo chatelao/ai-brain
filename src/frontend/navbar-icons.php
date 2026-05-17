@@ -19,6 +19,9 @@ if ($user) {
     $quotaLimit = (int)($user['jules_quota_limit'] ?? 0);
 
     $telegramConnected = (bool)$userModel->getTelegramChatId($user['user_id']);
+
+    $allowedUpgradeEmail = getenv('UPGRADE_ALLOWED_EMAIL');
+    $isAdmin = !empty($allowedUpgradeEmail) && ($user['email'] ?? '') === $allowedUpgradeEmail;
 } else {
     $totalTasks = 0;
     $openIssues = 0;
@@ -65,6 +68,7 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     unreadNotifications: 0,
     notifications: [],
     showNotifications: false,
+    showUserMenu: false,
     loadingNotifications: false,
     csrfToken: '<?= $auth->getCsrfToken() ?>',
     basePath: window.location.pathname.includes('/admin/') ? '../' : '',
@@ -110,7 +114,15 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
+                    const oldCount = this.unreadNotifications;
                     this.unreadNotifications = data.unread_count;
+
+                    // Trigger browser notification if count increased
+                    if (data.unread_count > oldCount && 'Notification' in window && Notification.permission === 'granted') {
+                        new Notification('New Notification', {
+                            body: 'You have ' + (data.unread_count - oldCount) + ' new notification(s) in Agent Control.'
+                        });
+                    }
                 }
             });
     },
@@ -230,6 +242,31 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
             <div class="p-2 border-t border-gray-100 text-center bg-gray-50">
                 <a href="notifications.php" class="text-xs text-blue-600 hover:underline">View all</a>
             </div>
+        </div>
+    </div>
+
+    <!-- User Menu Dropdown -->
+    <div class="relative ml-3" @keydown.escape.window="showUserMenu = false">
+        <button @click="showUserMenu = !showUserMenu" class="flex items-center text-sm focus:outline-none focus:ring-4 focus:ring-gray-300 rounded-full py-1 px-2 hover:bg-gray-50 transition-colors">
+            <img class="w-8 h-8 rounded-full" src="<?= htmlspecialchars($user['avatar'] ?? 'https://www.gravatar.com/avatar/?d=mp') ?>" alt="user photo">
+            <div class="ml-3 text-sm font-medium text-gray-900 text-left hidden sm:block">
+                <div><?= htmlspecialchars($user['name'] ?? '') ?></div>
+                <?php if ($isAdmin ?? false) : ?>
+                    <div class="text-[10px] text-purple-600 font-bold uppercase leading-none">Admin</div>
+                <?php endif; ?>
+            </div>
+            <svg class="w-4 h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+        </button>
+
+        <div x-show="showUserMenu" @click.outside="showUserMenu = false" x-cloak
+             class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden py-1">
+            <a :href="basePath + 'templates.php'" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">Templates</a>
+            <a :href="basePath + 'logs.php'" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">Logs</a>
+            <a :href="basePath + 'settings.php'" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">Settings</a>
+            <div class="border-t border-gray-100 my-1"></div>
+            <a :href="basePath + 'logout.php'" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium">Logout</a>
         </div>
     </div>
 </div>
