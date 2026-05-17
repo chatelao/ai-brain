@@ -7,3 +7,4 @@
 *.sqlite
 /test/screenshots/
 /docs/_build/
+CODE_QUALITY.md
