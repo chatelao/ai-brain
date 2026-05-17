@@ -57,17 +57,7 @@ class NotificationService
                 continue;
             }
 
-            $channel = $this->channels[$channelName] ?? null;
-
-            // Auto-register common channels if not explicitly registered
-            if (!$channel) {
-                if ($channelName === 'telegram') {
-                    $userModel = new User($this->db);
-                    $telegramService = new TelegramService();
-                    $channel = new TelegramChannelHandler($userModel, $telegramService);
-                    $this->registerChannel('telegram', $channel);
-                }
-            }
+            $channel = $this->getChannelInstance($channelName);
 
             if ($channel) {
                 $channel->send($notification);
@@ -75,6 +65,57 @@ class NotificationService
         }
 
         return true;
+    }
+
+    public function sendTestNotification(int $userId): array
+    {
+        $enabledChannels = $this->getEnabledChannels($userId);
+        if (empty($enabledChannels)) {
+            return ['status' => 'error', 'message' => 'No notification channels enabled.'];
+        }
+
+        $results = [];
+        $notification = [
+            'notification_id' => null,
+            'user_id' => $userId,
+            'type' => 'test_broadcast',
+            'title' => 'Test Broadcast',
+            'message' => 'This is a test notification from your Agent Control settings.',
+            'data' => ['is_test' => true]
+        ];
+
+        foreach ($enabledChannels as $channelName) {
+            if ($channelName === 'in_app') {
+                $results['in_app'] = true; // Handled by frontend for test
+                continue;
+            }
+
+            $channel = $this->getChannelInstance($channelName);
+            if ($channel) {
+                $results[$channelName] = $channel->send($notification);
+            } else {
+                $results[$channelName] = false;
+            }
+        }
+
+        return ['status' => 'success', 'channels' => $results];
+    }
+
+    private function getChannelInstance(string $channelName): ?NotificationChannelInterface
+    {
+        $channel = $this->channels[$channelName] ?? null;
+
+        // Auto-register common channels if not explicitly registered
+        if (!$channel) {
+            if ($channelName === 'telegram') {
+                $userModel = new User($this->db);
+                $telegramService = new TelegramService();
+                $channel = new TelegramChannelHandler($userModel, $telegramService);
+                $this->registerChannel('telegram', $channel);
+            }
+        }
+
+        return $channel;
     }
 
     public function getTaskSettings(int $taskId): array
