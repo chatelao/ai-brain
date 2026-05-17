@@ -215,7 +215,7 @@ if ($task['github_state'] === 'closed' && !empty($task['pr_url'])) {
                                 </div>
                                 <div class="p-6">
                                     <div class="prose max-w-none text-gray-800 markdown-body">
-                                        <?= $parsedown->text($task['body'] ?? '') ?>
+                                        <?= $parsedown->text($taskModel->processGitHubImages($task['body'] ?? '')) ?>
                                     </div>
                                 </div>
                             </div>
@@ -245,7 +245,7 @@ if ($task['github_state'] === 'closed' && !empty($task['pr_url'])) {
                                         </div>
                                         <?php if (!empty($prDetails['body'])): ?>
                                             <div class="prose prose-sm max-w-none text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-100">
-                                                <?= $parsedown->text(mb_substr($prDetails['body'], 0, 300) . (mb_strlen($prDetails['body']) > 300 ? '...' : '')) ?>
+                                                <?= $parsedown->text($taskModel->processGitHubImages(mb_substr($prDetails['body'], 0, 300) . (mb_strlen($prDetails['body']) > 300 ? '...' : ''))) ?>
                                             </div>
                                         <?php endif; ?>
                                     </div>
@@ -270,7 +270,7 @@ if ($task['github_state'] === 'closed' && !empty($task['pr_url'])) {
                                             </div>
                                             <div class="p-4">
                                                 <div class="prose prose-sm max-w-none text-gray-700 markdown-body">
-                                                    <?= $parsedown->text($msg['body'] ?? '') ?>
+                                                    <?= $parsedown->text($taskModel->processGitHubImages($msg['body'] ?? '')) ?>
                                                 </div>
                                             </div>
                                         </div>
@@ -303,7 +303,7 @@ if ($task['github_state'] === 'closed' && !empty($task['pr_url'])) {
                                     </div>
                                     <div class="p-6 bg-blue-50/30">
                                         <div class="prose prose-sm max-w-none text-blue-900 markdown-body">
-                                            <?= $parsedown->text($task['agent_response'] ?? '') ?>
+                                            <?= $parsedown->text($taskModel->processGitHubImages($task['agent_response'] ?? '')) ?>
                                         </div>
                                     </div>
                                 </div>
