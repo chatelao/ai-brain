@@ -68,7 +68,12 @@ try {
         'quota_limit' => $updatedUser['jules_quota_limit'] ?? 0,
         'total_tasks' => $counts['total'],
         'open_issues' => $counts['open_issues'],
-        'completed_tasks' => $counts['completed_tasks']
+        'completed_tasks' => $counts['completed_tasks'],
+        'jules_running' => $counts['jules_running'],
+        'jules_failed' => $counts['jules_failed'],
+        'github_running' => $counts['github_running'],
+        'github_passed' => $counts['github_passed'],
+        'github_failed' => $counts['github_failed']
     ]);
 } catch (Exception $e) {
     http_response_code(500);

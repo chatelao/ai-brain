@@ -77,7 +77,12 @@ class Task
         $sql = "SELECT
                     COUNT(*) as total,
                     SUM(CASE WHEN github_state = 'open' THEN 1 ELSE 0 END) as open_issues,
-                    SUM(CASE WHEN github_state = 'closed' OR status = 'completed' THEN 1 ELSE 0 END) as completed_tasks
+                    SUM(CASE WHEN github_state = 'closed' OR status = 'completed' THEN 1 ELSE 0 END) as completed_tasks,
+                    SUM(CASE WHEN github_state = 'open' AND status IN ('researching', 'planning', 'in_progress', 'coding', 'testing') THEN 1 ELSE 0 END) as jules_running,
+                    SUM(CASE WHEN github_state = 'open' AND status IN ('failed', 'failed_jules') THEN 1 ELSE 0 END) as jules_failed,
+                    SUM(CASE WHEN github_state = 'open' AND status = 'implemented' THEN 1 ELSE 0 END) as github_running,
+                    SUM(CASE WHEN github_state = 'open' AND status = 'completed' THEN 1 ELSE 0 END) as github_passed,
+                    SUM(CASE WHEN github_state = 'open' AND status = 'failed_pr' THEN 1 ELSE 0 END) as github_failed
                 FROM tasks
                 WHERE user_id = ?";
 
@@ -88,7 +93,12 @@ class Task
         return [
             'total' => (int)($counts['total'] ?? 0),
             'open_issues' => (int)($counts['open_issues'] ?? 0),
-            'completed_tasks' => (int)($counts['completed_tasks'] ?? 0)
+            'completed_tasks' => (int)($counts['completed_tasks'] ?? 0),
+            'jules_running' => (int)($counts['jules_running'] ?? 0),
+            'jules_failed' => (int)($counts['jules_failed'] ?? 0),
+            'github_running' => (int)($counts['github_running'] ?? 0),
+            'github_passed' => (int)($counts['github_passed'] ?? 0),
+            'github_failed' => (int)($counts['github_failed'] ?? 0)
         ];
     }
 
