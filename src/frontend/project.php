@@ -118,52 +118,15 @@ $triggerAgent = function($taskId) use ($taskModel, $logger, $user, $project, $ju
 
 $githubToken = $project['github_token'] ?? null;
 $roadmapFiles = [];
-$webhookStatus = 'unknown';
-$webhookUrl = ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https') . '://' . $_SERVER['HTTP_HOST'] . '/webhook.php?project_id=' . $projectId;
-
 if ($githubToken) {
     try {
         $githubService = new GitHubService(null, $githubToken);
         $roadmapFiles = $githubService->getRoadmapFiles($project['github_repo']);
-
-        // Check Webhook Status
-        $webhooks = $githubService->listWebhooks($project['github_repo']);
-        $webhookStatus = 'missing';
-        foreach ($webhooks as $wh) {
-            if (isset($wh['config']['url']) && str_starts_with($wh['config']['url'], ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https') . '://' . $_SERVER['HTTP_HOST'] . '/webhook.php')) {
-                // Check if it's specifically for this project or generic
-                if ($wh['config']['url'] === $webhookUrl || $wh['config']['url'] === ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https') . '://' . $_SERVER['HTTP_HOST'] . '/webhook.php') {
-                    $webhookStatus = $wh['active'] ? 'active' : 'inactive';
-                    break;
-                }
-            }
-        }
     } catch (Exception $e) {
-        // Silently fail or log roadmap/webhook fetching
-        $webhookStatus = 'error';
+        // Silently fail or log roadmap fetching
     }
 }
 
-// Handle Setup Webhook
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['setup_webhook'])) {
-    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
-        die("CSRF token validation failed.");
-    }
-
-    try {
-        if (!$githubToken) {
-            throw new Exception("GitHub token not found for this project.");
-        }
-
-        $githubService = new GitHubService(null, $githubToken);
-        $githubService->createWebhook($project['github_repo'], $webhookUrl, $project['webhook_secret']);
-
-        header("Location: project.php?id=$projectId&success=webhook_setup");
-        exit;
-    } catch (Exception $e) {
-        $errorMessage = "Error setting up webhook: " . $e->getMessage();
-    }
-}
 
 // Handle Agent Trigger
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_agent'])) {
@@ -351,12 +314,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                         </ol>
                     </nav>
 
-                    <div class="mb-4">
+                    <div class="mb-4 flex justify-between items-center">
                         <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">
                             <a href="https://github.com/<?= htmlspecialchars($project['github_repo'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
                                 <?= htmlspecialchars($project['github_repo'] ?? '') ?>
                             </a>
                         </h1>
+                        <a href="project-settings.php?id=<?= $projectId ?>" class="text-gray-500 hover:text-gray-900 focus:outline-none" title="Project Settings">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </a>
                     </div>
 
                     <div class="mb-6">
@@ -384,6 +350,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                             <span class="font-medium">Success!</span> Quick issue created. It may take a few seconds to appear in the list (synced via webhook).
                         </div>
                     <?php endif; ?>
+
 
 
                     <?php if ($lastAgentResponse): ?>
@@ -420,50 +387,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                 <?php endif; ?>
                             </div>
 
-                            <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                                <h3 class="text-lg font-bold text-gray-900 mb-4">Webhook Configuration</h3>
-                                <div class="space-y-3">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs font-medium text-gray-500 uppercase">Status</span>
-                                        <?php if ($webhookStatus === 'active'): ?>
-                                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-green-100 text-green-800">Connected</span>
-                                        <?php elseif ($webhookStatus === 'inactive'): ?>
-                                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-yellow-100 text-yellow-800">Inactive</span>
-                                        <?php elseif ($webhookStatus === 'missing'): ?>
-                                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-red-100 text-red-800">Not Found</span>
-                                        <?php elseif ($webhookStatus === 'error'): ?>
-                                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-red-100 text-red-800">API Error</span>
-                                        <?php else: ?>
-                                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gray-100 text-gray-800">Unknown</span>
-                                        <?php endif; ?>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-500 uppercase">Payload URL</label>
-                                        <div class="mt-1 flex">
-                                            <input type="text" readonly value="<?= htmlspecialchars($webhookUrl) ?>" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-full p-2" id="webhook-url">
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-500 uppercase">Secret</label>
-                                        <div class="mt-1 flex">
-                                            <input type="text" readonly value="<?= htmlspecialchars($project['webhook_secret'] ?? '') ?>" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-full p-2" id="webhook-secret">
-                                        </div>
-                                    </div>
-
-                                    <?php if ($webhookStatus === 'missing' || $webhookStatus === 'error'): ?>
-                                        <form method="POST">
-                                            <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                            <button type="submit" name="setup_webhook" class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none">Setup Webhook Automatically</button>
-                                        </form>
-                                    <?php endif; ?>
-
-                                    <p class="text-[10px] text-gray-500">
-                                        Configure this in your GitHub Repository <b>Settings > Webhooks</b>.
-                                        Set Content type to <b>application/json</b> and select <b>Issues</b> events.
-                                    </p>
-                                </div>
-                            </div>
 
                             <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm" x-data="{
                                 templates: <?= htmlspecialchars(json_encode($templates)) ?>,
