@@ -33,7 +33,15 @@ class WebhookHandler
         }
 
         if ($action === 'deleted') {
-            return $taskModel->deleteByIssueNumber($project['project_id'], $issue['number']);
+            $result = $taskModel->deleteByIssueNumber($project['project_id'], $issue['number']);
+            if ($result && $notificationService) {
+                $notificationService->notify($project['user_id'], 'github_issue', "🗑️ Issue Deleted: #" . $issue['number'], "Issue \"" . ($issue['title'] ?? 'Unknown') . "\" was deleted in " . $project['github_repo'], [
+                    'project_id' => $project['project_id'],
+                    'issue_number' => $issue['number'],
+                    'source_url' => $issue['html_url'] ?? ''
+                ]);
+            }
+            return $result;
         }
 
         if (!in_array($action, ['opened', 'reopened', 'edited', 'closed', 'labeled', 'unlabeled'])) {
