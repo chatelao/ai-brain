@@ -4,5 +4,6 @@
 .phpunit.cache/
 .env
 *.log
+*.sqlite
 /test/screenshots/
 /docs/_build/

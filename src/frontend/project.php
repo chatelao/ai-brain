@@ -483,8 +483,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                     ?>
                                                     <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
                                                         <?php
-                                                        $githubData = json_decode($task['github_data'] ?? '{}', true);
-                                                        if (($githubData['state'] ?? 'open') === 'closed') echo '✅ ';
+                                                        if (($task['github_state'] ?? 'open') === 'closed') echo '✅ ';
                                                         elseif ($task['status'] === 'completed') echo '✅ ';
                                                         elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') echo '❌ Jules ';
                                                         elseif ($task['status'] === 'failed_pr') echo '❌ PR ';
@@ -497,8 +496,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                 <td class="px-6 py-4">
                                                     <div class="flex flex-col space-y-2">
                                                         <?php
-                                                        $githubData = json_decode($task['github_data'] ?? '{}', true);
-                                                        $isClosed = ($githubData['state'] ?? 'open') === 'closed';
+                                                        $isClosed = ($task['github_state'] ?? 'open') === 'closed';
                                                         $isCompleted = ($task['status'] ?? '') === 'completed';
                                                         $isImplemented = ($task['status'] ?? '') === 'implemented';
                                                         ?>

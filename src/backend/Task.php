@@ -251,8 +251,7 @@ class Task
 
     public function getStatusColor(array $task): string
     {
-        $githubData = json_decode($task['github_data'] ?? '{}', true);
-        $state = $githubData['state'] ?? 'open';
+        $state = $task['github_state'] ?? 'open';
 
         if ($state === 'closed') {
             return 'purple';

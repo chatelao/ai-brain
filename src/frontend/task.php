@@ -55,9 +55,14 @@ if (in_array($julesStatus, ['coding', 'testing', 'researching', 'planning', 'in-
 
 $prStatus = !empty($task['pr_url']) ? 'Open' : 'None';
 $prColor = !empty($task['pr_url']) ? 'green' : 'gray';
-if ($task['status'] === 'failed_pr') {
+if ($task['github_state'] === 'closed' && !empty($task['pr_url'])) {
+    $prStatus = 'Closed';
+    $prColor = 'purple';
+} elseif ($task['status'] === 'failed_pr') {
     $prStatus = 'Failed';
     $prColor = 'red';
+} elseif ($task['status'] === 'completed' && !empty($task['pr_url'])) {
+    $prStatus = 'Passed';
 }
 
 ?>
@@ -215,7 +220,7 @@ if ($task['status'] === 'failed_pr') {
                                     </li>
                                     <?php if (!empty($task['pr_url'])): ?>
                                         <li>
-                                            <a href="<?= htmlspecialchars($task['pr_url'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="flex items-center text-green-600 hover:underline font-bold">
+                                            <a href="<?= htmlspecialchars($task['pr_url'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="flex items-center text-<?= $prColor ?>-600 hover:underline font-bold">
                                                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M11 19.25c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 14.5c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM11 9.75c0 .414-.336.75-.75.75H8.5a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 19.25c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 14.5c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM16 9.75c0 .414-.336.75-.75.75h-1.75a.75.75 0 0 1-.75-.75v-1.5c0-.414.336-.75.75-.75h1.75c.414 0 .75.336.75.75v1.5zM20.5 2h-17C2.673 2 2 2.673 2 3.5v17c0 .827.673 1.5 1.5 1.5h17c.827 0 1.5-.673 1.5-1.5v-17C22 2.673 21.327 2 20.5 2zM20 18H4V4h16v14z"/></svg>
                                                 View Pull Request
                                             </a>
