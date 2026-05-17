@@ -6,16 +6,37 @@ use PHPUnit\Framework\TestCase;
 use App\TelegramChannelHandler;
 use App\User;
 use App\TelegramService;
+use App\Database;
+use App\Logger;
+use Tests\TestDatabaseTrait;
+use PDO;
 
 class TelegramChannelHandlerTest extends TestCase
 {
+    use TestDatabaseTrait;
+
     private $userModel;
     private $telegramService;
     private $handler;
+    private $pdo;
+    private $db;
 
     protected function setUp(): void
     {
+        $this->pdo = $this->getTestPdo();
+        $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = $driver === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS task_logs (task_log_id $pk, user_id INTEGER, task_id INTEGER, message TEXT, level TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+
+        $this->db = $this->createMock(Database::class);
+        $this->db->method('getConnection')->willReturn($this->pdo);
+
         $this->userModel = $this->createMock(User::class);
+        $this->userModel->method('getDb')->willReturn($this->db);
+
+        // Reset and initialize Logger for testing
+        new Logger($this->db);
+
         $this->telegramService = $this->createMock(TelegramService::class);
         $this->handler = new TelegramChannelHandler($this->userModel, $this->telegramService);
     }
