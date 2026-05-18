@@ -22,6 +22,25 @@ class GitHubService
     /**
      * @throws Exception
      */
+    public function addLabel(string $repo, int $issueNumber, string $label): void
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        $this->apiCall(
+            'GitHub API',
+            "POST label $repo/issues/$issueNumber",
+            fn() => $this->client->api('issue')->labels()->add($username, $repository, $issueNumber, $label)
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
     public function mergePullRequest(string $repo, int $prNumber, string $message = '', string $mergeMethod = 'merge'): array
     {
         $parts = explode('/', $repo);

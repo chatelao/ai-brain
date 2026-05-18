@@ -21,10 +21,11 @@ class TelegramCallbackTest extends TestCase
         $this->userModel = $this->createMock(User::class);
         $this->telegramService = $this->createMock(TelegramService::class);
         $this->db = $this->createMock(Database::class);
+        $githubService = $this->createMock(\App\GitHubService::class);
 
         $this->userModel->method('getDb')->willReturn($this->db);
 
-        $this->handler = new TelegramWebhookHandler($this->userModel, $this->telegramService, 'secret');
+        $this->handler = new TelegramWebhookHandler($this->userModel, $this->telegramService, $githubService, 'secret');
     }
 
     public function testHandleCallbackUnauthorized()

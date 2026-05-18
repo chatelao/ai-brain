@@ -9,6 +9,7 @@ class TelegramWebhookHandler
     public function __construct(
         private User $userModel,
         private TelegramService $telegramService,
+        private GitHubService $githubService,
         private ?string $webhookSecret
     ) {
     }
@@ -105,9 +106,52 @@ class TelegramWebhookHandler
             'text' => "Processing " . ucfirst($action) . "..."
         ]);
 
-        // Note: Actual execution via GHS or JS will be implemented in Phase 3 & 4.
-        // For now, we just acknowledge that the infrastructure is ready.
-        $this->telegramService->sendMessage($chatId, "Infrastructure for <b>$action</b> is ready. Actual execution will be implemented soon.");
+        try {
+            $projectModel = new Project($this->userModel->getDb());
+            $project = $projectModel->findById($task['project_id']);
+            if (!$project || !$project['github_token']) {
+                throw new \Exception("Project or GitHub token not found.");
+            }
+
+            $ghs = $this->githubService;
+            $repo = $project['github_repo'];
+            $issueNumber = (int)$task['issue_number'];
+
+            $messageId = $callbackQuery['message']['message_id'] ?? null;
+            $originalText = $callbackQuery['message']['text'] ?? '';
+
+            if ($action === 'merge') {
+                $prNumber = $ghs->extractPrNumber($task['pr_url'] ?? '');
+                if (!$prNumber) {
+                    throw new \Exception("No pull request associated with this task.");
+                }
+
+                $ghs->mergePullRequest($repo, $prNumber, "Merged via Telegram: " . $task['title']);
+                $ghs->closeIssue($repo, $issueNumber);
+
+                $statusText = "✅ PR #$prNumber merged and Issue #$issueNumber closed.";
+            } elseif ($action === 'restart') {
+                $ghs->removeLabel($repo, $issueNumber, 'Jules');
+                $ghs->addLabel($repo, $issueNumber, 'Jules');
+
+                $statusText = "🔄 Jules session restarted for Issue #$issueNumber.";
+            } elseif ($action === 'retry') {
+                $ghs->postComment($repo, $issueNumber, "retry");
+
+                $statusText = "🚀 Retry signal sent to Issue #$issueNumber.";
+            } else {
+                $statusText = "Infrastructure for <b>$action</b> is ready. Actual execution will be implemented soon.";
+            }
+
+            if ($messageId) {
+                $this->telegramService->editMessageText($chatId, $messageId, $originalText . "\n\n" . $statusText);
+            } else {
+                $this->telegramService->sendMessage($chatId, $statusText);
+            }
+
+        } catch (\Exception $e) {
+            $this->telegramService->sendMessage($chatId, "❌ Error: " . $e->getMessage());
+        }
 
         return true;
     }
