@@ -1,13 +1,13 @@
 @startuml
 title Task State-Event Diagram
 
-state "GitHub Issue" as GitHubIssue {
+state "GitHub Issue (GH.Issue)" as GitHubIssue {
     [*] --> Open
     Open --> Closed : Issue closed (Webhook)
     Closed --> Open : Issue reopened (Webhook)
 }
 
-state "Jules Session" as JulesSession {
+state "Jules Session (Jules.Session)" as JulesSession {
     [*] --> Created : triggerAgent()
     Created --> researching : STATE_RESEARCHING
     researching --> planning : STATE_PLANNING
@@ -23,80 +23,50 @@ state "Jules Session" as JulesSession {
     testing --> failed
 }
 
-state "Task Status (Internal)" as TaskStatus {
-    [*] --> pending
-    pending --> analyzed : triggerAgent() (project.php)
-
-    analyzed --> researching : refreshJulesStatus (polling)
-    researching --> planning : refreshJulesStatus (polling)
-    planning --> awaiting_plan_approval : External/Manual update
-    awaiting_plan_approval --> planning : External/Manual update
-    planning --> in_progress : refreshJulesStatus (polling)
-    in_progress --> coding : refreshJulesStatus (polling)
-    coding --> testing : refreshJulesStatus (polling)
-
-    testing --> implemented : Jules finished & no PR URL
-    testing --> completed : Jules finished & PR URL exists
-    implemented --> completed : PR URL detected (sync)
-
-    researching --> failed_jules : Jules failed/error
-    planning --> failed_jules
-    in_progress --> failed_jules
-    coding --> failed_jules
-    testing --> failed_jules
-
-    completed --> failed_pr : check_suite failure (Webhook)
-    failed_pr --> completed : check_suite success (Webhook)
-}
-
-state "Pull Request" as PR {
+state "GitHub Pull Request (GH.PR)" as PR {
     [*] --> None
-    None --> Open : PR created (polling/Webhook)
-    Open --> Merged : PR merged (Webhook)
-    Open --> ClosedPR : PR closed (Webhook)
+    None --> OpenPR : PR created (polling/Webhook)
+    OpenPR --> Merged : PR merged (Webhook)
+    OpenPR --> ClosedPR : PR closed (Webhook)
+    OpenPR --> ChecksFailed : Checks failed (Webhook)
 }
 
-Open -[dashed]-> pending : Sync / Webhook
-TaskStatus -[dashed]-> GitHubIssue : Status influences UI badges
-JulesSession -[dashed]-> TaskStatus : Jules status maps to Task status
-PR -[dashed]-> TaskStatus : PR presence/checks affect status
-
-state "Unified Task State (Conceptual)" as Unified {
+state "Unified Task State" as Unified {
     [*] --> QUEUED
-    QUEUED --> ANALYZING
-    ANALYZING --> PLANNING
-    PLANNING --> EXECUTING
-    EXECUTING --> VERIFYING
-    VERIFYING --> FINISHED
+    QUEUED --> ANALYZING : Jules starts researching
+    ANALYZING --> PLANNING : Jules starts planning
+    PLANNING --> EXECUTING : Jules starts coding
+    EXECUTING --> VERIFYING : Jules starts testing / PR created
+    VERIFYING --> FINISHED : Issue closed / PR merged
 
-    QUEUED --> FAILED
-    ANALYZING --> FAILED
-    PLANNING --> FAILED
-    EXECUTING --> FAILED
-    VERIFYING --> FAILED
+    QUEUED --> FAILED : Jules error
+    ANALYZING --> FAILED : Jules error
+    PLANNING --> FAILED : Jules error
+    EXECUTING --> FAILED : Jules error
+    VERIFYING --> FAILED : Jules error / PR checks fail
 
     state QUEUED #lightgrey
     state ANALYZING #lightblue
-    state PLANNING #lightgreen
+    state PLANNING #lightblue
     state EXECUTING #yellow
     state VERIFYING #orange
     state FINISHED #green
     state FAILED #red
 }
 
-TaskStatus -[dashed]-> Unified : mapped to
-JulesSession -[dashed]-> Unified : mapped to
-GitHubIssue -[dashed]-> Unified : mapped to
+GitHubIssue -[dashed]-> Unified : influences
+JulesSession -[dashed]-> Unified : maps to
+PR -[dashed]-> Unified : influences
 
 legend bottom
-| **Unified State** | **Mapping Logic (Tool-Dependent States)** |
-| QUEUED | Task:pending |
-| ANALYZING | Task:analyzed OR Task:researching OR Jules:researching |
-| PLANNING | Task:planning OR Task:awaiting_plan_approval OR Jules:planning |
-| EXECUTING | Task:in_progress OR Task:coding OR Jules:in-progress OR Jules:coding |
-| VERIFYING | Task:testing OR Task:implemented OR Jules:testing |
-| FINISHED | Task:completed OR GitHub:closed |
-| FAILED | Task:failed OR Task:failed_jules OR Task:failed_pr OR Jules:failed OR Jules:error |
+| **Unified State** | **Mapping Logic (Source States)** |
+| QUEUED | GH.Issue:open AND Jules.Session:none |
+| ANALYZING | Jules.Session:researching |
+| PLANNING | Jules.Session:planning OR Jules.Session:awaiting_plan_approval |
+| EXECUTING | Jules.Session:in-progress OR Jules.Session:coding |
+| VERIFYING | Jules.Session:testing OR (Jules.Session:finished AND GH.PR:open) |
+| FINISHED | GH.Issue:closed |
+| FAILED | Jules.Session:failed OR Jules.Session:error OR GH.PR:checks_failed |
 end legend
 
 @enduml
