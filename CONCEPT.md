@@ -32,8 +32,11 @@ The Telegram integration provides a mobile-first interface for users to monitor 
 
 ## Sub-Concepts
 For detailed information on specific functional areas, refer to the following sub-concept documents:
-- [**Automation Concept**](AUTOMATION_CONCEPT.md): Operations for PRs, Jules sessions, and issue lifecycle automation.
-- [**Telegram Chat Control Concept**](CHAT_CONCEPT.md): Mobile interaction strategy and interactive bot capabilities.
-- [**Logging & Monitoring Concept**](CONCEPT_LOGGING.md): Strategy for performance tracking and system auditability.
-- [**State & Event Concept**](CONCEPT_ONEVENT_ONSTATE.md): Detailed state transitions and reactive system behaviors.
-- [**Notification System Concept**](NOTIF_CONCEPT.md): Multi-channel delivery and user preference management.
+
+| Concept | File | Description |
+| :--- | :--- | :--- |
+| **Automation** | [`AUTOMATION_CONCEPT.md`](AUTOMATION_CONCEPT.md) | Operations for PRs, Jules sessions, and issue lifecycle automation. |
+| **Telegram Chat Control** | [`CHAT_CONCEPT.md`](CHAT_CONCEPT.md) | Mobile interaction strategy and interactive bot capabilities. |
+| **Logging & Monitoring** | [`CONCEPT_LOGGING.md`](CONCEPT_LOGGING.md) | Strategy for performance tracking and system auditability. |
+| **State & Event** | [`CONCEPT_ONEVENT_ONSTATE.md`](CONCEPT_ONEVENT_ONSTATE.md) | Detailed state transitions and reactive system behaviors. |
+| **Notification System** | [`NOTIF_CONCEPT.md`](NOTIF_CONCEPT.md) | Multi-channel delivery and user preference management. |

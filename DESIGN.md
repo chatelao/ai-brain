@@ -130,5 +130,8 @@ WHLog --> MySQL
 
 ## Sub-Designs
 Detailed architectural and technical designs for specific features can be found in the following documents:
-- [**Telegram Chat Control Design**](CHAT_DESIGN.md): Callback handling, inline keyboards, and mobile interaction logic.
-- [**Notification System Design**](NOTIF_DESIGN.md): Service architecture, delivery channel implementations, and database schema.
+
+| Design | File | Description |
+| :--- | :--- | :--- |
+| **Telegram Chat Control** | [`CHAT_DESIGN.md`](CHAT_DESIGN.md) | Callback handling, inline keyboards, and mobile interaction logic. |
+| **Notification System** | [`NOTIF_DESIGN.md`](NOTIF_DESIGN.md) | Service architecture, delivery channel implementations, and database schema. |
