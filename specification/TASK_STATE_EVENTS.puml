@@ -1,102 +1,69 @@
 @startuml
-title Task State-Event Diagram
+title Task State derivation from External Peers
 
-state "GitHub Issue" as GitHubIssue {
-    [*] --> Open
-    Open --> Closed : Issue closed (Webhook)
-    Closed --> Open : Issue reopened (Webhook)
+package "External Peers" {
+    state "GH.Issue" as GHI {
+        [*] --> Open
+        Open --> Closed
+    }
+
+    state "Jules.Session" as Jules {
+        [*] --> None
+        None --> researching
+        researching --> planning
+        planning --> coding
+        coding --> testing
+        testing --> finished
+
+        researching --> failed
+        planning --> failed
+        coding --> failed
+        testing --> failed
+    }
+
+    state "GH.PullRequest" as PR {
+        [*] --> NoPR
+        NoPR --> OpenPR
+        OpenPR --> Merged
+    }
+
+    state "GH.PR.Checks" as Checks {
+        [*] --> Pending
+        Pending --> success
+        Pending --> failure
+    }
 }
 
-state "Jules Session" as JulesSession {
-    [*] --> Created : triggerAgent()
-    Created --> researching : STATE_RESEARCHING
-    researching --> planning : STATE_PLANNING
-    planning --> in_progress : STATE_IN_PROGRESS
-    in_progress --> coding : STATE_CODING
-    coding --> testing : STATE_TESTING
-    testing --> finished : STATE_FINISHED / STATE_COMPLETED
+state "Unified Task State" as Unified {
+    state CREATED #lightgrey
 
-    researching --> failed : STATE_FAILED / STATE_ERROR
-    planning --> failed
-    in_progress --> failed
-    coding --> failed
-    testing --> failed
-}
+    state PROCESSING #lightblue {
+        state QUEUED
+        state ANALYZING
+        state PLANNING
+        state EXECUTING #yellow
+        state VERIFYING #orange
+    }
 
-state "Task Status (Internal)" as TaskStatus {
-    [*] --> pending
-    pending --> analyzed : triggerAgent() (project.php)
+    state READY #lightgreen
 
-    analyzed --> researching : refreshJulesStatus (polling)
-    researching --> planning : refreshJulesStatus (polling)
-    planning --> awaiting_plan_approval : External/Manual update
-    awaiting_plan_approval --> planning : External/Manual update
-    planning --> in_progress : refreshJulesStatus (polling)
-    in_progress --> coding : refreshJulesStatus (polling)
-    coding --> testing : refreshJulesStatus (polling)
-
-    testing --> implemented : Jules finished & no PR URL
-    testing --> completed : Jules finished & PR URL exists
-    implemented --> completed : PR URL detected (sync)
-
-    researching --> failed_jules : Jules failed/error
-    planning --> failed_jules
-    in_progress --> failed_jules
-    coding --> failed_jules
-    testing --> failed_jules
-
-    completed --> failed_pr : check_suite failure (Webhook)
-    failed_pr --> completed : check_suite success (Webhook)
-}
-
-state "Pull Request" as PR {
-    [*] --> None
-    None --> Open : PR created (polling/Webhook)
-    Open --> Merged : PR merged (Webhook)
-    Open --> ClosedPR : PR closed (Webhook)
-}
-
-Open -[dashed]-> pending : Sync / Webhook
-TaskStatus -[dashed]-> GitHubIssue : Status influences UI badges
-JulesSession -[dashed]-> TaskStatus : Jules status maps to Task status
-PR -[dashed]-> TaskStatus : PR presence/checks affect status
-
-state "Unified Task State (Conceptual)" as Unified {
-    [*] --> QUEUED
-    QUEUED --> ANALYZING
-    ANALYZING --> PLANNING
-    PLANNING --> EXECUTING
-    EXECUTING --> VERIFYING
-    VERIFYING --> FINISHED
-
-    QUEUED --> FAILED
-    ANALYZING --> FAILED
-    PLANNING --> FAILED
-    EXECUTING --> FAILED
-    VERIFYING --> FAILED
-
-    state QUEUED #lightgrey
-    state ANALYZING #lightblue
-    state PLANNING #lightgreen
-    state EXECUTING #yellow
-    state VERIFYING #orange
     state FINISHED #green
-    state FAILED #red
+
+    state FAILED #red {
+        state JULES_FAILED
+        state PR_FAILED
+    }
 }
 
-TaskStatus -[dashed]-> Unified : mapped to
-JulesSession -[dashed]-> Unified : mapped to
-GitHubIssue -[dashed]-> Unified : mapped to
+GHI -[dashed]-> Unified : "influence"
+Jules -[dashed]-> Unified : "influence"
+PR -[dashed]-> Unified : "influence"
+Checks -[dashed]-> Unified : "influence"
 
-legend bottom
-| **Unified State** | **Mapping Logic (Tool-Dependent States)** |
-| QUEUED | Task:pending |
-| ANALYZING | Task:analyzed OR Task:researching OR Jules:researching |
-| PLANNING | Task:planning OR Task:awaiting_plan_approval OR Jules:planning |
-| EXECUTING | Task:in_progress OR Task:coding OR Jules:in-progress OR Jules:coding |
-| VERIFYING | Task:testing OR Task:implemented OR Jules:testing |
-| FINISHED | Task:completed OR GitHub:closed |
-| FAILED | Task:failed OR Task:failed_jules OR Task:failed_pr OR Jules:failed OR Jules:error |
-end legend
+note bottom of Unified
+  State is derived from the collection of External Peers.
+  - READY if PR:Open AND Checks:success
+  - FINISHED if GHI:Closed OR PR:Merged
+end note
 
 @enduml

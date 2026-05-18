@@ -25,7 +25,8 @@ class WebhookHandlerTest extends TestCase
             issue_number INT NOT NULL,
             title VARCHAR(255) NOT NULL,
             body TEXT,
-            status TEXT DEFAULT 'pending',
+            status TEXT DEFAULT 'CREATED',
+            substatus TEXT,
             github_state VARCHAR(20) DEFAULT 'open',
             github_data TEXT,
             agent_response TEXT,
@@ -73,7 +74,7 @@ class WebhookHandlerTest extends TestCase
         $this->assertNotFalse($task);
         $this->assertEquals('Test Issue', $task['title']);
         $this->assertEquals('Issue description', $task['body']);
-        $this->assertEquals('pending', $task['status']);
+        $this->assertEquals('CREATED', $task['status']);
     }
 
     public function testHandleAutorepeat()

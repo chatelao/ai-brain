@@ -50,7 +50,7 @@ class NotificationService
         // 6. Check if broadcast is enabled for this status (if it's a task_status event)
         $shouldBroadcast = true;
         if ($type === 'task_status' && isset($data['project_id']) && isset($data['status'])) {
-            $shouldBroadcast = $this->isStatusBroadcastEnabled((int)$data['project_id'], $data['status']);
+            $shouldBroadcast = $this->isStatusBroadcastEnabled((int)$data['project_id'], $data['status'], $data['substatus'] ?? null);
         }
 
         if (!$shouldBroadcast) {
@@ -237,7 +237,7 @@ class NotificationService
         }
 
         // Default settings if not present
-        $statuses = ['researching', 'planning', 'coding', 'testing', 'in_progress', 'implemented', 'completed', 'failed_jules', 'failed_pr'];
+        $statuses = ['CREATED', 'PROCESSING', 'FINISHED', 'FAILED', 'QUEUED', 'ANALYZING', 'PLANNING', 'EXECUTING', 'VERIFYING', 'JULES_FAILED', 'PR_FAILED'];
         foreach ($statuses as $status) {
             if (!isset($settings[$status])) {
                 $settings[$status] = true;
@@ -296,11 +296,13 @@ class NotificationService
         return $settings[$type] ?? true;
     }
 
-    private function isStatusBroadcastEnabled(int $projectId, string $status): bool
+    private function isStatusBroadcastEnabled(int $projectId, string $status, ?string $substatus = null): bool
     {
-        $normalizedStatus = str_replace('-', '_', $status);
         $settings = $this->getStatusSettings($projectId);
-        return $settings[$normalizedStatus] ?? true;
+        if ($substatus !== null && isset($settings[$substatus])) {
+            return $settings[$substatus];
+        }
+        return $settings[$status] ?? true;
     }
 
     private function persistNotification(int $userId, string $type, string $title, string $message, array $data): int

@@ -142,21 +142,20 @@ $title = $filterLabels[$filter] ?? 'Tasks';
                                                 ?>
                                                 <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
                                                     <?php
-                                                    if (($task['github_state'] ?? 'open') === 'closed') {
+                                                    if (($task['github_state'] ?? 'open') === 'closed' || $task['status'] === 'FINISHED') {
                                                         echo '✅ ';
-                                                    } elseif ($task['status'] === 'completed') {
-                                                        echo '✅ ';
-                                                    } elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') {
-                                                        echo '❌ Jules ';
-                                                    } elseif ($task['status'] === 'failed_pr') {
-                                                        echo '❌ PR ';
-                                                    } elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) {
+                                                    } elseif ($task['status'] === 'FAILED') {
+                                                        echo '❌ ';
+                                                    } elseif ($task['status'] === 'PROCESSING') {
                                                         echo '🚧 ';
                                                     } else {
                                                         echo '⏳ ';
                                                     }
                                                     ?>
-                                                    <?= htmlspecialchars(str_replace(['failed_jules', 'failed_pr'], 'failed', $task['status'] ?? '')) ?>
+                                                    <?= htmlspecialchars($task['status'] ?? 'CREATED') ?>
+                                                    <?php if (!empty($task['substatus'])) : ?>
+                                                        <span class="opacity-75">(<?= htmlspecialchars($task['substatus']) ?>)</span>
+                                                    <?php endif; ?>
                                                 </span>
                                             </td>
                                         </tr>

@@ -69,15 +69,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notifications'
     ];
 
     $statusSettings = [
-        'researching' => isset($_POST['broadcast_researching']),
-        'planning' => isset($_POST['broadcast_planning']),
-        'coding' => isset($_POST['broadcast_coding']),
-        'testing' => isset($_POST['broadcast_testing']),
-        'in_progress' => isset($_POST['broadcast_in_progress']),
-        'implemented' => isset($_POST['broadcast_implemented']),
-        'completed' => isset($_POST['broadcast_completed']),
-        'failed_jules' => isset($_POST['broadcast_failed_jules']),
-        'failed_pr' => isset($_POST['broadcast_failed_pr'])
+        'QUEUED' => isset($_POST['broadcast_QUEUED']),
+        'ANALYZING' => isset($_POST['broadcast_ANALYZING']),
+        'PLANNING' => isset($_POST['broadcast_PLANNING']),
+        'EXECUTING' => isset($_POST['broadcast_EXECUTING']),
+        'VERIFYING' => isset($_POST['broadcast_VERIFYING']),
+        'FINISHED' => isset($_POST['broadcast_FINISHED']),
+        'FAILED' => isset($_POST['broadcast_FAILED'])
     ];
 
     if (
@@ -328,15 +326,13 @@ if (isset($_GET['success'])) {
                                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                         <?php
                                         $statuses = [
-                                            'researching' => 'Researching',
-                                            'planning' => 'Planning',
-                                            'coding' => 'Coding',
-                                            'testing' => 'Testing',
-                                            'in_progress' => 'In Progress',
-                                            'implemented' => 'Implemented',
-                                            'completed' => 'Completed',
-                                            'failed_jules' => 'Jules Failed',
-                                            'failed_pr' => 'PR Failed'
+                                            'QUEUED' => 'Queued',
+                                            'ANALYZING' => 'Analyzing',
+                                            'PLANNING' => 'Planning',
+                                            'EXECUTING' => 'Executing',
+                                            'VERIFYING' => 'Verifying',
+                                            'FINISHED' => 'Finished',
+                                            'FAILED' => 'Failed'
                                         ];
                                         foreach ($statuses as $id => $label) :
                                             ?>

@@ -191,7 +191,19 @@ projects ||--o{ tasks : "project_id"
 projects ||--o{ notifications : "project_id"
 projects ||--o{ project_notification_settings : "project_id"
 projects ||--o{ project_status_notification_settings : "project_id"
+entity "task_external_peers" {
+  * <color:grey><i>peer_id</i></color> : INT <<PK>>
+  --
+  * <color:grey><i>task_id</i></color> : INT <<FK>>
+  * <color:grey>source</color> : VARCHAR(50)
+  * id : VARCHAR(255)
+  state : VARCHAR(50)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
 tasks ||--o{ task_logs : "task_id"
 tasks ||--o| task_notification_settings : "task_id"
+tasks ||--o{ task_external_peers : "task_id"
 
 @enduml

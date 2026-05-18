@@ -85,7 +85,8 @@ class NotificationTriggerTest extends TestCase
             issue_number INT,
             title VARCHAR(255),
             body TEXT,
-            status VARCHAR(50) DEFAULT 'pending',
+            status VARCHAR(50) DEFAULT 'CREATED',
+            substatus VARCHAR(50),
             github_state VARCHAR(20) DEFAULT 'open',
             github_data TEXT,
             jules_session_id VARCHAR(255),
@@ -193,8 +194,8 @@ class NotificationTriggerTest extends TestCase
     public function testRefreshJulesStatusTriggersNotificationOnStatusChange()
     {
         $userId = 1;
-        $this->pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, jules_session_id, jules_status, github_data)
-                          VALUES (1, 1, 303, 'Task 303', 'researching', 'sess-123', 'researching', '{\"assignee\":{\"login\":\"jules\"}}')");
+        $this->pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, substatus, jules_session_id, jules_status, github_data)
+                          VALUES (1, 1, 303, 'Task 303', 'PROCESSING', 'ANALYZING', 'sess-123', 'researching', '{\"assignee\":{\"login\":\"jules\"}}')");
         $taskId = $this->pdo->lastInsertId();
 
         $githubService = $this->createMock(GitHubService::class);
@@ -212,7 +213,7 @@ class NotificationTriggerTest extends TestCase
 
         $this->assertNotFalse($notification);
         $this->assertStringContainsString('Task Update: #303', $notification['title']);
-        $this->assertStringContainsString('status changed to coding', $notification['message']);
+        $this->assertStringContainsString('status changed to PROCESSING (EXECUTING)', $notification['message']);
     }
 
     public function testNotificationDispatchesToTelegram()
@@ -267,10 +268,8 @@ class NotificationTriggerTest extends TestCase
     {
         $userId = 1;
         $projectId = 1;
-        // Disable 'coding' status broadcast
-        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, 'coding', 0)");
-        // Disable 'in_progress' status broadcast
-        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, 'in_progress', 0)");
+        // Disable 'EXECUTING' status broadcast
+        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, 'EXECUTING', 0)");
 
         // Enable a mock channel AND in_app
         $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'mock_channel', 1)");
@@ -281,8 +280,8 @@ class NotificationTriggerTest extends TestCase
         // Broadcast SHOULD NOT happen
         $mockChannel->expects($this->never())->method('send');
 
-        $this->pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, jules_session_id, jules_status, github_data)
-                          VALUES (1, 1, 505, 'Task 505', 'researching', 'sess-456', 'researching', '{\"assignee\":{\"login\":\"jules\"}}')");
+        $this->pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, substatus, jules_session_id, jules_status, github_data)
+                          VALUES (1, 1, 505, 'Task 505', 'PROCESSING', 'ANALYZING', 'sess-456', 'researching', '{\"assignee\":{\"login\":\"jules\"}}')");
         $taskId = $this->pdo->lastInsertId();
 
         $githubService = $this->createMock(GitHubService::class);
@@ -305,21 +304,21 @@ class NotificationTriggerTest extends TestCase
         $userId = 1;
         $projectId = 1;
 
-        // Disable 'in_progress' status broadcast
-        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, 'in_progress', 0)");
+        // Disable 'PROCESSING' status broadcast
+        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, 'PROCESSING', 0)");
 
         // Enable a mock channel
         $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'mock_channel', 1)");
         $mockChannel = $this->createMock(NotificationChannelInterface::class);
         $this->notificationService->registerChannel('mock_channel', $mockChannel);
 
-        // EXPECTATION: Broadcast SHOULD NOT happen because 'in-progress' is normalized to 'in_progress'
+        // EXPECTATION: Broadcast SHOULD NOT happen because 'PROCESSING' is disabled
         $mockChannel->expects($this->never())->method('send');
 
-        // Trigger notification with status 'in-progress' (with hyphen)
+        // Trigger notification with status 'PROCESSING'
         $this->notificationService->notify($userId, 'task_status', 'Title', 'Message', [
             'project_id' => $projectId,
-            'status' => 'in-progress'
+            'status' => 'PROCESSING'
         ]);
     }
 }

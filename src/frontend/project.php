@@ -67,27 +67,12 @@ $triggerAgent = function ($taskId) use ($taskModel, $logger, $user, $project, $j
                 $githubService = new GitHubService(null, $githubToken);
             }
 
-            // Update status to in_progress
-            $taskModel->updateStatus($taskId, 'in_progress');
-            $logger->log($user['user_id'], $taskId, "Task status updated to in_progress");
+            $logger->log($user['user_id'], $taskId, "Calling Jules API via triggerAgent...");
+            $taskModel->triggerAgent($taskId, $julesService, $notificationService);
 
-            if ($githubService) {
-                $githubService->postComment($project['github_repo'], $task['issue_number'], "🤖 Agent has started processing this issue...");
-                $logger->log($user['user_id'], $taskId, "Posted 'started' comment to GitHub");
-            }
-
-            $notificationService->notify($user['user_id'], 'agent_event', "🤖 Agent Started: #" . $task['issue_number'], "Agent started processing \"" . $task['title'] . "\" in " . $project['github_repo'], [
-                'task_id' => $taskId,
-                'project_id' => $project['project_id'],
-                'source_url' => $taskModel->getTargetUrl($task)
-            ]);
-
-            $logger->log($user['user_id'], $taskId, "Calling Jules API...");
-            $lastAgentResponse = $julesService->triggerAgent($task);
-            $logger->log($user['user_id'], $taskId, "Received response from Jules API");
-
-            $taskModel->updateAgentResponse($taskId, $lastAgentResponse, 'analyzed');
-            $logger->log($user['user_id'], $taskId, "Task agent response updated and status set to analyzed");
+            // Refresh task to get new status/response
+            $task = $taskModel->findById($taskId);
+            $lastAgentResponse = $task['agent_response'] ?? '';
 
             if ($githubService) {
                 $githubService->postComment($project['github_repo'], $task['issue_number'], "✅ Agent has completed the analysis:\n\n" . $lastAgentResponse);
@@ -105,7 +90,7 @@ $triggerAgent = function ($taskId) use ($taskModel, $logger, $user, $project, $j
         } catch (\Exception $e) {
             $errorMessage = "Error triggering agent: " . $e->getMessage();
             $logger->log($user['user_id'], $taskId, "Error: " . $e->getMessage(), "error");
-            $taskModel->updateStatus($taskId, 'failed_jules');
+            $taskModel->updateStatus($taskId, 'FAILED');
             if (isset($githubService) && $githubService) {
                 try {
                     $githubService->postComment($project['github_repo'], $task['issue_number'], "❌ Agent failed to process this issue: " . $e->getMessage());
@@ -511,38 +496,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                     ?>
                                                     <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
                                                         <?php
-                                                        if (($task['github_state'] ?? 'open') === 'closed') {
+                                                        if (($task['github_state'] ?? 'open') === 'closed' || $task['status'] === 'FINISHED') {
                                                             echo '✅ ';
-                                                        } elseif ($task['status'] === 'completed') {
-                                                            echo '✅ ';
-                                                        } elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') {
-                                                            echo '❌ Jules ';
-                                                        } elseif ($task['status'] === 'failed_pr') {
-                                                            echo '❌ PR ';
-                                                        } elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) {
+                                                        } elseif ($task['status'] === 'FAILED') {
+                                                            echo '❌ ';
+                                                        } elseif ($task['status'] === 'PROCESSING') {
                                                             echo '🚧 ';
                                                         } else {
                                                             echo '⏳ ';
                                                         }
                                                         ?>
-                                                        <?= htmlspecialchars(str_replace(['failed_jules', 'failed_pr'], 'failed', $task['status'] ?? '')) ?>
+                                                        <?= strtoupper(htmlspecialchars($task['status'] ?? 'CREATED')) ?>
+                                                        <?php if (!empty($task['substatus'])) : ?>
+                                                            <span class="opacity-75">(<?= strtolower(htmlspecialchars($task['substatus'])) ?>)</span>
+                                                        <?php endif; ?>
                                                     </span>
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <div class="flex flex-col space-y-2">
                                                         <?php
                                                         $isClosed = ($task['github_state'] ?? 'open') === 'closed';
-                                                        $isCompleted = ($task['status'] ?? '') === 'completed';
-                                                        $isImplemented = ($task['status'] ?? '') === 'implemented';
+                                                        $isFinished = ($task['status'] ?? '') === 'FINISHED';
                                                         ?>
-                                                        <?php if (!$isClosed && !$isCompleted && !$isImplemented) : ?>
+                                                        <?php if (!$isClosed && !$isFinished) : ?>
                                                             <form method="POST" class="inline">
                                                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                                                 <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
                                                                 <button type="submit" name="trigger_agent" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Run Agent</button>
                                                             </form>
                                                         <?php endif; ?>
-                                                        <?php if ($isCompleted || $isImplemented) : ?>
+                                                        <?php if ($isFinished) : ?>
                                                             <form method="POST" class="inline">
                                                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                                                 <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">

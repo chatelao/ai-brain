@@ -155,7 +155,7 @@ if (in_array($julesStatus, ['coding', 'testing', 'researching', 'planning', 'in-
     $julesColor = 'yellow';
 } elseif (in_array($julesStatus, ['completed', 'finished'])) {
     $julesColor = 'green';
-} elseif (in_array($julesStatus, ['failed', 'error']) || $task['status'] === 'failed_jules') {
+} elseif (in_array($julesStatus, ['failed', 'error']) || $task['status'] === 'FAILED') {
     $julesColor = 'red';
 }
 
@@ -164,10 +164,10 @@ $prColor = !empty($task['pr_url']) ? 'green' : 'gray';
 if ($task['github_state'] === 'closed' && !empty($task['pr_url'])) {
     $prStatus = 'Closed';
     $prColor = 'purple';
-} elseif ($task['status'] === 'failed_pr') {
+} elseif ($task['status'] === 'FAILED' && !empty($task['pr_url'])) {
     $prStatus = 'Failed';
     $prColor = 'red';
-} elseif ($task['status'] === 'completed' && !empty($task['pr_url'])) {
+} elseif ($task['status'] === 'FINISHED' && !empty($task['pr_url'])) {
     $prStatus = 'Passed';
 }
 
@@ -272,21 +272,20 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                             <div class="flex items-center space-x-2">
                                 <span class="px-4 py-1.5 text-sm font-semibold rounded-full bg-<?= $statusColor ?>-100 text-<?= $statusColor ?>-800 flex items-center shadow-sm">
                                     <?php
-                                    if ($task['status'] === 'completed') {
+                                    if ($task['status'] === 'FINISHED') {
                                         echo '✅ ';
-                                    } elseif (in_array($task['status'], ['in_progress', 'coding', 'testing'])) {
+                                    } elseif ($task['status'] === 'FAILED') {
+                                        echo '❌ ';
+                                    } elseif ($task['status'] === 'PROCESSING') {
                                         echo '🚧 ';
-                                    } elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') {
-                                        echo '❌ Jules ';
-                                    } elseif ($task['status'] === 'failed_pr') {
-                                        echo '❌ PR ';
-                                    } elseif (in_array($task['status'], ['researching', 'planning', 'awaiting-plan-approval', 'awaiting-user-feedback'])) {
-                                        echo '🔵 ';
                                     } else {
                                         echo '⏳ ';
                                     }
                                     ?>
-                                    <?= htmlspecialchars(str_replace(['failed_jules', 'failed_pr'], 'failed', $task['status'] ?? '')) ?>
+                                    <?= strtoupper(htmlspecialchars($task['status'] ?? 'CREATED')) ?>
+                                    <?php if (!empty($task['substatus'])) : ?>
+                                        <span class="opacity-75">(<?= strtolower(htmlspecialchars($task['substatus'])) ?>)</span>
+                                    <?php endif; ?>
                                 </span>
                             </div>
                         </div>

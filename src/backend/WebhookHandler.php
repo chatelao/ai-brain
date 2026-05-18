@@ -55,10 +55,15 @@ class WebhookHandler
 
         $result = $taskModel->upsert($project['user_id'], $project['project_id'], $issue);
 
-        if ($result && $julesService && $githubService) {
+        if ($result) {
             $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
             if ($task) {
-                $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $notificationService, (int)$task['task_id']);
+                $taskModel->upsertExternalPeer($task['task_id'], 'GH.Issue', $issue['number'], $issue['state'] ?? 'open');
+                if ($julesService && $githubService) {
+                    $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $notificationService, (int)$task['task_id']);
+                } else {
+                    $taskModel->refreshUnifiedState($task['task_id'], $notificationService);
+                }
             }
         }
 
@@ -104,7 +109,7 @@ class WebhookHandler
         if (!$task) {
             $task = [
                 'github_data' => json_encode($issue),
-                'status' => 'pending',
+                'status' => 'CREATED',
                 'agent_response' => ''
             ];
         }
@@ -180,6 +185,13 @@ class WebhookHandler
         }
 
         if (in_array($action, ['opened', 'closed', 'reopened', 'synchronize'])) {
+            $task = $taskModel->findByPrUrl($pr['html_url']);
+            if ($task) {
+                $prState = ($action === 'closed' && $pr['merged']) ? 'merged' : $pr['state'];
+                $taskModel->upsertExternalPeer($task['task_id'], 'GH.PullRequest', $pr['html_url'], $prState);
+                $taskModel->refreshUnifiedState($task['task_id'], $notificationService);
+            }
+
             $emoji = '🔗';
             $actionText = 'Updated';
 
@@ -252,28 +264,8 @@ class WebhookHandler
                 continue;
             }
 
-            $newStatus = $task['status'];
-            if ($conclusion === 'failure' || $conclusion === 'timed_out' || $conclusion === 'cancelled') {
-                $newStatus = 'failed_pr';
-            } elseif ($conclusion === 'success' && $task['status'] === 'failed_pr') {
-                $newStatus = 'completed';
-            }
-
-            if ($newStatus !== $task['status']) {
-                $taskModel->updateStatus($task['task_id'], $newStatus);
-
-                if ($notificationService) {
-                    $title = $newStatus === 'failed_pr' ? "❌ PR Failed: #" . $task['issue_number'] : "✅ PR Fixed: #" . $task['issue_number'];
-                    $message = $newStatus === 'failed_pr' ? "PR checks for \"" . $task['title'] . "\" failed." : "PR checks for \"" . $task['title'] . "\" are now passing.";
-
-                    $notificationService->notify($project['user_id'], 'task_status', $title, $message, [
-                        'task_id' => $task['task_id'],
-                        'project_id' => $task['project_id'],
-                        'status' => $newStatus,
-                        'source_url' => $taskModel->getTargetUrl(array_merge($task, ['status' => $newStatus]))
-                    ]);
-                }
-            }
+            $taskModel->upsertExternalPeer($task['task_id'], 'GH.PR.Checks', $prUrl, $conclusion);
+            $taskModel->refreshUnifiedState($task['task_id'], $notificationService);
         }
 
         return true;

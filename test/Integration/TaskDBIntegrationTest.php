@@ -33,7 +33,8 @@ class TaskDBIntegrationTest extends TestCase
             issue_number INT NOT NULL,
             title VARCHAR(255) NOT NULL,
             body TEXT,
-            status TEXT DEFAULT 'pending',
+            status TEXT DEFAULT 'CREATED',
+            substatus TEXT,
             github_state VARCHAR(20) DEFAULT 'open',
             github_data TEXT,
             created_at $timestamp,
@@ -55,7 +56,7 @@ class TaskDBIntegrationTest extends TestCase
             'issue_number' => 101,
             'title' => 'Test Issue',
             'body' => 'Test Body',
-            'status' => 'pending'
+            'status' => 'CREATED'
         ];
 
         $this->assertTrue($this->taskModel->create($data));
@@ -81,9 +82,10 @@ class TaskDBIntegrationTest extends TestCase
         $tasks = $this->taskModel->findByProjectId(1);
         $taskId = $tasks[0]['task_id'];
 
-        $this->assertTrue($this->taskModel->updateStatus($taskId, 'in_progress'));
+        $this->assertTrue($this->taskModel->updateStatus($taskId, 'PROCESSING', 'ANALYZING'));
 
         $task = $this->taskModel->findById($taskId);
-        $this->assertEquals('in_progress', $task['status']);
+        $this->assertEquals('PROCESSING', $task['status']);
+        $this->assertEquals('ANALYZING', $task['substatus']);
     }
 }
