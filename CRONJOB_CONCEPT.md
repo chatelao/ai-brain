@@ -12,6 +12,7 @@ The Cron Job system provides a periodic trigger mechanism to perform background 
 - **<a name="UC-CJ1"></a>Scheduled Issue Sync (UC-CJ1)**: The system periodically scans all linked GitHub repositories for new issues, updates, or state changes to ensure the local task list is current.
 - **<a name="UC-CJ2"></a>Periodic Agent Status Refresh (UC-CJ2)**: For all active tasks, the system polls the Google Jules API to fetch the latest execution status and logs.
 - **<a name="UC-CJ3"></a>Multi-User Background Processing (UC-CJ3)**: The cron job iterates through all registered users and their projects, performing maintenance tasks at scale.
+- **<a name="UC-CJ4"></a>Periodic Pull Request & Check Suite Sync (UC-CJ4)**: The system polls GitHub for Pull Request status and Check Suite results for active tasks to ensure state parity and advance tasks to `READY` or `FAILED_PR` states.
 
 ## Logic Flow
-The cron system implements "Event Source Parity", ensuring that system events are triggered consistently whether they arrive via real-time webhooks, periodic polling, or manual refreshes.
+The cron system implements "Event Source Parity". For detailed information on how periodic polling affects task states and transitions, refer to [STATE_EVENTS_CONCEPT.md](STATE_EVENTS_CONCEPT.md).
