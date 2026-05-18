@@ -1,0 +1,39 @@
+@startuml
+title Telegram Chat Control Activity
+
+start
+:System detects actionable event;
+split
+  :Jules Session Failed;
+  :Offer [Retry] [Restart] buttons;
+split again
+  :PR Ready & Checks Passed;
+  :Offer [Merge & Close] button;
+split again
+  :New Issue with 'jules' label;
+  :Offer [Acknowledge] button;
+end split
+
+:User receives Telegram notification;
+:User selects action via **Inline Button**;
+
+:Telegram sends Callback Query to Webhook;
+:Application verifies User & Project permissions;
+
+if (Action is 'Retry'?) then (yes)
+  :Send "retry" command to Jules API;
+elseif (Action is 'Restart'?) then (yes)
+  :Reset Jules Session;
+  :Toggle GitHub Labels;
+elseif (Action is 'Merge & Close'?) then (yes)
+  :Merge PR via GitHub API;
+  :Close Issue via GitHub API;
+else (Other)
+  :Process specific action;
+endif
+
+:System updates internal Task state;
+:Bot sends confirmation/result message;
+
+stop
+@enduml
