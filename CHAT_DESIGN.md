@@ -68,3 +68,9 @@ The `NotificationService` now supports adding actions to notifications. These ac
 2.  `NotificationService` triggers a notification with `['actions' => ['merge']]`.
 3.  User taps "Merge & Close".
 4.  `TelegramWebhookHandler` receives `merge:{id}`, calls `GitHubService::mergePullRequest()`, then closes the issue.
+
+### [UC-C3] Quick Task Acknowledgment
+1.  `WebhookHandler` detects a new issue with the 'jules' label.
+2.  `NotificationService` triggers a notification with `['actions' => ['acknowledge']]`.
+3.  User taps "Acknowledge".
+4.  `TelegramWebhookHandler` receives `acknowledge:{id}`, updates internal task state (e.g., adding a log entry or updating a field), and confirms to the user.

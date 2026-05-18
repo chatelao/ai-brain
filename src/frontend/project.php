@@ -442,9 +442,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                             <tr class="bg-white border-b">
                                                 <td class="px-6 py-4">
                                                     <div class="text-base text-gray-900 font-normal markdown-body">
-                                                        <a href="task.php?id=<?= $task['task_id'] ?>" class="hover:underline">#<?= htmlspecialchars($task['issue_number'] ?? '') ?></a>
-                                                        <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task, $project['github_repo'])) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline inline">
-                                                            <?= $parsedown->text($taskModel->processGitHubImages($task['title'] ?? '')) ?>
+                                                        <a href="task.php?id=<?= $task['task_id'] ?>" class="hover:underline">
+                                                            <?= htmlspecialchars($task['issue_number'] ?? '') ?> - <?= htmlspecialchars($task['title'] ?? '') ?>
                                                         </a>
                                                     </div>
                                                     <div class="text-xs text-gray-500 markdown-body">
