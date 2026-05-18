@@ -96,7 +96,7 @@ class WebhookHandlerTest extends TestCase
         $githubService = $this->createMock(\App\GitHubService::class);
         $githubService->expects($this->once())
             ->method('createIssue')
-            ->with('owner/repo', 'Autorepeat Issue', 'Description', ['autorepeat']);
+            ->with('owner/repo', 'Autorepeat Issue', 'Description', ['Jules']);
         $githubService->expects($this->once())
             ->method('removeLabel')
             ->with('owner/repo', 123, 'autorepeat');

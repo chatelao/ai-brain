@@ -22,6 +22,44 @@ class GitHubService
     /**
      * @throws Exception
      */
+    public function mergePullRequest(string $repo, int $prNumber, string $message = '', string $mergeMethod = 'merge'): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        return $this->apiCall(
+            'GitHub API',
+            "PUT merge $repo/pull/$prNumber",
+            fn() => $this->client->api('pull_request')->merge($username, $repository, $prNumber, $message, null, $mergeMethod)
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function closeIssue(string $repo, int $issueNumber): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        return $this->apiCall(
+            'GitHub API',
+            "PATCH issue $repo/issues/$issueNumber",
+            fn() => $this->client->api('issue')->update($username, $repository, $issueNumber, ['state' => 'closed'])
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
     private function apiCall(string $type, string $target, callable $call, ?array $context = null): mixed
     {
         $start = microtime(true);

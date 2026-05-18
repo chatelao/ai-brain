@@ -88,19 +88,39 @@ class WebhookHandler
             $stateReason = $issue['state_reason'] ?? '';
             $labels = $issue['labels'] ?? [];
             $hasAutorepeat = false;
+            $autorepeatLabelName = '';
+
             foreach ($labels as $label) {
-                if (($label['name'] ?? '') === 'autorepeat') {
+                $name = strtolower($label['name'] ?? '');
+                if ($name === 'autorepeat' || $name === 'auto-repeat') {
                     $hasAutorepeat = true;
+                    $autorepeatLabelName = $label['name'];
                     break;
                 }
             }
 
             if ($stateReason === 'completed' && $hasAutorepeat) {
-                $labelNames = array_map(fn($l) => $l['name'], $labels);
+                $labelNames = array_filter(
+                    array_map(fn($l) => $l['name'], $labels),
+                    fn($name) => strtolower($name) !== 'autorepeat' && strtolower($name) !== 'auto-repeat'
+                );
+
+                // Ensure 'Jules' label is present to trigger the agent for the new issue as per AUTOMATION_CONCEPT.md
+                $hasJules = false;
+                foreach ($labelNames as $ln) {
+                    if (strtolower($ln) === 'jules') {
+                        $hasJules = true;
+                        break;
+                    }
+                }
+                if (!$hasJules) {
+                    $labelNames[] = 'Jules';
+                }
+
                 $repo = $event['repository']['full_name'] ?? '';
                 if ($repo) {
-                    $githubService->createIssue($repo, $issue['title'], $issue['body'], $labelNames);
-                    $githubService->removeLabel($repo, $issue['number'], 'autorepeat');
+                    $githubService->createIssue($repo, $issue['title'], $issue['body'], array_values($labelNames));
+                    $githubService->removeLabel($repo, $issue['number'], $autorepeatLabelName);
                 }
             }
         }

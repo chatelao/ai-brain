@@ -57,6 +57,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_task_notificat
     }
 }
 
+// Handle Merge & Close
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['merge_close'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+
+    try {
+        $githubToken = $project['github_token'] ?? null;
+        if (!$githubToken) {
+            throw new Exception("GitHub token not found for this project.");
+        }
+
+        $githubService = new \App\GitHubService(null, $githubToken);
+        $prNumber = $githubService->extractPrNumber($task['pr_url'] ?? '');
+
+        if (!$prNumber) {
+            throw new Exception("No pull request associated with this task.");
+        }
+
+        // 1. Merge the PR
+        $githubService->mergePullRequest($project['github_repo'], $prNumber, "Merged via Agent Control: " . $task['title']);
+
+        // 2. Close the issue
+        $githubService->closeIssue($project['github_repo'], $task['issue_number']);
+
+        header("Location: task.php?id=$taskId&success=merged_closed");
+        exit;
+    } catch (Exception $e) {
+        $errorMessage = "Error merging/closing: " . $e->getMessage();
+    }
+}
+
 $githubData = json_decode($task['github_data'] ?? '{}', true);
 $labels = $githubData['labels'] ?? [];
 $statusColor = $taskModel->getStatusColor($task);
@@ -216,6 +248,18 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                     <?php if (isset($_GET['success']) && $_GET['success'] === 'notifications_updated') : ?>
                         <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
                             <span class="font-medium">Success!</span> Notification settings updated.
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'merged_closed') : ?>
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                            <span class="font-medium">Success!</span> Pull Request merged and Issue closed.
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (isset($errorMessage)) : ?>
+                        <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+                            <span class="font-medium">Error!</span> <?= htmlspecialchars($errorMessage) ?>
                         </div>
                     <?php endif; ?>
 
@@ -414,6 +458,19 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                                             <?= htmlspecialchars($prStatus) ?>
                                         </span>
                                     </div>
+
+                                    <?php
+                                    $isMergeable = ($prDetails && ($prDetails['state'] ?? '') === 'open' && ($prDetails['mergeable_state'] ?? '') === 'clean' && !($prDetails['draft'] ?? false));
+                                    if ($isMergeable) : ?>
+                                        <div class="mt-4 pt-4 border-t border-gray-100">
+                                            <form method="POST">
+                                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                                <button type="submit" name="merge_close" class="w-full text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none" onclick="return confirm('Are you sure you want to merge this PR and close the issue?')">
+                                                    Merge & Close
+                                                </button>
+                                            </form>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
 
                                 <div class="mt-6 pt-6 border-t border-gray-100">
