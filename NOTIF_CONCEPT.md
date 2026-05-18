@@ -56,3 +56,9 @@ Globally or per project, users can choose which channels are active (e.g., Brows
 ### 3. Frontend Integration
 -   **Inbox UI**: A notification bell icon with a dropdown/slide-over showing recent events.
 -   **Settings Page**: A dedicated section in "Account Settings" to manage all notification preferences.
+
+### 4. Event Source Parity
+To ensure a reliable user experience, the system implements "Event Source Parity". This means that notifications for system events (such as issue state changes, PR discovery, or check suite results) are triggered consistently, regardless of how the event was detected:
+-   **Real-time Webhooks**: Immediate triggers from incoming GitHub or CI/CD webhooks.
+-   **Backend Polling (`cronjob.php`)**: Periodic synchronization that detects changes missed by webhooks.
+-   **Manual Refreshes (`project.php`)**: User-initiated synchronizations that refresh project and task states.
