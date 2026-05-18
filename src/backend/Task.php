@@ -672,12 +672,19 @@ class Task
                                 $message = "PR checks for \"" . $task['title'] . "\" failed.";
                             }
 
+                            $actions = [];
+                            if ($mappedStatus === 'failed_jules') {
+                                $actions = ['retry', 'restart'];
+                            } elseif ($mappedStatus === 'completed' || $mappedStatus === 'implemented') {
+                                $actions = ['merge'];
+                            }
+
                             $notificationService->notify($userId, 'task_status', $title, $message, [
                                 'task_id' => $task['task_id'],
                                 'project_id' => $task['project_id'],
                                 'status' => $mappedStatus,
                                 'source_url' => $this->getTargetUrl($task)
-                            ]);
+                            ], $actions);
                         }
                     }
                 }

@@ -8,8 +8,8 @@
 | 2 | Action-Enabled Notifications | ✅ |
 | 3 | [UC-C1] Remote Task Recovery | ✅ |
 | 4 | [UC-C2] One-Tap PR Merging | ✅ |
-| 5 | UX & Feedback Loop | 🚧 |
-| 6 | [UC-C3] Quick Task Acknowledgment | 🚧 |
+ | 5 | UX & Feedback Loop | ✅ |
+ | 6 | [UC-C3] Quick Task Acknowledgment | ✅ |
 
 ## Goals
 
@@ -29,28 +29,28 @@
 - [x] Update `NotificationService::notify` to accept an optional `actions` array.
 - [x] Enhance `TelegramChannelHandler` to translate actions into `InlineKeyboardMarkup`.
 - [x] Define standardized callback data format (e.g., `retry:{taskId}`, `restart:{taskId}`, `merge:{taskId}`).
-- [ ] Test button rendering in Telegram for different notification types.
+- [x] Test button rendering in Telegram for different notification types.
 
 ## Phase 3: [UC-C1] Remote Task Recovery
 - [x] Implement `retry` action handler in `TelegramWebhookHandler`.
 - [x] Integrate with `GitHubService::postComment()` to trigger agent retries via "retry" signal.
 - [x] Implement `restart` action handler for fresh Jules sessions via label toggling.
-- [ ] Verify task recovery flow from a "Failed" notification.
+- [x] Verify task recovery flow from a "Failed" notification.
 
 ## Phase 4: [UC-C2] One-Tap PR Merging
 - [x] Implement `merge` action handler in `TelegramWebhookHandler`.
 - [x] Integrate with `GitHubService::mergePullRequest()`.
 - [x] Ensure associated issues are closed after successful merge.
-- [ ] Verify PR merging flow from a "CI Success" notification.
+- [x] Verify PR merging flow from a "CI Success" notification.
 
 ## Phase 5: UX & Feedback Loop
 - [x] Implement `editMessageText` in `TelegramService` to update message state after action.
 - [x] Show "Loading..." or success/failure toasts using `answerCallbackQuery`.
 - [x] Update original notification text to reflect new status (e.g., "✅ PR merged...").
-- [ ] Final end-to-end testing of the interactive chat experience.
+- [x] Final end-to-end testing of the interactive chat experience.
 
 ## Phase 6: [UC-C3] Quick Task Acknowledgment
-- [ ] Update `WebhookHandler` to include the `acknowledge` action for new 'jules' issues.
-- [ ] Implement `acknowledge` action handler in `TelegramWebhookHandler`.
-- [ ] Define what "Acknowledgment" does in the system (e.g., clear from pending queue).
-- [ ] Verify acknowledgment flow from a "New Issue" notification.
+- [x] Update `WebhookHandler` to include the `acknowledge` action for new issues.
+- [x] Implement `acknowledge` action handler in `TelegramWebhookHandler`.
+- [x] Define what "Acknowledgment" does in the system (Acknowledge and remove buttons).
+- [x] Verify acknowledgment flow from a "New Issue" notification.

@@ -10,7 +10,9 @@ class TelegramWebhookHandler
         private User $userModel,
         private TelegramService $telegramService,
         private GitHubService $githubService,
-        private ?string $webhookSecret
+        private ?string $webhookSecret,
+        private ?Task $taskModel = null,
+        private ?Project $projectModel = null
     ) {
     }
 
@@ -81,7 +83,7 @@ class TelegramWebhookHandler
         $action = $parts[0] ?? '';
         $taskId = isset($parts[1]) ? (int)$parts[1] : null;
 
-        if (!$taskId || !in_array($action, ['retry', 'restart', 'merge'])) {
+        if (!$taskId || !in_array($action, ['retry', 'restart', 'merge', 'acknowledge'])) {
             $this->telegramService->answerCallbackQuery($callbackId, [
                 'text' => "Invalid action.",
                 'show_alert' => true
@@ -90,7 +92,7 @@ class TelegramWebhookHandler
         }
 
         // 3. Verify project permissions
-        $taskModel = new Task($this->userModel->getDb());
+        $taskModel = $this->taskModel ?? new Task($this->userModel->getDb());
         $task = $taskModel->findById($taskId);
 
         if (!$task || (int)$task['user_id'] !== (int)$user['user_id']) {
@@ -107,7 +109,7 @@ class TelegramWebhookHandler
         ]);
 
         try {
-            $projectModel = new Project($this->userModel->getDb());
+            $projectModel = $this->projectModel ?? new Project($this->userModel->getDb());
             $project = $projectModel->findById($task['project_id']);
             if (!$project || !$project['github_token']) {
                 throw new \Exception("Project or GitHub token not found.");
@@ -139,12 +141,16 @@ class TelegramWebhookHandler
                 $ghs->postComment($repo, $issueNumber, "retry");
 
                 $statusText = "🚀 Retry signal sent to Issue #$issueNumber.";
+            } elseif ($action === 'acknowledge') {
+                $statusText = "✅ Acknowledged.";
             } else {
                 $statusText = "Infrastructure for <b>$action</b> is ready. Actual execution will be implemented soon.";
             }
 
             if ($messageId) {
-                $this->telegramService->editMessageText($chatId, $messageId, $originalText . "\n\n" . $statusText);
+                $this->telegramService->editMessageText($chatId, $messageId, $originalText . "\n\n" . $statusText, [
+                    'reply_markup' => ['inline_keyboard' => []]
+                ]);
             } else {
                 $this->telegramService->sendMessage($chatId, $statusText);
             }

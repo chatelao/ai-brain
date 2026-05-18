@@ -63,12 +63,15 @@ class WebhookHandler
         }
 
         if ($result && $notificationService) {
+            $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
+
             if ($action === 'opened') {
                 $notificationService->notify($project['user_id'], 'github_issue', "🆕 Issue Opened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was opened in " . $project['github_repo'], [
+                    'task_id' => $task ? $task['task_id'] : null,
                     'project_id' => $project['project_id'],
                     'issue_number' => $issue['number'],
                     'source_url' => $issue['html_url']
-                ]);
+                ], ['acknowledge']);
             } elseif ($action === 'closed') {
                 $notificationService->notify($project['user_id'], 'github_issue', "🔒 Issue Closed: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was closed in " . $project['github_repo'], [
                     'project_id' => $project['project_id'],
@@ -266,12 +269,17 @@ class WebhookHandler
                     $title = $newStatus === 'failed_pr' ? "❌ PR Failed: #" . $task['issue_number'] : "✅ PR Fixed: #" . $task['issue_number'];
                     $message = $newStatus === 'failed_pr' ? "PR checks for \"" . $task['title'] . "\" failed." : "PR checks for \"" . $task['title'] . "\" are now passing.";
 
+                    $actions = [];
+                    if ($newStatus === 'completed') {
+                        $actions[] = 'merge';
+                    }
+
                     $notificationService->notify($project['user_id'], 'task_status', $title, $message, [
                         'task_id' => $task['task_id'],
                         'project_id' => $task['project_id'],
                         'status' => $newStatus,
                         'source_url' => $taskModel->getTargetUrl(array_merge($task, ['status' => $newStatus]))
-                    ]);
+                    ], $actions);
                 }
             }
         }
