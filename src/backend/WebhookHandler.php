@@ -252,19 +252,14 @@ class WebhookHandler
                 continue;
             }
 
-            $newStatus = $task['status'];
-            if ($conclusion === 'failure' || $conclusion === 'timed_out' || $conclusion === 'cancelled') {
-                $newStatus = 'failed_pr';
-            } elseif ($conclusion === 'success' && $task['status'] === 'failed_pr') {
-                $newStatus = 'completed';
-            }
+            $newStatus = $taskModel->resolveStatus($task, null, $checkSuite);
 
             if ($newStatus !== $task['status']) {
                 $taskModel->updateStatus($task['task_id'], $newStatus);
 
                 if ($notificationService) {
-                    $title = $newStatus === 'failed_pr' ? "❌ PR Failed: #" . $task['issue_number'] : "✅ PR Fixed: #" . $task['issue_number'];
-                    $message = $newStatus === 'failed_pr' ? "PR checks for \"" . $task['title'] . "\" failed." : "PR checks for \"" . $task['title'] . "\" are now passing.";
+                    $title = $newStatus === Task::STATUS_FAILED_PR ? "❌ PR Failed: #" . $task['issue_number'] : "✅ PR Fixed: #" . $task['issue_number'];
+                    $message = $newStatus === Task::STATUS_FAILED_PR ? "PR checks for \"" . $task['title'] . "\" failed." : "PR checks for \"" . $task['title'] . "\" are now passing.";
 
                     $notificationService->notify($project['user_id'], 'task_status', $title, $message, [
                         'task_id' => $task['task_id'],

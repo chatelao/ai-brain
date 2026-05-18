@@ -186,7 +186,7 @@ $pdo->prepare("INSERT INTO tasks (user_id, project_id, issue_number, title, body
         103,
         'Feature implementation',
         'Implements the new feature',
-        'implemented',
+         'checking',
         'https://github.com/owner/repo/pull/1',
         json_encode(['state' => 'open', 'mergeable_state' => 'clean', 'draft' => false]),
         date('Y-m-d H:i:s')
@@ -202,7 +202,7 @@ $taskModel->create([
     'issue_number' => 102,
     'title' => 'Another Bug #2',
     'body' => 'Description for bug 2',
-    'status' => 'in_progress'
+    'status' => 'executing'
 ]);
 
 // Include the actual file to test

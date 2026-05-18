@@ -91,7 +91,7 @@ $_SESSION['user_id'] = 1;
 $pdo->exec("INSERT INTO projects (project_id, user_id, github_account_id, github_repo, github_username) VALUES (1, 1, 1, 'owner/repo', 'owner')");
 
 // Create mock tasks for different filters
-$pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state) VALUES (1, 1, 1, 'GitHub Running Task', 'implemented', 'open')");
+$pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state) VALUES (1, 1, 1, 'GitHub Running Task', 'checking', 'open')");
 $pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state) VALUES (1, 1, 2, 'GitHub Passed Task', 'completed', 'open')");
 $pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state) VALUES (1, 1, 3, 'GitHub Failed Task', 'failed_pr', 'open')");
 $pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state) VALUES (1, 1, 4, 'Jules Running Task', 'coding', 'open')");

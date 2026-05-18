@@ -212,7 +212,7 @@ class NotificationTriggerTest extends TestCase
 
         $this->assertNotFalse($notification);
         $this->assertStringContainsString('Task Update: #303', $notification['title']);
-        $this->assertStringContainsString('status changed to coding', $notification['message']);
+        $this->assertStringContainsString('status changed to Executing', $notification['message']);
     }
 
     public function testNotificationDispatchesToTelegram()
@@ -267,10 +267,8 @@ class NotificationTriggerTest extends TestCase
     {
         $userId = 1;
         $projectId = 1;
-        // Disable 'coding' status broadcast
-        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, 'coding', 0)");
-        // Disable 'in_progress' status broadcast
-        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, 'in_progress', 0)");
+        // Disable 'executing' status broadcast
+        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, 'executing', 0)");
 
         // Enable a mock channel AND in_app
         $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'mock_channel', 1)");
