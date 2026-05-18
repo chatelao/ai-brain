@@ -165,7 +165,8 @@ class Task
             $hasAutorepeat = false;
             $labels = $githubData['labels'] ?? [];
             foreach ($labels as $label) {
-                if (($label['name'] ?? '') === 'autorepeat') {
+                $name = strtolower($label['name'] ?? '');
+                if ($name === 'autorepeat' || $name === 'auto-repeat') {
                     $hasAutorepeat = true;
                     break;
                 }

@@ -88,6 +88,9 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     pr_url VARCHAR(255),
     jules_url VARCHAR(255),
     jules_session_id VARCHAR(255),
+    github_pr_data TEXT,
+    github_comments_data TEXT,
+    github_data_updated_at DATETIME,
     last_synced_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -125,8 +128,9 @@ $pdo->exec("INSERT INTO user_github_accounts (github_account_id, user_id, github
 $pdo->exec("INSERT INTO projects (project_id, user_id, github_account_id, github_repo, github_username) VALUES (1, 1, 1, 'owner/repo', 'owner')");
 
 // Create a mock task
-$pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, body, status, jules_status, pr_url, jules_url)
-            VALUES (101, 1, 1, 101, 'Mock Task Title', 'This is a mock task description.', 'in_progress', 'coding', 'https://github.com/owner/repo/pull/1', 'https://jules.example.com/session/1')");
+$now = date('Y-m-d H:i:s');
+$pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, body, status, jules_status, pr_url, jules_url, github_pr_data, github_data_updated_at)
+            VALUES (101, 1, 1, 101, 'Mock Task Title', 'This is a mock task description.', 'in_progress', 'coding', 'https://github.com/owner/repo/pull/1', 'https://jules.example.com/session/1', '{\"state\":\"open\",\"mergeable_state\":\"clean\",\"draft\":false}', '$now')");
 
 // Add some logs
 $pdo->exec("INSERT INTO task_logs (task_id, user_id, level, message) VALUES (101, 1, 'info', 'Started coding phase')");
