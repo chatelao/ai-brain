@@ -27,6 +27,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(20) DEFAULT 'user',
     jules_api_key VARCHAR(255),
     telegram_bot_token VARCHAR(255),
+    telegram_bot_name VARCHAR(255),
     telegram_webhook_secret VARCHAR(255),
     telegram_link_token VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP

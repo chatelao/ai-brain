@@ -130,15 +130,15 @@ class UserTest extends TestCase
         $stmt = $this->createMock(PDOStatement::class);
         $stmt->expects($this->once())
             ->method('execute')
-            ->with(['bot-token', 'secret-123', 1])
+            ->with(['bot-token', 'secret-123', 'bot-name', 1])
             ->willReturn(true);
 
         $this->pdo->expects($this->once())
             ->method('prepare')
-            ->with($this->stringContains('UPDATE users SET telegram_bot_token = ?, telegram_webhook_secret = ? WHERE user_id = ?'))
+            ->with($this->stringContains('UPDATE users SET telegram_bot_token = ?, telegram_webhook_secret = ?, telegram_bot_name = ? WHERE user_id = ?'))
             ->willReturn($stmt);
 
-        $success = $this->userModel->updateTelegramConfig(1, 'bot-token', 'secret-123');
+        $success = $this->userModel->updateTelegramConfig(1, 'bot-token', 'secret-123', 'bot-name');
         $this->assertTrue($success);
     }
 }

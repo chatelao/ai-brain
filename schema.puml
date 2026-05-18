@@ -13,6 +13,7 @@ entity "users" {
   role : VARCHAR(20)
   jules_api_key : VARCHAR(255)
   telegram_bot_token : VARCHAR(255)
+  telegram_bot_name : VARCHAR(255)
   telegram_webhook_secret : VARCHAR(255)
   telegram_link_token : VARCHAR(255) <<UNIQUE>>
   jules_quota_usage : INT

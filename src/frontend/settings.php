@@ -45,6 +45,7 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_teleg
     }
     $newBotToken = trim($_POST['telegram_bot_token']);
     $newWebhookSecret = trim($_POST['telegram_webhook_secret']);
+    $newBotName = trim($_POST['telegram_bot_name'] ?? '');
 
     $oldBotToken = $user['telegram_bot_token'] ?? '';
 
@@ -58,7 +59,10 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_teleg
         }
     }
 
-    if ($userModel->updateTelegramConfig($user['user_id'], $newBotToken, $newWebhookSecret)) {
+    if ($userModel->updateTelegramConfig($user['user_id'], $newBotToken, $newWebhookSecret, $newBotName)) {
+        // Refresh user data to ensure UI is up to date
+        $user = $userModel->findById($user['user_id']);
+
         // Register new webhook if token is provided
         if (!empty($newBotToken)) {
             try {
@@ -108,6 +112,16 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notif
 $githubAccounts = $user ? $userModel->getGitHubAccounts($user['user_id']) : [];
 $webhookLogs = $user ? $webhookLogger->getLogsByUser($user['user_id']) : [];
 $errorMessage = $errorMessage ?? null;
+
+$telegramChatId = $user ? $userModel->getTelegramChatId($user['user_id']) : null;
+$telegramBotName = $user['telegram_bot_name'] ?? '';
+$telegramLinkToken = $user['telegram_link_token'] ?? '';
+
+// Ensure a link token exists if needed, and refresh if generated
+if ($user && !$telegramChatId && !empty($telegramBotName) && empty($telegramLinkToken)) {
+    $telegramLinkToken = $userModel->generateTelegramLinkToken($user['user_id']);
+    $user = $userModel->findById($user['user_id']);
+}
 
 ?>
 <!DOCTYPE html>
@@ -229,12 +243,34 @@ $errorMessage = $errorMessage ?? null;
                                     </p>
                                     <form method="POST" class="space-y-2">
                                         <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                        <input type="password" name="telegram_bot_token" value="<?= htmlspecialchars($user['telegram_bot_token'] ?? '') ?>" placeholder="Custom Bot Token" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5">
+                                        <div class="flex gap-2">
+                                            <input type="text" name="telegram_bot_name" value="<?= htmlspecialchars($user['telegram_bot_name'] ?? '') ?>" placeholder="Bot Name (e.g. MyAgentBot)" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5">
+                                            <input type="password" name="telegram_bot_token" value="<?= htmlspecialchars($user['telegram_bot_token'] ?? '') ?>" placeholder="Custom Bot Token" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5">
+                                        </div>
                                         <div class="flex gap-2">
                                             <input type="password" name="telegram_webhook_secret" value="<?= htmlspecialchars($user['telegram_webhook_secret'] ?? '') ?>" placeholder="Webhook Secret (X-Telegram-Bot-Api-Secret-Token)" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5">
                                             <button type="submit" name="update_telegram_config" class="text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Save</button>
                                         </div>
                                     </form>
+
+                                    <?php if (!empty($telegramBotName)) : ?>
+                                        <div class="mt-4 p-3 bg-white border border-purple-200 rounded-lg">
+                                            <h5 class="text-sm font-bold text-purple-900 mb-1">Registration Status</h5>
+                                            <?php if ($telegramChatId) : ?>
+                                                <div class="flex items-center text-green-600 text-sm">
+                                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l5-5z" clip-rule="evenodd"></path></svg>
+                                                    Linked to Telegram
+                                                </div>
+                                            <?php else : ?>
+                                                <div class="text-sm text-purple-700">
+                                                    Your account is not linked yet.
+                                                    <a href="https://t.me/<?= htmlspecialchars($telegramBotName) ?>?start=<?= htmlspecialchars($telegramLinkToken) ?>" target="_blank" class="block mt-2 text-center text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none">
+                                                        Register with @<?= htmlspecialchars($telegramBotName) ?>
+                                                    </a>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
 
