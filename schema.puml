@@ -123,6 +123,13 @@ entity "user_notification_settings" {
   is_enabled : BOOLEAN
 }
 
+entity "user_event_notification_settings" {
+  * <color:grey><i>user_id</i></color> : INT <<PK>> <<FK>>
+  * <color:grey>notification_type</color> : VARCHAR(50) <<PK>>
+  --
+  is_enabled : BOOLEAN
+}
+
 entity "project_notification_settings" {
   * <color:grey><i>project_id</i></color> : INT <<PK>> <<FK>>
   * <color:grey>notification_type</color> : VARCHAR(50) <<PK>>
@@ -176,6 +183,7 @@ users ||--o{ user_telegram_accounts : "user_id"
 users ||--o{ issue_templates : "user_id"
 users ||--o{ notifications : "user_id"
 users ||--o{ user_notification_settings : "user_id"
+users ||--o{ user_event_notification_settings : "user_id"
 users ||--o{ webhook_logs : "user_id"
 users ||--o{ performance_logs : "user_id"
 user_github_accounts ||--o{ projects : "github_account_id"
