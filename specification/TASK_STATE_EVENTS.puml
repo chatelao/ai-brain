@@ -28,30 +28,43 @@ state "GitHub Pull Request (GH.PR)" as PR {
     None --> OpenPR : PR created (polling/Webhook)
     OpenPR --> Merged : PR merged (Webhook)
     OpenPR --> ClosedPR : PR closed (Webhook)
+    OpenPR --> ChecksPassed : Checks passed (Webhook)
     OpenPR --> ChecksFailed : Checks failed (Webhook)
 }
 
 state "Unified Task State" as Unified {
-    [*] --> QUEUED
-    QUEUED --> ANALYZING : Jules starts researching
-    ANALYZING --> PLANNING : Jules starts planning
-    PLANNING --> EXECUTING : Jules starts coding
-    EXECUTING --> VERIFYING : Jules starts testing / PR created
-    VERIFYING --> FINISHED : Issue closed / PR merged
+    [*] --> CREATED
 
-    QUEUED --> FAILED : Jules error
-    ANALYZING --> FAILED : Jules error
-    PLANNING --> FAILED : Jules error
-    EXECUTING --> FAILED : Jules error
-    VERIFYING --> FAILED : Jules error / PR checks fail
+    state PROCESSING {
+        state ANALYZING #lightblue
+        state PLANNING #lightblue
+        state EXECUTING #yellow
+        state VERIFYING #yellow
+        state CHECKING #orange
 
-    state QUEUED #lightgrey
-    state ANALYZING #lightblue
-    state PLANNING #lightblue
-    state EXECUTING #yellow
-    state VERIFYING #orange
+        ANALYZING --> PLANNING
+        PLANNING --> EXECUTING
+        EXECUTING --> VERIFYING
+        VERIFYING --> CHECKING : PR Created
+    }
+
+    CREATED --> ANALYZING : Jules starts researching
+    CHECKING --> READY : Checks passed
+    READY --> FINISHED : Issue closed / PR merged
+
+    state FAILED {
+        state FAILED_JULES #red
+        state FAILED_PR #red
+    }
+
+    CREATED --> FAILED_JULES : Jules error
+    PROCESSING --> FAILED_JULES : Jules error
+    CHECKING --> FAILED_PR : PR checks fail
+    READY --> FAILED_PR : New commit / checks fail
+
+    state CREATED #lightgrey
+    state READY #green
     state FINISHED #green
-    state FAILED #red
 }
 
 GitHubIssue -[dashed]-> Unified : influences
@@ -59,14 +72,17 @@ JulesSession -[dashed]-> Unified : maps to
 PR -[dashed]-> Unified : influences
 
 legend bottom
-| **Unified State** | **Mapping Logic (Source States)** |
-| QUEUED | GH.Issue:open AND Jules.Session:none |
-| ANALYZING | Jules.Session:researching |
-| PLANNING | Jules.Session:planning OR Jules.Session:awaiting_plan_approval |
-| EXECUTING | Jules.Session:in-progress OR Jules.Session:coding |
-| VERIFYING | Jules.Session:testing OR (Jules.Session:finished AND GH.PR:open) |
-| FINISHED | GH.Issue:closed |
-| FAILED | Jules.Session:failed OR Jules.Session:error OR GH.PR:checks_failed |
+| **Unified State** | **Substate** | **Mapping Logic (Source States)** |
+| CREATED | - | GH.Issue:open AND Jules.Session:none |
+| PROCESSING | ANALYZING | Jules.Session:researching |
+| | PLANNING | Jules.Session:planning OR Jules.Session:awaiting_plan_approval |
+| | EXECUTING | Jules.Session:in-progress OR Jules.Session:coding |
+| | VERIFYING | Jules.Session:testing |
+| | CHECKING | Jules.Session:finished AND GH.PR:open AND GH.PR:checks_running |
+| READY | - | Jules.Session:finished AND GH.PR:open AND GH.PR:checks_passed |
+| FINISHED | - | GH.Issue:closed |
+| FAILED | FAILED_JULES | Jules.Session:failed OR Jules.Session:error |
+| | FAILED_PR | GH.PR:checks_failed |
 end legend
 
 @enduml

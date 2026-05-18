@@ -356,7 +356,7 @@ class Task
             return 'red';
         }
 
-        if (in_array($status, ['in_progress', 'implemented', 'coding', 'testing'])) {
+        if (in_array($status, ['in_progress', 'implemented', 'coding', 'testing', 'verifying'])) {
             return 'yellow';
         }
 
@@ -364,7 +364,11 @@ class Task
             return 'blue';
         }
 
-        if ($status === 'completed') {
+        if ($status === 'checking') {
+            return 'orange';
+        }
+
+        if ($status === 'completed' || $status === 'ready') {
             return 'green';
         }
 
