@@ -108,4 +108,39 @@ class GitHubServiceTest extends TestCase
 
         $this->assertEquals(123, $result['number']);
     }
+
+    public function testMergePullRequestFetchesShaFirst(): void
+    {
+        $mockClient = $this->createMock(Client::class);
+        $mockPR = $this->createMock(\Github\Api\PullRequest::class);
+
+        $mockClient->method('api')->withAnyParameters()->willReturnCallback(function($api) use ($mockPR) {
+            if ($api === 'pull_request') {
+                return $mockPR;
+            }
+            return null;
+        });
+
+        $prNumber = 456;
+        $repo = 'chatelao/ai-brain';
+        $headSha = 'abcdef1234567890';
+        $message = 'Test Merge Message';
+
+        // Expect show() to be called to get the SHA
+        $mockPR->expects($this->once())
+            ->method('show')
+            ->with('chatelao', 'ai-brain', $prNumber)
+            ->willReturn(['head' => ['sha' => $headSha]]);
+
+        // Expect merge() to be called with the retrieved SHA
+        $mockPR->expects($this->once())
+            ->method('merge')
+            ->with('chatelao', 'ai-brain', $prNumber, $message, $headSha, 'merge')
+            ->willReturn(['merged' => true]);
+
+        $service = new GitHubService($mockClient);
+        $result = $service->mergePullRequest($repo, $prNumber, $message);
+
+        $this->assertTrue($result['merged']);
+    }
 }
