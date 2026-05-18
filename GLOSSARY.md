@@ -4,8 +4,10 @@ The following table lists the abbreviations used in this project:
 
 | Abbreviation | Meaning |
 | :--- | :--- |
+| BC | Business Case |
+| UC | Use Case |
 | TG | Telegram |
-| wf | workflow |
-| pr | pull-request |
-| gh | github |
-| evt | event |
+| WF | workflow |
+| PR | pull-request |
+| GH | github |
+| EVT | event |
