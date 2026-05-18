@@ -39,3 +39,7 @@
 - [ ] Identify coverage gaps in GitHub integration and webhook handling.
 - [ ] Identify coverage gaps in Jules agent orchestration and task management.
 - [ ] Identify coverage gaps in notification delivery (Telegram, In-App).
+
+## Specialized Roadmaps
+- [**Notification System Roadmap**](NOTIF_ROADMAP.md) - Detailed phases for the multi-channel notification system.
+- [**Telegram Chat Control Roadmap**](CHAT_ROADMAP.md) - Detailed phases for interactive Telegram bot management.

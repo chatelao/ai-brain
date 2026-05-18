@@ -298,8 +298,9 @@ class NotificationService
 
     private function isStatusBroadcastEnabled(int $projectId, string $status): bool
     {
+        $normalizedStatus = str_replace('-', '_', $status);
         $settings = $this->getStatusSettings($projectId);
-        return $settings[$status] ?? true;
+        return $settings[$normalizedStatus] ?? true;
     }
 
     private function persistNotification(int $userId, string $type, string $title, string $message, array $data): int
