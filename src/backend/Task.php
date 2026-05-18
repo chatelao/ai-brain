@@ -414,16 +414,16 @@ class Task
         $driver = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
 
         if ($driver === 'sqlite') {
-            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, substatus, github_state)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(project_id, issue_number) DO UPDATE SET
                         title = excluded.title,
                         body = excluded.body,
                         github_data = excluded.github_data,
                         github_state = excluded.github_state";
         } else {
-            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, substatus, github_state)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE
                         title = VALUES(title),
                         body = VALUES(body),
@@ -441,6 +441,7 @@ class Task
             $issue['body'],
             json_encode($issue),
             'CREATED',
+            null,
             $issue['state'] ?? 'open'
         ]);
     }
@@ -635,7 +636,8 @@ class Task
 
     public function getTargetUrl(array $task, ?string $repo = null): string
     {
-        $issueUrl = "https://github.com/" . ($repo ?? $task['github_repo']) . "/issues/" . $task['issue_number'];
+        $repo = $repo ?? $task['github_repo'] ?? 'unknown/repo';
+        $issueUrl = "https://github.com/" . $repo . "/issues/" . $task['issue_number'];
         $status = $task['status'] ?? 'CREATED';
         $substatus = $task['substatus'] ?? '';
 

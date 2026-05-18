@@ -142,6 +142,17 @@ class NotificationTriggerTest extends TestCase
             is_muted BOOLEAN DEFAULT FALSE
         )");
 
+        $this->pdo->exec("CREATE TABLE task_external_peers (
+            peer_id $pk,
+            task_id INT NOT NULL,
+            source VARCHAR(50) NOT NULL,
+            id VARCHAR(255) NOT NULL,
+            state VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(task_id, source, id)
+        )");
+
         $this->pdo->exec("INSERT INTO users (user_id, google_id, name, email, jules_api_key) VALUES (1, 'google-1', 'User 1', 'user1@example.com', 'key-123')");
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'owner/repo')");
     }

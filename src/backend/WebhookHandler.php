@@ -184,6 +184,8 @@ class WebhookHandler
             return true;
         }
 
+        $taskModel = new Task($this->db);
+
         if (in_array($action, ['opened', 'closed', 'reopened', 'synchronize'])) {
             $task = $taskModel->findByPrUrl($pr['html_url']);
             if ($task) {
