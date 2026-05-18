@@ -4,8 +4,8 @@
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| 1 | Callback Infrastructure | 🚧 |
-| 2 | Action-Enabled Notifications | 🚧 |
+| 1 | Callback Infrastructure | ✅ |
+| 2 | Action-Enabled Notifications | ✅ |
 | 3 | [UC-C1] Remote Task Recovery | 🚧 |
 | 4 | [UC-C2] One-Tap PR Merging | 🚧 |
 | 5 | UX & Feedback Loop | 🚧 |
@@ -14,20 +14,20 @@
 
 - Transform Telegram bot into an interactive management interface. ✅
 - Support common task operations (Retry, Restart, Merge) directly from chat. 🚧
-- Provide immediate feedback for remote actions. 🚧
-- Maintain secure, authorized access to project resources. 🚧
+- Provide immediate feedback for remote actions. ✅
+- Maintain secure, authorized access to project resources. ✅
 
 ## Phase 1: Callback Infrastructure
-- [ ] Extend `App\TelegramWebhookHandler` to process `callback_query` updates.
-- [ ] Implement secure user verification for callback queries (via `chat_id`).
-- [ ] Implement resource authorization check (verify user permissions for `taskId`).
-- [ ] Add `answerCallbackQuery` support to `App\TelegramService`.
-- [ ] Implement basic routing for callback data patterns (e.g., `action:id`).
+- [x] Extend `App\TelegramWebhookHandler` to process `callback_query` updates.
+- [x] Implement secure user verification for callback queries (via `chat_id`).
+- [x] Implement resource authorization check (verify user permissions for `taskId`).
+- [x] Add `answerCallbackQuery` support to `App\TelegramService`.
+- [x] Implement basic routing for callback data patterns (e.g., `action:id`).
 
 ## Phase 2: Action-Enabled Notifications
-- [ ] Update `NotificationService::notify` to accept an optional `actions` array.
-- [ ] Enhance `TelegramChannelHandler` to translate actions into `InlineKeyboardMarkup`.
-- [ ] Define standardized callback data format (e.g., `retry:{taskId}`, `merge:{taskId}`).
+- [x] Update `NotificationService::notify` to accept an optional `actions` array.
+- [x] Enhance `TelegramChannelHandler` to translate actions into `InlineKeyboardMarkup`.
+- [x] Define standardized callback data format (e.g., `retry:{taskId}`, `merge:{taskId}`).
 - [ ] Test button rendering in Telegram for different notification types.
 
 ## Phase 3: [UC-C1] Remote Task Recovery

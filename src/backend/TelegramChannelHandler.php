@@ -14,7 +14,7 @@ class TelegramChannelHandler implements NotificationChannelInterface
     ) {
     }
 
-    public function send(array $notification): bool
+    public function send(array $notification, array $actions = []): bool
     {
         $userId = $notification['user_id'];
         $user = $this->userModel->findById($userId);
@@ -42,8 +42,27 @@ class TelegramChannelHandler implements NotificationChannelInterface
             $text .= "\n\n<a href=\"" . htmlspecialchars($sourceUrl) . "\">View Source</a>";
         }
 
+        $extraParams = [];
+        if (!empty($actions) && isset($notification['data']['task_id'])) {
+            $taskId = $notification['data']['task_id'];
+            $buttons = [];
+            foreach ($actions as $action) {
+                $label = ucfirst($action);
+                if ($action === 'merge') {
+                    $label = 'Merge & Close';
+                }
+                $buttons[] = [
+                    'text' => $label,
+                    'callback_data' => "$action:$taskId"
+                ];
+            }
+            $extraParams['reply_markup'] = [
+                'inline_keyboard' => [$buttons]
+            ];
+        }
+
         try {
-            return $this->telegramService->withToken($botToken)->sendMessage($chatId, $text);
+            return $this->telegramService->withToken($botToken)->sendMessage($chatId, $text, $extraParams);
         } catch (\Exception $e) {
             error_log("Telegram Send Error for user $userId: " . $e->getMessage());
             return false;
