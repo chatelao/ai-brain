@@ -68,7 +68,8 @@ try {
                 $githubToken = $project['github_token'] ?? null;
                 if ($githubToken) {
                     $githubService = new GitHubService(null, $githubToken);
-                    $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService, null, $projectId);
+                    // Manual sync should not trigger notifications
+                    $taskModel->refreshJulesStatus($userId, $githubService, $julesService, null, null, $projectId);
                 }
             }
         } else {
@@ -77,11 +78,13 @@ try {
             if (!empty($githubAccounts)) {
                 // Use the first account's token for refreshing Jules status
                 $githubService = new GitHubService(null, $githubAccounts[0]['github_token']);
-                $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
+                // Manual sync should not trigger notifications
+                $taskModel->refreshJulesStatus($userId, $githubService, $julesService, null);
             } else {
                 // Fallback without token
                 $githubService = new GitHubService();
-                $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
+                // Manual sync should not trigger notifications
+                $taskModel->refreshJulesStatus($userId, $githubService, $julesService, null);
             }
         }
     }
