@@ -6,14 +6,14 @@
 |-------|-------------|--------|
 | 1 | Callback Infrastructure | ✅ |
 | 2 | Action-Enabled Notifications | ✅ |
-| 3 | [UC-C1] Remote Task Recovery | 🚧 |
-| 4 | [UC-C2] One-Tap PR Merging | 🚧 |
+| 3 | [UC-C1] Remote Task Recovery | ✅ |
+| 4 | [UC-C2] One-Tap PR Merging | ✅ |
 | 5 | UX & Feedback Loop | 🚧 |
 
 ## Goals
 
 - Transform Telegram bot into an interactive management interface. ✅
-- Support common task operations (Retry, Restart, Merge) directly from chat. 🚧
+- Support common task operations (Retry, Restart, Merge) directly from chat. ✅
 - Provide immediate feedback for remote actions. ✅
 - Maintain secure, authorized access to project resources. ✅
 
@@ -31,19 +31,19 @@
 - [ ] Test button rendering in Telegram for different notification types.
 
 ## Phase 3: [UC-C1] Remote Task Recovery
-- [ ] Implement `retry` action handler in `TelegramWebhookHandler`.
-- [ ] Integrate with `JulesService` to trigger agent retries.
-- [ ] Implement `restart` action handler for fresh Jules sessions.
+- [x] Implement `retry` action handler in `TelegramWebhookHandler`.
+- [x] Integrate with `GitHubService::postComment()` to trigger agent retries via "retry" signal.
+- [x] Implement `restart` action handler for fresh Jules sessions via label toggling.
 - [ ] Verify task recovery flow from a "Failed" notification.
 
 ## Phase 4: [UC-C2] One-Tap PR Merging
-- [ ] Implement `merge` action handler in `TelegramWebhookHandler`.
-- [ ] Integrate with `GitHubService::mergePullRequest()`.
-- [ ] Ensure associated issues are closed after successful merge.
+- [x] Implement `merge` action handler in `TelegramWebhookHandler`.
+- [x] Integrate with `GitHubService::mergePullRequest()`.
+- [x] Ensure associated issues are closed after successful merge.
 - [ ] Verify PR merging flow from a "CI Success" notification.
 
 ## Phase 5: UX & Feedback Loop
-- [ ] Implement `editMessageText` in `TelegramService` to update message state after action.
-- [ ] Show "Loading..." or success/failure toasts using `answerCallbackQuery`.
-- [ ] Update original notification text to reflect new status (e.g., "🔄 Retrying...").
+- [x] Implement `editMessageText` in `TelegramService` to update message state after action.
+- [x] Show "Loading..." or success/failure toasts using `answerCallbackQuery`.
+- [x] Update original notification text to reflect new status (e.g., "✅ PR merged...").
 - [ ] Final end-to-end testing of the interactive chat experience.
