@@ -14,6 +14,8 @@ Welcome to AI Brain's documentation!
    concept
    design
    roadmap
+   notif_roadmap
+   chat_roadmap
    gemini
    howto
 
