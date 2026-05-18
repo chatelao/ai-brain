@@ -35,6 +35,7 @@ class NotificationServiceTest extends TestCase
         $this->pdo->exec("DROP TABLE IF EXISTS notifications");
         $this->pdo->exec("DROP TABLE IF EXISTS user_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS project_notification_settings");
+        $this->pdo->exec("DROP TABLE IF EXISTS user_event_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS task_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS users");
 
@@ -59,6 +60,13 @@ class NotificationServiceTest extends TestCase
             channel VARCHAR(20),
             is_enabled BOOLEAN DEFAULT TRUE,
             PRIMARY KEY (user_id, channel)
+        )");
+
+        $this->pdo->exec("CREATE TABLE user_event_notification_settings (
+            user_id INT,
+            notification_type VARCHAR(50),
+            is_enabled BOOLEAN DEFAULT TRUE,
+            PRIMARY KEY (user_id, notification_type)
         )");
 
         $this->pdo->exec("CREATE TABLE project_notification_settings (

@@ -101,7 +101,16 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notif
         'telegram' => isset($_POST['notify_telegram']),
         'browser' => isset($_POST['notify_browser'])
     ];
-    if ($notificationService->updateUserSettings($user['user_id'], $settings)) {
+    $eventSettings = [
+        'github_issue' => isset($_POST['notify_github_issue']),
+        'github_pr' => isset($_POST['notify_github_pr']),
+        'task_status' => isset($_POST['notify_task_status']),
+        'agent_event' => isset($_POST['notify_agent_event'])
+    ];
+    if (
+        $notificationService->updateUserSettings($user['user_id'], $settings) &&
+        $notificationService->updateUserEventSettings($user['user_id'], $eventSettings)
+    ) {
         header('Location: settings.php?tab=notifications&success=notifications_updated');
         exit;
     } else {
@@ -420,6 +429,31 @@ if ($user && !$telegramChatId && !empty($telegramBotName) && empty($telegramLink
                                         <input type="checkbox" name="notify_telegram" class="sr-only peer" <?= ($notifSettings['telegram'] ?? false) ? 'checked' : '' ?>>
                                         <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                                     </label>
+                                </div>
+
+                                <div class="border-t border-gray-100 pt-4">
+                                    <h4 class="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wider">Global Event Subscriptions</h4>
+                                    <p class="text-xs text-gray-500 mb-4">Choose which types of events you want to be notified about across all projects.</p>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <?php
+                                        $userEventSettings = $notificationService->getUserEventSettings($user['user_id']);
+                                        $eventTypes = [
+                                            'github_issue' => 'GitHub Issues',
+                                            'github_pr' => 'GitHub PRs',
+                                            'task_status' => 'Task Status',
+                                            'agent_event' => 'Agent Events'
+                                        ];
+                                        foreach ($eventTypes as $id => $label) :
+                                        ?>
+                                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                            <span class="text-sm font-medium text-gray-700"><?= $label ?></span>
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" name="notify_<?= $id ?>" class="sr-only peer" <?= ($userEventSettings[$id] ?? true) ? 'checked' : '' ?>>
+                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                            </label>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    </div>
                                 </div>
 
                                 <div class="flex justify-end">
