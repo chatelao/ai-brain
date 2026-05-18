@@ -202,7 +202,7 @@ $taskModel->create([
     'issue_number' => 102,
     'title' => 'Another Bug #2',
     'body' => 'Description for bug 2',
-    'status' => executing
+    'status' => 'executing'
 ]);
 
 // Include the actual file to test

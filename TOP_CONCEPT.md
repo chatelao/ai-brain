@@ -21,7 +21,7 @@ The following table illustrates the core entities of the system and their repres
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **USER** | `users` table | `google_id` | `user_github_accounts` | `jules_api_key` | `user_telegram_accounts` | 1 User : N GitHub, 1 User : 1 Telegram |
 | **PROJECT** | `projects` table | - | Repository (`github_repo`) | - | - | 1 User : N Projects |
-| **TASK** | `tasks` table | - | Issue (`issue_number`), Pull Request (`pr_url`) | Session Status | - | 1 Project : N Tasks |
+| **TASK** | `tasks` table | - | Issue (`issue_number`) | Session Status | - | 1 Project : N Tasks |
 
 ## High-Level Architecture
 - **Frontend**: Web interface for users to manage projects and agents.

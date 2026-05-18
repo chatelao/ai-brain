@@ -59,20 +59,10 @@ These behaviors are triggered by specific events originating from GitHub (webhoo
 | **Retry (Button)** | Sends a "retry" command to a failed Jules session. |
 | **Restart (Button)** | Aborts the current Jules session and restarts it by toggling the `Jules` label. |
 
-### 3.3 Periodic Polling (Cron Job)
+### 3.3 Jules Status Polling
 
-The application implements "Event Source Parity", ensuring that system events are triggered consistently whether they arrive via real-time webhooks, periodic polling, or manual refreshes.
+Periodic calls to `App\Task::refreshJulesStatus` update the unified task state based on the remote Jules session state:
 
-The background cron job (triggered via `cronjob.php`) performs the following synchronization activities:
-
-#### 3.3.1 GitHub Issue Synchronization (`syncIssues`)
-The system periodically scans linked repositories for updates to GitHub Issues.
-- **New Issues**: Discovers and imports issues with the `Jules` label.
-- **State Changes**: Detects if an issue has been closed or reopened externally.
-- **Label Changes**: Responds to the addition or removal of relevant labels (e.g., `Jules`, `Auto-Repeat`).
-
-#### 3.3.2 Jules Status Polling (`refreshJulesStatus`)
-Periodic calls update the unified task state based on the remote Jules session state:
 - `STATE_RESEARCHING` -> `PROCESSING/ANALYZING`
 - `STATE_PLANNING` -> `PROCESSING/PLANNING`
 - `STATE_IN_PROGRESS` -> `PROCESSING/EXECUTING`
@@ -80,11 +70,6 @@ Periodic calls update the unified task state based on the remote Jules session s
 - `STATE_TESTING` -> `PROCESSING/VERIFYING`
 - `STATE_FINISHED` / `STATE_COMPLETED` -> `PROCESSING/CHECKING` (if PR exists) or `FINISHED` (if issue closed)
 - `STATE_FAILED` / `STATE_ERROR` -> `FAILED/FAILED_JULES`
-
-#### 3.3.3 Pull Request & Check Suite Discovery
-During the `refreshJulesStatus` cycle, the system also:
-- **Discovers PRs**: Links newly created GitHub Pull Requests to their corresponding tasks.
-- **Polls Check Suites**: Retrieves the latest status of GitHub Actions/Check Suites to advance tasks from `PROCESSING/CHECKING` to `READY` or `FAILED/FAILED_PR`.
 
 ## 4. Automation & Operations
 

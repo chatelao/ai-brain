@@ -134,7 +134,7 @@ $pdo->exec("INSERT INTO projects (project_id, user_id, github_account_id, github
 
 // Create a mock task
 $pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, body, status, jules_status, pr_url, jules_url)
-            VALUES (101, 1, 1, 101, 'Mock Task Title', 'This is a mock task description.', executing, 'coding', 'https://github.com/owner/repo/pull/1', 'https://jules.example.com/session/1')");
+            VALUES (101, 1, 1, 101, 'Mock Task Title', 'This is a mock task description.', 'executing', 'coding', 'https://github.com/owner/repo/pull/1', 'https://jules.example.com/session/1')");
 
 // Include the actual file to test
 $_GET['id'] = 1;
