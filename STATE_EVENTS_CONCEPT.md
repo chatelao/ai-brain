@@ -46,11 +46,59 @@ Periodic calls to `App\Task::refreshJulesStatus` update the internal task status
 - `STATE_FINISHED` / `STATE_COMPLETED` -> `completed` (if PR exists) or `implemented` (if no PR yet)
 - `STATE_FAILED` / `STATE_ERROR` -> `failed_jules`
 
-## 3. On-State Behaviors
+## 3. Automation & Operations
+
+This section details the logic for automated and manual operations within the application.
+
+### 3.1 Pull Request Operations
+
+#### Merge & Close
+When a task has an associated Pull Request (PR), it may be eligible for a "Merge & Close" operation directly from the project issue list.
+
+**Conditions for presenting the "Merge & Close" option:**
+- The issue has an associated Pull Request.
+- The Pull Request is reported as **mergeable** by GitHub.
+- The Pull Request is reported to be **ready** (not a draft).
+- All status checks (more than 1) are in a **passed** or **skipped** state.
+
+**Action:**
+- Merges the Pull Request via the GitHub API.
+- Closes the associated GitHub issue.
+
+### 3.2 Failed Jules Session Operations
+
+When a task has a status indicating a failed Jules session (`failed_jules`), the following options are presented:
+
+#### Retry
+**Action:**
+- Sends a command to the existing Jules Session: "retry to finish the task".
+- Aims to resume the current session and attempt to complete the remaining work.
+
+#### Restart
+**Action:**
+- Aborts or deletes the current Jules session.
+- Removes the "Jules" label from the associated GitHub issue.
+- Re-adds the "Jules" label to the GitHub issue to trigger a fresh agent session.
+
+### 3.3 Issue Lifecycle Automation
+
+#### Auto-Repeat Duplication
+To support recurring tasks, the system implements an "Auto-Repeat" mechanism.
+
+**Trigger:**
+- A Pull Request associated with an issue carrying the **"Auto-Repeat"** label is closed (typically after a merge).
+
+**Action:**
+- The system automatically duplicates the issue.
+- The new issue **includes** the "Jules" label to trigger the agent.
+- The new issue **excludes** the "Auto-Repeat" label.
+- The original issue's title and body are used for the new issue.
+
+## 4. On-State Behaviors
 
 The system exhibits different behaviors and UI representations depending on the current state of a task.
 
-### 3.1 Task Status Visuals (Dashboard/Project List)
+### 4.1 Task Status Visuals (Dashboard/Project List)
 
 - **`pending` / `analyzed`**: Displayed as "Waiting for Agent" or "Analyzing".
 - **`researching` / `planning` / `coding` / `testing`**: Displayed with a yellow/spinning indicator to show Jules is active.
@@ -58,24 +106,14 @@ The system exhibits different behaviors and UI representations depending on the 
 - **`completed`**: Green checkmark, indicating work is done and PR is in good standing (or closed).
 - **`failed_jules` / `failed_pr`**: Red error indicator, highlighting that human intervention is needed.
 
-### 3.2 Feature Availability
+### 4.2 Feature Availability
 
 - **Merge & Close**: Only available if `status` is `completed`, a PR exists, it is mergeable, not a draft, and checks have passed.
 - **Retry / Restart**: Only available when status is `failed_jules`.
 
-## 4. Automation Rules
+## 5. Unified Task State Mapping
 
-Detailed automation logic as defined in `AUTOMATION_CONCEPT.md`:
-
-### 4.1 Auto-Repeat
-Triggered when a PR associated with an issue labeled `Auto-Repeat` is closed. A new issue is created with the same title/body and the `Jules` label, but without the `Auto-Repeat` label.
-
-### 4.2 PR Monitoring
-The system continuously monitors the `check_suite` status of open PRs. Any failure automatically transitions the task to `failed_pr` to alert the user.
-
-## 5. Unified Task State Mapping (CONCEPT_STATE_EVENTS)
-
-To provide a tool-independent view of task progress, the following unified states are defined. These states map to various tool-dependent statuses using Boolean logic.
+To provide a tool-independent view of task progress, the following unified states are defined.
 
 | Unified State | Description | Mapping Logic (Tool-Dependent States) |
 | :--- | :--- | :--- |
@@ -89,5 +127,5 @@ To provide a tool-independent view of task progress, the following unified state
 
 ### 5.1 Tool-Dependent State Key
 - **`Task:*`**: Internal status stored in the `tasks` table (`status` column).
-- **`Jules:*`**: Status returned by the Google Jules API (normalized to lowercase).
+- **`Jules:*`**: Status returned by the Google Jules API.
 - **`GitHub:*`**: State of the issue or PR on GitHub (`github_state` column).

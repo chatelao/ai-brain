@@ -1,53 +1,20 @@
-# Goal
+# Concept & Design Documentation Index
 
-Create a PHP application to control agents from Google Jules and coordinated by GitHub repository andissues 
-running on a php webserver using a MySQL database and Google SSO login for multi user management.
+This document provides a structured index of the application's conceptual and technical documentation.
 
-# Structure
+## Core Concepts & Designs
 
-- `TOP_CONCEPT.md`: The overall structure of the product, including Business Cases & Use Cases as well as the overall High-Level Architecture, etc.
-- `TOP_DESIGN.md`: The detailed design of the solution, including the architecture, used tech stack for development, production and testing, etc.
-- `TOP_ROADMAP.md`: The main roadmap for the project. Specialized roadmaps like `NOTIF_ROADMAP.md` and `CHAT_ROADMAP.md` provide detailed phases for specific features. They should be grouped into Phases, Tasks and Subtasks. Checkboxes show the progress to be updated with every increment.
-- `/specification/`: External Know-How as datasheet, standards, etc. Should be converted to Markdown if PDF, etc.
-- `/src/`: The source code of the projec
-- `/src/openapi.yaml`the REST-API definition used to generate the front- & backend glue-code
-- `/src/frontend/`: The source code for the frontend (Browser) parts of the project
-- `/src/backend/`: The source code for the PHP backend
-- `/src/client-api/`: The source code for client api modules of the project
-- `/src/sql/`: The SQL scripts for the schematic and patches between releases if necessary
-- `/src/clients/`: Definition of external interfaces
-- `/test/`: All tools, configurations & test cases
-- `/build/`: Only temporary place for compilation, may be cached by Github
-- `/scripts/install.sh` to install all tools to build the application (test only tools, see below)
+| Feature | Concept Document | Design Document | Roadmap |
+| :--- | :--- | :--- | :--- |
+| **Overall System** | [`TOP_CONCEPT.md`](TOP_CONCEPT.md) | [`TOP_DESIGN.md`](TOP_DESIGN.md) | [`TOP_ROADMAP.md`](TOP_ROADMAP.md) |
+| **State & Events** | [`STATE_EVENTS_CONCEPT.md`](STATE_EVENTS_CONCEPT.md) | - | - |
+| **Cron Job System** | [`CRONJOB_CONCEPT.md`](CRONJOB_CONCEPT.md) | [`CRONJOB_DESIGN.md`](CRONJOB_DESIGN.md) | - |
+| **Notifications** | [`NOTIF_CONCEPT.md`](NOTIF_CONCEPT.md) | [`NOTIF_DESIGN.md`](NOTIF_DESIGN.md) | [`NOTIF_ROADMAP.md`](NOTIF_ROADMAP.md) |
+| **Telegram Control** | [`CHAT_CONCEPT.md`](CHAT_CONCEPT.md) | [`CHAT_DESIGN.md`](CHAT_DESIGN.md) | [`CHAT_ROADMAP.md`](CHAT_ROADMAP.md) |
 
-# `*ROADMAP.md` handling
-- The `ROADMAP.md` is the final plan to implement the `CONCEPT.md` and `DESIGN.md` to achive the top goal
-- Define the steps in a way to allow for parallelization by defining interfaces only first and implementing functions later.
-- The `ROADMAP.md` file is structured into several key sections:
-  - **Progress Overview**: A table summarizing Phases, Descriptions, and Status (using ✅ for completed, 🚧 for in-progress, ⏳ for planned).
-  - **Goals**: A high-level list of project objectives with status emojis.
-  - **Phases**: Detailed chapters for each project phase.
-- The Tasks, and Subtasks if necessary, have checkboxes to show the progress.
-- Every task to be implemented has to be modest, feasible and reasonable.
-  - If no such task is available, then break down a bigger steps to modest ones without implementing anything, just changing the `ROADMAP.md`.
-- Status Emojis:
-  - ✅: Completed
-  - 🚧: In Progress
-  - ⏳: Planned / To Do
-- The progress is updated with every increment.
-- The finished tasks are linked to the corresponding issue and timestamped at the end of the line.
+## Specialized Resources
 
-## Database
-- If SQL statements are required, use the oldest, most common standard dialect available to improve cross-plattform compatibility.
-- Draw database schematics as plantUML entities with crowfoot notation.
-
-# Testing Locally & with Github Action Workflow
-
-- Setup the empty CI/CD pipeline before coding anything
-- Write CI/CD test independent as `test` script of the Github action workflows
-- Create screenshots of each UI step tested and store it as asset of the Action Workflow for review
-- Use `test/install.sh` to install test tools.
-- Use the Github action workflows to run the tests after commits.
-- Before committing fetch all changes from the remote repository and merge the changes
-- Run the CI/CD on every commit on every branch
-- Add as much caching as possible to the Github action workflows
+- **Glossary**: [`TOP_GLOSSARY.md`](TOP_GLOSSARY.md)
+- **External Specifications**: [`/specification/`](specification/)
+- **Audit Logs**: [`AUDIT_AUTOREPEAT.md`](AUDIT_AUTOREPEAT.md), [`AUDIT_MAINSCREEN.md`](AUDIT_MAINSCREEN.md)
+- **Developer Guides**: [`INSTALL.md`](INSTALL.md), [`HOWTO.md`](HOWTO.md)

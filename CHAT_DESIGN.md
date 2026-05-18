@@ -6,71 +6,53 @@ Telegram Chat Control transforms the Telegram bot from a notification-only chann
 ## Architecture
 
 ### Component Diagram (Differential)
-The following diagram highlights the changes required for Telegram Chat Control, based on the system architecture.
+The following diagram highlights the changes required for Telegram Chat Control.
 - **Orange**: Existing components requiring significant logic updates.
-- **Green**: New components, interactions, or removed/deprecated flows (per requirement).
+- **Green**: New components, interactions, or removed flows.
 
 ![Telegram Chat Control Component Diagram](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/specification/CHAT_COMPONENT.puml)
 
 ## Technical Details
 
 ### 1. Callback Query Handling
-The `TelegramWebhookHandler` is extended to process `callback_query` updates.
+The `TelegramWebhookHandler` processes `callback_query` updates.
+- **Authentication**: Every callback query must come from a `chat_id` linked to a valid `user_id`.
+- **Authorization**: The system verifies that the user has appropriate permissions for the project associated with the `taskId`.
 
-```php
-// Conceptual implementation in TelegramWebhookHandler.php
-public function handle(array $update): bool {
-    if (isset($update['callback_query'])) {
-        return $this->handleCallback($update['callback_query']);
-    }
-    // ... existing message handling ...
-}
+### 2. Inline Keyboards & Button Data
+The `NotificationService` attaches action metadata to notifications, which `TelegramChannelHandler` translates into `InlineKeyboardMarkup`.
 
-private function handleCallback(array $callbackQuery): bool {
-    $data = $callbackQuery['data']; // e.g., "retry:123"
-    $chatId = $callbackQuery['message']['chat']['id'];
-
-    // 1. Authenticate user by chatId
-    // 2. Parse action and taskId
-    // 3. Verify project permissions
-    // 4. Execute action via GHS or JS
-    // 5. Provide feedback via TelegramService::answerCallbackQuery
-}
-```
-
-### 2. Inline Keyboards
-The `NotificationService` now supports adding actions to notifications. These actions are translated by `TelegramChannelHandler` into `InlineKeyboardMarkup`.
-
-**Button Data Format:**
+**Standardized Button Data Format:**
 - `retry:{taskId}`
 - `restart:{taskId}`
 - `merge:{taskId}`
+- `acknowledge:{taskId}`
 
-### 3. Security and Permissions
-- **User Verification**: Every callback query must come from a `chat_id` linked to a valid `user_id` in the database.
-- **Resource Authorization**: The system verifies that the authenticated user has appropriate permissions (e.g., is an owner or collaborator) for the project associated with the `taskId` before executing any action.
+### 3. Message Deletion & Cleanup
+- The system tracks the Telegram `message_id` for each notification sent.
+- Implements logic to call the `deleteMessage` API method when a notification is marked as read in the application or via a cleanup command.
 
-### 4. User Feedback Loop
-- **Immediate Ack**: `answerCallbackQuery` is used to show a "Loading..." state or a toast notification in Telegram.
-- **Completion Update**: Once the action (like a retry) is initiated, the bot should ideally update the original message to reflect the new state (e.g., "🔄 Retrying task...") using `editMessageText`.
+### 4. Technical Requirements
+- **Dynamic Button Generation**: Ability to attach action metadata to notification payloads.
+- **State Mapping**: Securely map callback data to specific backend actions.
+- **Feedback Loop**: Provide immediate feedback via `answerCallbackQuery` and update the original message using `editMessageText`.
 
 ## Use Case Realization
 
 ### [UC-C1] Remote Task Recovery
-1.  `Task::refreshJulesStatus` detects a failure.
-2.  `NotificationService` triggers a notification with `['actions' => ['retry', 'restart']]`.
-3.  `TelegramChannelHandler` sends a message with buttons.
-4.  User taps "Retry".
-5.  `TelegramWebhookHandler` receives `retry:{id}`, calls `JulesService::retry()`, and notifies the user of success.
+1.  Failure detected.
+2.  Notification triggered with `retry` and `restart` actions.
+3.  User taps "Retry".
+4.  `TelegramWebhookHandler` receives `retry:{id}`, calls `JulesService::retry()`, and confirms success.
 
 ### [UC-C2] One-Tap PR Merging
-1.  GitHub Webhook reports CI success on a PR.
-2.  `NotificationService` triggers a notification with `['actions' => ['merge']]`.
+1.  CI success reported.
+2.  Notification triggered with `merge` action.
 3.  User taps "Merge & Close".
 4.  `TelegramWebhookHandler` receives `merge:{id}`, calls `GitHubService::mergePullRequest()`, then closes the issue.
 
 ### [UC-C3] Quick Task Acknowledgment
-1.  `WebhookHandler` detects a new issue with the 'jules' label.
-2.  `NotificationService` triggers a notification with `['actions' => ['acknowledge']]`.
+1.  New task or state change detected.
+2.  Notification triggered with `acknowledge` action.
 3.  User taps "Acknowledge".
-4.  `TelegramWebhookHandler` receives `acknowledge:{id}`, updates internal task state (e.g., adding a log entry or updating a field), and confirms to the user.
+4.  `TelegramWebhookHandler` receives `acknowledge:{id}`, updates internal state, and confirms.
