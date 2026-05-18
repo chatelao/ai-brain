@@ -29,3 +29,11 @@ The Telegram integration provides a mobile-first interface for users to monitor 
 - **Account Linking**: Users securely link their Telegram account by using a unique token generated in the dashboard, which is then sent to the bot via the `/start` command.
 - **Real-time Notifications**: Instant alerts for critical events such as task completions, session failures, or new pull requests.
 - **Bot Customization**: Support for user-specific Telegram bots, allowing each user to use their own bot token and webhook secret for enhanced privacy and control.
+
+## Sub-Concepts
+For detailed information on specific functional areas, refer to the following sub-concept documents:
+- [**Automation Concept**](AUTOMATION_CONCEPT.md): Operations for PRs, Jules sessions, and issue lifecycle automation.
+- [**Telegram Chat Control Concept**](CHAT_CONCEPT.md): Mobile interaction strategy and interactive bot capabilities.
+- [**Logging & Monitoring Concept**](CONCEPT_LOGGING.md): Strategy for performance tracking and system auditability.
+- [**State & Event Concept**](CONCEPT_ONEVENT_ONSTATE.md): Detailed state transitions and reactive system behaviors.
+- [**Notification System Concept**](NOTIF_CONCEPT.md): Multi-channel delivery and user preference management.

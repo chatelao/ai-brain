@@ -6,7 +6,20 @@ running on a php webserver using a MySQL database and Google SSO login for multi
 # Structure
 
 - `CONCEPT.md`: The overall structure of the product, including Business Cases & Use Cases as well as the overall High-Level Architecture, etc.
+  - **Sub-Concepts (CONCEPT.md)**:
+    | File | Description |
+    | :--- | :--- |
+    | [`AUTOMATION_CONCEPT.md`](AUTOMATION_CONCEPT.md) | Outlines planned automation and manual operations for tasks. |
+    | [`CHAT_CONCEPT.md`](CHAT_CONCEPT.md) | Concepts for Telegram Chat Control as an active control interface. |
+    | [`CONCEPT_LOGGING.md`](CONCEPT_LOGGING.md) | Describes the state-of-the-art logging and performance monitoring strategy. |
+    | [`CONCEPT_ONEVENT_ONSTATE.md`](CONCEPT_ONEVENT_ONSTATE.md) | Details reactive behaviors based on external events and internal state. |
+    | [`NOTIF_CONCEPT.md`](NOTIF_CONCEPT.md) | High-level concept for the multi-channel notification system. |
 - `DESIGN.md`: The detailed design of the solution, including the architecture, used tech stack for development, production and testing, etc.
+  - **Sub-Designs (DESIGN.md)**:
+    | File | Description |
+    | :--- | :--- |
+    | [`CHAT_DESIGN.md`](CHAT_DESIGN.md) | Detailed design for interactive Telegram bot management. |
+    | [`NOTIF_DESIGN.md`](NOTIF_DESIGN.md) | Detailed architecture and database schema for the notification system. |
 - `ROADMAP.md`: The main roadmap for the project. Specialized roadmaps like `NOTIF_ROADMAP.md` and `CHAT_ROADMAP.md` provide detailed phases for specific features. They should be grouped into Phases, Tasks and Subtasks. Checkboxes show the progress to be updated with every increment.
 - `/specification/`: External Know-How as datasheet, standards, etc. Should be converted to Markdown if PDF, etc.
 - `/src/`: The source code of the projec

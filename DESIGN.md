@@ -127,3 +127,8 @@ WHLog --> MySQL
 - Secure storage of API tokens using environment variables.
 - Input validation and sanitization for all user-provided data.
 - Session management for authenticated users.
+
+## Sub-Designs
+Detailed architectural and technical designs for specific features can be found in the following documents:
+- [**Telegram Chat Control Design**](CHAT_DESIGN.md): Callback handling, inline keyboards, and mobile interaction logic.
+- [**Notification System Design**](NOTIF_DESIGN.md): Service architecture, delivery channel implementations, and database schema.
