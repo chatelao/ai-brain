@@ -61,4 +61,8 @@
 - [x] Trigger notifications on PR creation/updates.
 - [x] Trigger notifications on Jules session failures or completions.
 - [x] Trigger notifications on task status changes.
-- [x] Final end-to-end testing of all notification flows.
+- [ ] Implement Event Source Parity (Notifications via Polling).
+    - [ ] Update `Task::syncIssues` to trigger notifications.
+    - [ ] Update `Task::refreshJulesStatus` to trigger PR discovery and check suite notifications.
+    - [ ] Enable `NotificationService` in `cronjob.php` and `project.php`.
+- [ ] Final end-to-end testing of all notification flows.

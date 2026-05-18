@@ -292,7 +292,7 @@ class Task
         ]);
     }
 
-    public function syncIssues(int $userId, int $projectId, string $repo, GitHubService $githubService): void
+    public function syncIssues(int $userId, int $projectId, string $repo, GitHubService $githubService, ?NotificationService $notificationService = null): void
     {
         $issues = $githubService->listIssues($repo, 'all');
         $issueNumbers = [];
@@ -302,15 +302,19 @@ class Task
             if (isset($issue['pull_request'])) {
                 continue;
             }
-            $this->upsert($userId, $projectId, $issue);
+            $this->upsert($userId, $projectId, $issue, $notificationService, $repo);
             $issueNumbers[] = $issue['number'];
         }
 
         $this->deleteByIssueNumbersNotIn($projectId, $issueNumbers);
     }
 
-    public function upsert(int $userId, int $projectId, array $issue): bool
+    public function upsert(int $userId, int $projectId, array $issue, ?NotificationService $notificationService = null, ?string $repoName = null): bool
     {
+        $existingTask = $this->findByIssueNumber($projectId, $issue['number']);
+        $oldState = $existingTask ? ($existingTask['github_state'] ?? null) : null;
+        $newState = $issue['state'] ?? 'open';
+
         $connection = $this->db->getConnection();
         $driver = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
 
@@ -334,16 +338,40 @@ class Task
 
         $stmt = $connection->prepare($sql);
 
-        return $stmt->execute([
+        $result = $stmt->execute([
             $userId,
             $projectId,
             $issue['number'],
             $issue['title'],
             $issue['body'],
             json_encode($issue),
-            'pending',
-            $issue['state'] ?? 'open'
+            $existingTask ? ($existingTask['status'] ?? 'pending') : 'pending',
+            $newState
         ]);
+
+        if ($result && $notificationService) {
+            if ($oldState === null) {
+                $notificationService->notify($userId, 'github_issue', "🆕 Issue Opened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was opened in " . ($repoName ?? 'repository'), [
+                    'project_id' => $projectId,
+                    'issue_number' => $issue['number'],
+                    'source_url' => $issue['html_url']
+                ]);
+            } elseif ($oldState === 'open' && $newState === 'closed') {
+                $notificationService->notify($userId, 'github_issue', "🔒 Issue Closed: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was closed in " . ($repoName ?? 'repository'), [
+                    'project_id' => $projectId,
+                    'issue_number' => $issue['number'],
+                    'source_url' => $issue['html_url']
+                ]);
+            } elseif ($oldState === 'closed' && $newState === 'open') {
+                $notificationService->notify($userId, 'github_issue', "🔓 Issue Reopened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was reopened in " . ($repoName ?? 'repository'), [
+                    'project_id' => $projectId,
+                    'issue_number' => $issue['number'],
+                    'source_url' => $issue['html_url']
+                ]);
+            }
+        }
+
+        return $result;
     }
 
     public function getLogs(int $taskId): array
@@ -635,12 +663,74 @@ class Task
                                     "UPDATE tasks SET pr_url = ? WHERE task_id = ?"
                                 );
                                 $updateStmt->execute([$prUrl, $task['task_id']]);
+
+                                if ($notificationService) {
+                                    $prNumber = $githubService->extractPrNumber($prUrl);
+                                    $notificationService->notify($userId, 'github_pr', "🆕 PR Opened: #" . ($prNumber ?? $task['issue_number']), "A new Pull Request was discovered for \"" . $task['title'] . "\".", [
+                                        'project_id' => $task['project_id'],
+                                        'pr_number' => $prNumber,
+                                        'source_url' => $prUrl
+                                    ]);
+                                }
                                 break;
                             }
                         }
                     }
                 } catch (\Exception $e) {
                     // Log error if needed
+                }
+            }
+
+            if ($prUrl && $githubService) {
+                try {
+                    $prNumber = $githubService->extractPrNumber($prUrl);
+                    if ($prNumber) {
+                        $prData = $githubService->getPullRequest($task['github_repo'], $prNumber);
+                        $headSha = $prData['head']['sha'] ?? null;
+
+                        if ($headSha) {
+                            $checkSuitesResponse = $githubService->getCheckSuites($task['github_repo'], $headSha);
+                            $checkSuites = $checkSuitesResponse['check_suites'] ?? [];
+
+                            // Find the relevant check suite (usually the latest one)
+                            $conclusion = null;
+                            foreach ($checkSuites as $suite) {
+                                if ($suite['status'] === 'completed') {
+                                    $conclusion = $suite['conclusion'];
+                                    break; // Take the first completed one
+                                }
+                            }
+
+                            if ($conclusion) {
+                                $newStatus = $task['status'];
+                                if (in_array($conclusion, ['failure', 'timed_out', 'cancelled'])) {
+                                    $newStatus = 'failed_pr';
+                                } elseif ($conclusion === 'success' && $task['status'] === 'failed_pr') {
+                                    $newStatus = 'completed';
+                                }
+
+                                if ($newStatus !== $task['status']) {
+                                    $this->updateStatus($task['task_id'], $newStatus);
+
+                                    if ($notificationService) {
+                                        $title = $newStatus === 'failed_pr' ? "❌ PR Failed: #" . $task['issue_number'] : "✅ PR Fixed: #" . $task['issue_number'];
+                                        $message = $newStatus === 'failed_pr' ? "PR checks for \"" . $task['title'] . "\" failed." : "PR checks for \"" . $task['title'] . "\" are now passing.";
+
+                                        $notificationService->notify($userId, 'task_status', $title, $message, [
+                                            'task_id' => $task['task_id'],
+                                            'project_id' => $task['project_id'],
+                                            'status' => $newStatus,
+                                            'source_url' => $this->getTargetUrl(array_merge($task, ['status' => $newStatus]))
+                                        ]);
+                                    }
+                                    // Update local task object for subsequent Jules status check logic
+                                    $task['status'] = $newStatus;
+                                }
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Log PR polling error
                 }
             }
 
@@ -652,7 +742,10 @@ class Task
                     $julesUrl = $julesData['url'] ?? null;
 
                     if (in_array($newStatus, ['coding', 'testing', 'researching', 'planning', 'in-progress'])) {
-                        $mappedStatus = str_replace('-', '_', $newStatus);
+                        // Only map intermediate status if not in a terminal or PR failed state
+                        if (!in_array($task['status'], ['completed', 'implemented', 'failed_pr', 'failed_jules'])) {
+                            $mappedStatus = str_replace('-', '_', $newStatus);
+                        }
                     } elseif ($newStatus === 'completed' || $newStatus === 'finished') {
                         $mappedStatus = !empty($prUrl) ? 'completed' : 'implemented';
                     } elseif ($newStatus === 'failed' || $newStatus === 'error') {

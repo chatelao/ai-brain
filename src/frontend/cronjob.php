@@ -8,6 +8,7 @@ use App\Project;
 use App\Task;
 use App\GitHubService;
 use App\JulesService;
+use App\NotificationService;
 
 // Basic security check
 $cronSecret = getenv('CRON_SECRET');
@@ -22,6 +23,7 @@ $projectModel = new Project($db);
 $taskModel = new Task($db);
 $githubService = new GitHubService();
 $julesService = new JulesService();
+$notificationService = new NotificationService($db);
 
 $users = $userModel->getAllUsersWithProjectCount();
 
@@ -36,10 +38,10 @@ foreach ($users as $user) {
         if (!empty($project['github_token'])) {
             echo "  Syncing project: " . $project['github_repo'] . "...\n";
             $scopedGithubService = new GitHubService(null, $project['github_token']);
-            $taskModel->syncIssues($userId, $project['project_id'], $project['github_repo'], $scopedGithubService);
+            $taskModel->syncIssues($userId, $project['project_id'], $project['github_repo'], $scopedGithubService, $notificationService);
 
             $scopedJulesService = new JulesService(null, $user['jules_api_key'] ?? null);
-            $taskModel->refreshJulesStatus($userId, $scopedGithubService, $scopedJulesService, null, null, $project['project_id']);
+            $taskModel->refreshJulesStatus($userId, $scopedGithubService, $scopedJulesService, $notificationService, null, $project['project_id']);
         }
     }
 }

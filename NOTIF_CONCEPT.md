@@ -50,9 +50,16 @@ Globally or per project, users can choose which channels are active (e.g., Brows
 
 ### 2. Delivery Mechanism
 -   **Webhooks**: GitHub and CI/CD webhooks trigger the notification logic.
--   **Polling/SSE/WebSockets**: For real-time in-app updates and active browser notifications.
+-   **Polling**: Background tasks (via `cronjob.php`) and manual refreshes (via `project.php`) poll the GitHub and Jules APIs to detect state changes.
+-   **SSE/WebSockets**: For real-time in-app updates and active browser notifications.
 -   **Telegram Bot API**: Asynchronous delivery of messages to configured `telegram_chat_id`.
 
-### 3. Frontend Integration
+### 3. Unified Event Handling (Event Source Parity)
+The system ensures reliability by treating events from webhooks and polling equally. Whether an event is pushed via a webhook or detected during periodic polling:
+-   Identical notifications are triggered.
+-   The same state transitions are applied.
+-   Redundancy ensures that missed or delayed webhooks do not lead to inconsistent system state or missing alerts.
+
+### 4. Frontend Integration
 -   **Inbox UI**: A notification bell icon with a dropdown/slide-over showing recent events.
 -   **Settings Page**: A dedicated section in "Account Settings" to manage all notification preferences.

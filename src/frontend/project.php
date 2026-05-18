@@ -236,7 +236,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
         }
 
         $githubService = new GitHubService(null, $githubToken);
-        $taskModel->syncIssues($user['user_id'], $project['project_id'], $project['github_repo'], $githubService);
+        $taskModel->syncIssues($user['user_id'], $project['project_id'], $project['github_repo'], $githubService, $notificationService);
 
         // Also refresh roadmap cache during sync
         $roadmapFiles = $githubService->getRoadmapFiles($project['github_repo']);

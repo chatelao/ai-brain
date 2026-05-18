@@ -22,6 +22,25 @@ class GitHubService
     /**
      * @throws Exception
      */
+    public function getCheckSuites(string $repo, string $ref): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        return $this->apiCall(
+            'GitHub API',
+            "GET check_suites $repo/commits/$ref",
+            fn() => $this->client->api('repo')->checkSuites()->all($username, $repository, ['ref' => $ref])
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
     public function mergePullRequest(string $repo, int $prNumber, string $message = '', string $mergeMethod = 'merge'): array
     {
         $parts = explode('/', $repo);
