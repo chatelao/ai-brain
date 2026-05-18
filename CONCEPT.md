@@ -37,6 +37,6 @@ For detailed information on specific functional areas, refer to the following su
 | :--- | :--- | :--- |
 | **Automation** | [`AUTOMATION_CONCEPT.md`](AUTOMATION_CONCEPT.md) | Operations for PRs, Jules sessions, and issue lifecycle automation. |
 | **Telegram Chat Control** | [`CHAT_CONCEPT.md`](CHAT_CONCEPT.md) | Mobile interaction strategy and interactive bot capabilities. |
-| **Logging & Monitoring** | [`CONCEPT_LOGGING.md`](CONCEPT_LOGGING.md) | Strategy for performance tracking and system auditability. |
-| **State & Event** | [`CONCEPT_ONEVENT_ONSTATE.md`](CONCEPT_ONEVENT_ONSTATE.md) | Detailed state transitions and reactive system behaviors. |
-| **Notification System** | [`CONCEPT_NOTIF.md`](CONCEPT_NOTIF.md) | Multi-channel delivery and user preference management. |
+| **Logging & Monitoring** | [`LOGGING_CONCEPT.md`](LOGGING_CONCEPT.md) | Strategy for performance tracking and system auditability. |
+| **State & Event** | [`STATE_EVENT_CONCEPT.md`](STATE_EVENT_CONCEPT.md) | Detailed state transitions and reactive system behaviors. |
+| **Notification System** | [`NOTIF_CONCEPT.md`](NOTIF_CONCEPT.md) | Multi-channel delivery and user preference management. |
