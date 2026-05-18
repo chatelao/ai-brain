@@ -15,6 +15,9 @@ entity "users" {
   telegram_bot_token : VARCHAR(255)
   telegram_webhook_secret : VARCHAR(255)
   telegram_link_token : VARCHAR(255) <<UNIQUE>>
+  jules_quota_usage : INT
+  jules_quota_limit : INT
+  jules_quota_updated_at : DATETIME
   created_at : TIMESTAMP
 }
 
@@ -34,6 +37,8 @@ entity "projects" {
   * <color:grey><i>github_account_id</i></color> : INT <<FK>>
   * <color:grey>github_repo</color> : VARCHAR(255)
   webhook_secret : VARCHAR(255)
+  roadmap_data : TEXT
+  roadmap_updated_at : TIMESTAMP
   created_at : TIMESTAMP
 }
 
@@ -52,6 +57,10 @@ entity "tasks" {
   jules_status : VARCHAR(255)
   jules_url : VARCHAR(255)
   pr_url : VARCHAR(255)
+  github_state : VARCHAR(20)
+  github_pr_data : TEXT
+  github_comments_data : TEXT
+  github_data_updated_at : TIMESTAMP
   last_synced_at : TIMESTAMP
   created_at : TIMESTAMP
   updated_at : TIMESTAMP
@@ -93,14 +102,87 @@ entity "issue_templates" {
   created_at : TIMESTAMP
 }
 
+entity "notifications" {
+  * <color:grey><i>notification_id</i></color> : INT <<PK>>
+  --
+  * <color:grey><i>user_id</i></color> : INT <<FK>>
+  * <color:grey><i>project_id</i></color> : INT <<FK>>
+  type : VARCHAR(50)
+  title : VARCHAR(255)
+  message : TEXT
+  data : JSON
+  is_read : BOOLEAN
+  created_at : TIMESTAMP
+}
+
+entity "user_notification_settings" {
+  * <color:grey><i>user_id</i></color> : INT <<PK>> <<FK>>
+  * <color:grey>channel</color> : VARCHAR(20) <<PK>>
+  --
+  is_enabled : BOOLEAN
+}
+
+entity "project_notification_settings" {
+  * <color:grey><i>project_id</i></color> : INT <<PK>> <<FK>>
+  * <color:grey>notification_type</color> : VARCHAR(50) <<PK>>
+  --
+  is_enabled : BOOLEAN
+}
+
+entity "task_notification_settings" {
+  * <color:grey><i>task_id</i></color> : INT <<PK>> <<FK>>
+  --
+  is_muted : BOOLEAN
+}
+
+entity "project_status_notification_settings" {
+  * <color:grey><i>project_id</i></color> : INT <<PK>> <<FK>>
+  * <color:grey>status</color> : VARCHAR(50) <<PK>>
+  --
+  is_enabled : BOOLEAN
+}
+
+entity "webhook_logs" {
+  * <color:grey><i>log_id</i></color> : INT <<PK>>
+  --
+  * <color:grey><i>user_id</i></color> : INT <<FK>>
+  endpoint : VARCHAR(50)
+  payload : TEXT
+  headers : TEXT
+  status_code : INT
+  error_message : TEXT
+  created_at : TIMESTAMP
+}
+
+entity "performance_logs" {
+  * <color:grey><i>performance_log_id</i></color> : INT <<PK>>
+  --
+  * <color:grey><i>user_id</i></color> : INT <<FK>>
+  type : VARCHAR(50)
+  target : TEXT
+  duration : FLOAT
+  context : JSON
+  status_code : INT
+  error_message : TEXT
+  created_at : TIMESTAMP
+}
+
 users ||--o{ user_github_accounts : "user_id"
 users ||--o{ projects : "user_id"
 users ||--o{ tasks : "user_id"
 users ||--o{ task_logs : "user_id"
 users ||--o{ user_telegram_accounts : "user_id"
 users ||--o{ issue_templates : "user_id"
+users ||--o{ notifications : "user_id"
+users ||--o{ user_notification_settings : "user_id"
+users ||--o{ webhook_logs : "user_id"
+users ||--o{ performance_logs : "user_id"
 user_github_accounts ||--o{ projects : "github_account_id"
 projects ||--o{ tasks : "project_id"
+projects ||--o{ notifications : "project_id"
+projects ||--o{ project_notification_settings : "project_id"
+projects ||--o{ project_status_notification_settings : "project_id"
 tasks ||--o{ task_logs : "task_id"
+tasks ||--o| task_notification_settings : "task_id"
 
 @enduml
