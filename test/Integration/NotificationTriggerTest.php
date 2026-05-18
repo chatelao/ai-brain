@@ -29,6 +29,17 @@ class NotificationTriggerTest extends TestCase
         $this->pdo = $this->getTestPdo();
         $this->setUpDatabase();
 
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS task_external_peers (
+            peer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INT NOT NULL,
+            source VARCHAR(50) NOT NULL,
+            id VARCHAR(255) NOT NULL,
+            state VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(task_id, source, id)
+        )");
+
         $this->db = $this->createMock(Database::class);
         $this->db->method('getConnection')->willReturn($this->pdo);
 
