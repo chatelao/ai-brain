@@ -25,7 +25,7 @@ The Telegram Chat Control feature extends the application's mobile capabilities 
 The system prioritizes "selection over writing". Whenever an actionable event occurs, the notification message sent to Telegram will include an inline keyboard with relevant options.
 
 ### Activity Diagram
-![Telegram Chat Control Activity](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/CHAT_ACTIVITY.puml)
+![Telegram Chat Control Activity](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/specification/CHAT_ACTIVITY.puml)
 
 ## Technical Requirements
 1. **Dynamic Button Generation**: The `NotificationService` must be able to attach action metadata to notifications, which the `TelegramChannelHandler` translates into inline buttons.
