@@ -269,6 +269,8 @@ class NotificationTriggerTest extends TestCase
         $projectId = 1;
         // Disable 'coding' status broadcast
         $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, 'coding', 0)");
+        // Disable 'in_progress' status broadcast
+        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, 'in_progress', 0)");
 
         // Enable a mock channel AND in_app
         $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'mock_channel', 1)");
@@ -296,5 +298,28 @@ class NotificationTriggerTest extends TestCase
         // Notification SHOULD still be in the inbox
         $stmt = $this->pdo->query("SELECT COUNT(*) FROM notifications WHERE type = 'task_status'");
         $this->assertEquals(1, $stmt->fetchColumn());
+    }
+
+    public function testNotificationNormalizationForHyphenatedStatus()
+    {
+        $userId = 1;
+        $projectId = 1;
+
+        // Disable 'in_progress' status broadcast
+        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, 'in_progress', 0)");
+
+        // Enable a mock channel
+        $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'mock_channel', 1)");
+        $mockChannel = $this->createMock(NotificationChannelInterface::class);
+        $this->notificationService->registerChannel('mock_channel', $mockChannel);
+
+        // EXPECTATION: Broadcast SHOULD NOT happen because 'in-progress' is normalized to 'in_progress'
+        $mockChannel->expects($this->never())->method('send');
+
+        // Trigger notification with status 'in-progress' (with hyphen)
+        $this->notificationService->notify($userId, 'task_status', 'Title', 'Message', [
+            'project_id' => $projectId,
+            'status' => 'in-progress'
+        ]);
     }
 }
