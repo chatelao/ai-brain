@@ -61,7 +61,7 @@ class TaskFilteringTest extends TestCase
     {
         // Project 1
         $this->createTask(1, 1, 'open', 'pending', '2023-01-01 10:00:00');
-        $this->createTask(1, 2, 'open', executing, '2023-01-01 11:00:00');
+        $this->createTask(1, 2, 'open', 'executing', '2023-01-01 11:00:00');
         $this->createTask(1, 3, 'closed', 'completed', '2023-01-01 12:00:00'); // 5th completed globally
         $this->createTask(1, 4, 'closed', 'completed', '2023-01-01 13:00:00'); // 4th completed globally
         $this->createTask(1, 5, 'closed', 'completed', '2023-01-01 14:00:00'); // 3rd completed globally
