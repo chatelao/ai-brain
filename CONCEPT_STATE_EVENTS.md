@@ -137,3 +137,22 @@ Triggered when a PR associated with an issue labeled `Auto-Repeat` is closed. A 
 
 ### 4.2 PR Monitoring
 The system continuously monitors the `check_suite` status of open PRs. Any failure automatically transitions the task to `failed_pr` to alert the user.
+
+## 5. Unified Task State Mapping (CONCEPT_STATE_EVENTS)
+
+To provide a tool-independent view of task progress, the following unified states are defined. These states map to various tool-dependent statuses using Boolean logic.
+
+| Unified State | Description | Mapping Logic (Tool-Dependent States) |
+| :--- | :--- | :--- |
+| **`QUEUED`** | Task is waiting to be processed by the agent. | `Task:pending` |
+| **`ANALYZING`** | The agent is currently researching or analyzing the task. | `Task:analyzed` OR `Task:researching` OR `Jules:researching` |
+| **`PLANNING`** | A plan is being created or is awaiting human approval. | `Task:planning` OR `Task:awaiting_plan_approval` OR `Jules:planning` |
+| **`EXECUTING`** | The agent is actively implementing the solution (coding). | `Task:in_progress` OR `Task:coding` OR `Jules:in-progress` OR `Jules:coding` |
+| **`VERIFYING`** | The solution is being tested or is awaiting PR check results. | `Task:testing` OR `Task:implemented` OR `Jules:testing` |
+| **`FINISHED`** | The task has been successfully completed and/or merged. | `Task:completed` OR `GitHub:closed` |
+| **`FAILED`** | An error occurred during agent execution or PR verification. | `Task:failed` OR `Task:failed_jules` OR `Task:failed_pr` OR `Jules:failed` OR `Jules:error` |
+
+### 5.1 Tool-Dependent State Key
+- **`Task:*`**: Internal status stored in the `tasks` table (`status` column).
+- **`Jules:*`**: Status returned by the Google Jules API (normalized to lowercase).
+- **`GitHub:*`**: State of the issue or PR on GitHub (`github_state` column).

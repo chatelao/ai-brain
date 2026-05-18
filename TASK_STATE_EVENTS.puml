@@ -61,4 +61,42 @@ TaskStatus -[dashed]-> GitHubIssue : Status influences UI badges
 JulesSession -[dashed]-> TaskStatus : Jules status maps to Task status
 PR -[dashed]-> TaskStatus : PR presence/checks affect status
 
+state "Unified Task State (Conceptual)" as Unified {
+    [*] --> QUEUED
+    QUEUED --> ANALYZING
+    ANALYZING --> PLANNING
+    PLANNING --> EXECUTING
+    EXECUTING --> VERIFYING
+    VERIFYING --> FINISHED
+
+    QUEUED --> FAILED
+    ANALYZING --> FAILED
+    PLANNING --> FAILED
+    EXECUTING --> FAILED
+    VERIFYING --> FAILED
+
+    state QUEUED #lightgrey
+    state ANALYZING #lightblue
+    state PLANNING #lightgreen
+    state EXECUTING #yellow
+    state VERIFYING #orange
+    state FINISHED #green
+    state FAILED #red
+}
+
+TaskStatus -[dashed]-> Unified : mapped to
+JulesSession -[dashed]-> Unified : mapped to
+GitHubIssue -[dashed]-> Unified : mapped to
+
+legend bottom
+| **Unified State** | **Mapping Logic (Tool-Dependent States)** |
+| QUEUED | Task:pending |
+| ANALYZING | Task:analyzed OR Task:researching OR Jules:researching |
+| PLANNING | Task:planning OR Task:awaiting_plan_approval OR Jules:planning |
+| EXECUTING | Task:in_progress OR Task:coding OR Jules:in-progress OR Jules:coding |
+| VERIFYING | Task:testing OR Task:implemented OR Jules:testing |
+| FINISHED | Task:completed OR GitHub:closed |
+| FAILED | Task:failed OR Task:failed_jules OR Task:failed_pr OR Jules:failed OR Jules:error |
+end legend
+
 @enduml

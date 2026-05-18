@@ -50,10 +50,13 @@ class GitHubService
 
         [$username, $repository] = $parts;
 
+        $pr = $this->getPullRequest($repo, $prNumber);
+        $sha = $pr['head']['sha'] ?? null;
+
         return $this->apiCall(
             'GitHub API',
             "PUT merge $repo/pull/$prNumber",
-            fn() => $this->client->api('pull_request')->merge($username, $repository, $prNumber, $message, null, $mergeMethod)
+            fn() => $this->client->api('pull_request')->merge($username, $repository, $prNumber, $message, $sha, $mergeMethod)
         );
     }
 
