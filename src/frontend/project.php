@@ -223,6 +223,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_template'
     }
 }
 
+// Handle Merge & Close
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['merge_close'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+
+    $taskId = (int)$_POST['task_id'];
+    $task = $taskModel->findById($taskId);
+
+    if ($task && $task['project_id'] === $project['project_id']) {
+        try {
+            $githubToken = $project['github_token'] ?? null;
+            if (!$githubToken) {
+                throw new Exception("GitHub token not found for this project.");
+            }
+
+            $githubService = new \App\GitHubService(null, $githubToken);
+            $prNumber = $githubService->extractPrNumber($task['pr_url'] ?? '');
+
+            if (!$prNumber) {
+                throw new Exception("No pull request associated with this task.");
+            }
+
+            // 1. Merge the PR
+            $githubService->mergePullRequest($project['github_repo'], $prNumber, "Merged via Agent Control: " . $task['title']);
+
+            // 2. Close the issue (pass 'completed' to trigger auto-repeat)
+            $githubService->closeIssue($project['github_repo'], $task['issue_number'], 'completed');
+
+            header("Location: project.php?id=$projectId&success=merged_closed");
+            exit;
+        } catch (Exception $e) {
+            $errorMessage = "Error merging/closing: " . $e->getMessage();
+        }
+    }
+}
+
 // Handle Sync Issues
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
     if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
@@ -336,6 +373,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                     <?php if (isset($_GET['success']) && $_GET['success'] === 'issue_created') : ?>
                         <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
                             <span class="font-medium">Success!</span> Issue created from template. It may take a few seconds to appear in the list (synced via webhook).
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'merged_closed') : ?>
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                            <span class="font-medium">Success!</span> Pull Request merged and Issue closed.
                         </div>
                     <?php endif; ?>
 
@@ -504,6 +547,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                                                 <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
                                                                 <button type="submit" name="rerun_task" class="text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Rerun</button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                        <?php
+                                                        $prData = json_decode($task['github_pr_data'] ?? '{}', true);
+                                                        $isMergeable = (!$isClosed && !empty($task['pr_url']) && ($prData['state'] ?? '') === 'open' && ($prData['mergeable_state'] ?? '') === 'clean' && !($prData['draft'] ?? false));
+                                                        if ($isMergeable) : ?>
+                                                            <form method="POST" class="inline">
+                                                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                                                <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
+                                                                <button type="submit" name="merge_close" class="text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full" onclick="return confirm('Are you sure you want to merge this PR and close the issue?')">Merge & Close</button>
                                                             </form>
                                                         <?php endif; ?>
                                                     </div>

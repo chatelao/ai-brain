@@ -26,7 +26,7 @@ class WebhookHandler
         $taskModel = new Task($this->db);
 
         if ($pullRequest) {
-            return $this->handlePullRequest($project, $event, $notificationService);
+            return $this->handlePullRequest($project, $event, $notificationService, $githubService);
         }
 
         if ($checkSuite) {
@@ -85,50 +85,92 @@ class WebhookHandler
         }
 
         if ($result && $action === 'closed' && $githubService) {
-            $stateReason = $issue['state_reason'] ?? '';
-            $labels = $issue['labels'] ?? [];
-            $hasAutorepeat = false;
-            $autorepeatLabelName = '';
-
-            foreach ($labels as $label) {
-                $name = strtolower($label['name'] ?? '');
-                if ($name === 'autorepeat' || $name === 'auto-repeat') {
-                    $hasAutorepeat = true;
-                    $autorepeatLabelName = $label['name'];
-                    break;
-                }
-            }
-
-            if ($stateReason === 'completed' && $hasAutorepeat) {
-                $labelNames = array_filter(
-                    array_map(fn($l) => $l['name'], $labels),
-                    fn($name) => strtolower($name) !== 'autorepeat' && strtolower($name) !== 'auto-repeat'
-                );
-
-                // Ensure 'Jules' label is present to trigger the agent for the new issue as per AUTOMATION_CONCEPT.md
-                $hasJules = false;
-                foreach ($labelNames as $ln) {
-                    if (strtolower($ln) === 'jules') {
-                        $hasJules = true;
-                        break;
-                    }
-                }
-                if (!$hasJules) {
-                    $labelNames[] = 'Jules';
-                }
-
-                $repo = $event['repository']['full_name'] ?? '';
-                if ($repo) {
-                    $githubService->createIssue($repo, $issue['title'], $issue['body'], array_values($labelNames));
-                    $githubService->removeLabel($repo, $issue['number'], $autorepeatLabelName);
-                }
-            }
+            $this->maybeDuplicateTask($project, $event, $githubService);
         }
 
         return $result;
     }
 
-    private function handlePullRequest(array $project, array $event, ?NotificationService $notificationService): bool
+    private function maybeDuplicateTask(array $project, array $event, GitHubService $githubService): void
+    {
+        $issue = $event['issue'] ?? null;
+        if (!$issue) {
+            return;
+        }
+
+        $taskModel = new Task($this->db);
+        $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
+
+        if (!$task) {
+            $task = [
+                'github_data' => json_encode($issue),
+                'status' => 'pending',
+                'agent_response' => ''
+            ];
+        }
+
+        if (!$taskModel->hasAutorepeatLabel($task)) {
+            return;
+        }
+
+        $stateReason = $issue['state_reason'] ?? '';
+        if ($stateReason !== 'completed') {
+            return;
+        }
+
+        // Avoid double duplication using a marker in agent_response
+        if (strpos($task['agent_response'] ?? '', '<!-- autorepeat_triggered -->') !== false) {
+            return;
+        }
+
+        $autorepeatLabelName = '';
+        $labels = $issue['labels'] ?? [];
+        foreach ($labels as $label) {
+            $name = strtolower($label['name'] ?? '');
+            if ($name === 'autorepeat' || $name === 'auto-repeat') {
+                $autorepeatLabelName = $label['name'];
+                break;
+            }
+        }
+
+        $labelNames = array_filter(
+            array_map(fn($l) => $l['name'], $labels),
+            fn($name) => strtolower($name) !== 'autorepeat' && strtolower($name) !== 'auto-repeat'
+        );
+
+        // Ensure 'Jules' label is present to trigger the agent for the new issue
+        $hasJules = false;
+        foreach ($labelNames as $ln) {
+            if (strtolower($ln) === 'jules') {
+                $hasJules = true;
+                break;
+            }
+        }
+        if (!$hasJules) {
+            $labelNames[] = 'Jules';
+        }
+
+        $repo = $event['repository']['full_name'] ?? ($event['repository']['name'] ?? '');
+        if ($repo && strpos($repo, '/') === false && isset($event['repository']['owner']['login'])) {
+            $repo = $event['repository']['owner']['login'] . '/' . $repo;
+        }
+
+        if ($repo) {
+            // Mark as triggered BEFORE calling GitHub to minimize race condition window
+            if (isset($task['task_id'])) {
+                $taskModel->updateAgentResponse(
+                    $task['task_id'],
+                    ($task['agent_response'] ?? '') . "\n<!-- autorepeat_triggered -->",
+                    $task['status']
+                );
+            }
+
+            $githubService->createIssue($repo, $issue['title'], $issue['body'], array_values($labelNames));
+            $githubService->removeLabel($repo, $issue['number'], $autorepeatLabelName);
+        }
+    }
+
+    private function handlePullRequest(array $project, array $event, ?NotificationService $notificationService, ?GitHubService $githubService = null): bool
     {
         $action = $event['action'] ?? '';
         $pr = $event['pull_request'] ?? null;
@@ -160,6 +202,23 @@ class WebhookHandler
                 'pr_number' => $pr['number'],
                 'source_url' => $pr['html_url']
             ]);
+        }
+
+        // Handle auto-repeat if PR is merged
+        if ($action === 'closed' && ($pr['merged'] ?? false) && $githubService) {
+            $taskModel = new Task($this->db);
+            $task = $taskModel->findByPrUrl($pr['html_url']);
+            if ($task && $task['issue_number']) {
+                $githubData = json_decode($task['github_data'] ?? '{}', true);
+                if ($githubData) {
+                    // Normalize event for maybeDuplicateTask
+                    $pseudoEvent = $event;
+                    $pseudoEvent['issue'] = $githubData;
+                    // Force state_reason to 'completed' because it was merged
+                    $pseudoEvent['issue']['state_reason'] = 'completed';
+                    $this->maybeDuplicateTask($project, $pseudoEvent, $githubService);
+                }
+            }
         }
 
         return true;

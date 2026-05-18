@@ -22,6 +22,25 @@ class GitHubService
     /**
      * @throws Exception
      */
+    public function addLabel(string $repo, int $issueNumber, string $label): void
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        $this->apiCall(
+            'GitHub API',
+            "POST label $repo/issues/$issueNumber",
+            fn() => $this->client->api('issue')->labels()->add($username, $repository, $issueNumber, $label)
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
     public function getCheckSuites(string $repo, string $ref): array
     {
         $parts = explode('/', $repo);
@@ -50,17 +69,20 @@ class GitHubService
 
         [$username, $repository] = $parts;
 
+        $pr = $this->getPullRequest($repo, $prNumber);
+        $sha = $pr['head']['sha'] ?? null;
+
         return $this->apiCall(
             'GitHub API',
             "PUT merge $repo/pull/$prNumber",
-            fn() => $this->client->api('pull_request')->merge($username, $repository, $prNumber, $message, null, $mergeMethod)
+            fn() => $this->client->api('pull_request')->merge($username, $repository, $prNumber, $message, $sha, $mergeMethod)
         );
     }
 
     /**
      * @throws Exception
      */
-    public function closeIssue(string $repo, int $issueNumber): array
+    public function closeIssue(string $repo, int $issueNumber, ?string $stateReason = null): array
     {
         $parts = explode('/', $repo);
         if (count($parts) !== 2) {
@@ -69,10 +91,15 @@ class GitHubService
 
         [$username, $repository] = $parts;
 
+        $params = ['state' => 'closed'];
+        if ($stateReason) {
+            $params['state_reason'] = $stateReason;
+        }
+
         return $this->apiCall(
             'GitHub API',
             "PATCH issue $repo/issues/$issueNumber",
-            fn() => $this->client->api('issue')->update($username, $repository, $issueNumber, ['state' => 'closed'])
+            fn() => $this->client->api('issue')->update($username, $repository, $issueNumber, $params)
         );
     }
 

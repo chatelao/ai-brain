@@ -50,7 +50,7 @@ In `src/backend/WebhookHandler.php`, the auto-repeat check is only implemented w
 - It completely bypasses the label-checking and issue-duplication logic located further down in the main `handle` method.
 
 ### Failure 2: Missing `state_reason` in App-Initiated Closure
-The system requires `state_reason === 'completed'` to trigger duplication. 
+The system requires `state_reason === 'completed'` to trigger duplication.
 - However, `App\GitHubService::closeIssue` (called by the "Merge & Close" UI button) only sends `['state' => 'closed']`.
 - GitHub defaults the reason to `not_planned` or leaves it empty when closed via this API call without an explicit reason.
 - This prevents auto-repeat for any task completed using the application's internal "Merge & Close" feature.

@@ -6,7 +6,6 @@ running on a php webserver using a MySQL database and Google SSO login for multi
 # Structure
 
 - `CONCEPT.md`: The overall structure of the product, including Business Cases & Use Cases as well as the overall High-Level Architecture, etc.
-- `CRONJOB_CONCEPT.md`: The concept of the periodic trigger system for background synchronization and maintenance.
 - `DESIGN.md`: The detailed design of the solution, including the architecture, used tech stack for development, production and testing, etc.
 - `ROADMAP.md`: The main roadmap for the project. Specialized roadmaps like `NOTIF_ROADMAP.md` and `CHAT_ROADMAP.md` provide detailed phases for specific features. They should be grouped into Phases, Tasks and Subtasks. Checkboxes show the progress to be updated with every increment.
 - `/specification/`: External Know-How as datasheet, standards, etc. Should be converted to Markdown if PDF, etc.

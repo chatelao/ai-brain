@@ -28,6 +28,8 @@ class WebhookHandlerTest extends TestCase
             status TEXT DEFAULT 'pending',
             github_state VARCHAR(20) DEFAULT 'open',
             github_data TEXT,
+            agent_response TEXT,
+            pr_url VARCHAR(255),
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(project_id, issue_number)
