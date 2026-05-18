@@ -92,6 +92,7 @@ php -S localhost:8080 -t src/frontend
 ## Documentation
 - [**User Wiki**](wiki/Home.md) - Comprehensive guide for users.
 - [Concept](CONCEPT.md)
+- [Cron Job Concept](CRONJOB_CONCEPT.md)
 - [Design](DESIGN.md)
 - [Gemini Project Goal](GEMINI.md)
 - [Roadmap](ROADMAP.md)
