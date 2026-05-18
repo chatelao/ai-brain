@@ -34,11 +34,22 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
         $this->pdo->exec("DROP TABLE IF EXISTS user_github_accounts");
         $this->pdo->exec("DROP TABLE IF EXISTS users");
 
-        $this->pdo->exec("CREATE TABLE users (user_id $pk, email VARCHAR(255), telegram_bot_token VARCHAR(255), jules_api_key VARCHAR(255), jules_quota_updated_at TIMESTAMP NULL)");
-        $this->pdo->exec("CREATE TABLE user_github_accounts (github_account_id $pk, user_id INT, github_username VARCHAR(255), github_token VARCHAR(255))");
-        $this->pdo->exec("CREATE TABLE projects (project_id $pk, user_id INT, github_account_id INT, github_repo VARCHAR(255))");
-        $this->pdo->exec("CREATE TABLE tasks (task_id $pk, user_id INT, project_id INT, issue_number INT, title VARCHAR(255), pr_url VARCHAR(255))");
-        $this->pdo->exec("CREATE TABLE user_telegram_accounts (telegram_account_id $pk, user_id INT, telegram_chat_id BIGINT UNIQUE)");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS users (user_id $pk, email VARCHAR(255), telegram_bot_token VARCHAR(255), jules_api_key VARCHAR(255), jules_quota_updated_at TIMESTAMP NULL)");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS user_github_accounts (github_account_id $pk, user_id INT, github_username VARCHAR(255), github_token VARCHAR(255))");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS projects (project_id $pk, user_id INT, github_account_id INT, github_repo VARCHAR(255))");
+
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS task_external_peers (
+            peer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INT NOT NULL,
+            source VARCHAR(50) NOT NULL,
+            id VARCHAR(255) NOT NULL,
+            state VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(task_id, source, id)
+        )");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS tasks (task_id $pk, user_id INT, project_id INT, issue_number INT, title VARCHAR(255), pr_url VARCHAR(255))");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS user_telegram_accounts (telegram_account_id $pk, user_id INT, telegram_chat_id BIGINT UNIQUE)");
 
         $this->db = $this->createMock(Database::class);
         $this->db->method('getConnection')->willReturn($this->pdo);

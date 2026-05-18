@@ -56,7 +56,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS task_notification_settings (
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS project_status_notification_settings (
     project_id INTEGER NOT NULL,
-    status VARCHAR(50) NOT NULL,
+    status VARCHAR(50), substatus VARCHAR(50) NOT NULL,
     is_enabled BOOLEAN DEFAULT 1,
     PRIMARY KEY (project_id, status)
 )");
@@ -97,8 +97,8 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     issue_number INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     body TEXT,
-    status TEXT DEFAULT 'pending',
-    jules_status VARCHAR(50) DEFAULT 'pending',
+    status TEXT, substatus TEXT DEFAULT 'CREATED',
+    jules_status VARCHAR(50), substatus VARCHAR(50) DEFAULT 'CREATED',
     github_state VARCHAR(20) DEFAULT 'open',
     github_data TEXT,
     agent_response TEXT,
@@ -134,7 +134,7 @@ $pdo->exec("INSERT INTO projects (project_id, user_id, github_account_id, github
 
 // Create a mock task
 $pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, body, status, jules_status, pr_url, jules_url)
-            VALUES (101, 1, 1, 101, 'Mock Task Title', 'This is a mock task description.', 'in_progress', 'coding', 'https://github.com/owner/repo/pull/1', 'https://jules.example.com/session/1')");
+            VALUES (101, 1, 1, 101, 'Mock Task Title', 'This is a mock task description.', 'PROCESSING', 'coding', 'https://github.com/owner/repo/pull/1', 'https://jules.example.com/session/1')");
 
 // Include the actual file to test
 $_GET['id'] = 1;

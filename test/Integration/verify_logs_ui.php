@@ -23,11 +23,12 @@ namespace {
     $pdo = $db->getConnection();
 
     // Create schema
-    $pdo->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT, avatar TEXT, jules_api_key TEXT, telegram_bot_token TEXT)");
-    $pdo->exec("CREATE TABLE performance_logs (performance_log_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, type TEXT, target TEXT, duration FLOAT, context TEXT, status_code INTEGER, error_message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
-    $pdo->exec("CREATE TABLE webhook_logs (log_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, endpoint TEXT, payload TEXT, headers TEXT, status_code INTEGER, error_message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
-    $pdo->exec("CREATE TABLE task_logs (task_log_id INTEGER PRIMARY KEY, user_id INTEGER, task_id INTEGER, level TEXT, message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
-    $pdo->exec("CREATE TABLE tasks (task_id INTEGER PRIMARY KEY, user_id INTEGER, project_id INTEGER, issue_number INTEGER, title TEXT, status TEXT, github_state TEXT)");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT, avatar TEXT, jules_api_key TEXT, telegram_bot_token TEXT)");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS performance_logs (performance_log_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, type TEXT, target TEXT, duration FLOAT, context TEXT, status_code INTEGER, error_message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS webhook_logs (log_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, endpoint TEXT, payload TEXT, headers TEXT, status_code INTEGER, error_message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS task_logs (task_log_id INTEGER PRIMARY KEY, user_id INTEGER, task_id INTEGER, level TEXT, message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (task_id INTEGER PRIMARY KEY, user_id INTEGER, project_id INTEGER, issue_number INTEGER, title TEXT, status TEXT, substatus TEXT, github_state TEXT)");
+            substatus TEXT, substatus TEXT,
 
     // Insert mock user
     $pdo->prepare("INSERT INTO users (user_id, name, email) VALUES (1, 'Admin User', 'admin@example.com')")->execute();

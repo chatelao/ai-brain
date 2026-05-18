@@ -21,6 +21,7 @@ class TaskFilteringTest extends TestCase
         $this->pdo = $this->getTestPdo();
         $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
 
+        $this->pdo->exec("DROP TABLE IF EXISTS task_external_peers");
         $this->pdo->exec("DROP TABLE IF EXISTS tasks");
         $this->pdo->exec("DROP TABLE IF EXISTS projects");
 
@@ -39,7 +40,8 @@ class TaskFilteringTest extends TestCase
             project_id INT NOT NULL,
             issue_number INT NOT NULL,
             title VARCHAR(255) NOT NULL,
-            status VARCHAR(50) DEFAULT 'pending',
+            status VARCHAR(50) DEFAULT 'CREATED',
+            substatus VARCHAR(50),
             github_state VARCHAR(20) DEFAULT 'open',
             created_at $timestamp,
             UNIQUE(project_id, issue_number)
@@ -60,23 +62,23 @@ class TaskFilteringTest extends TestCase
     public function testFilteringLogic()
     {
         // Project 1
-        $this->createTask(1, 1, 'open', 'pending', '2023-01-01 10:00:00');
-        $this->createTask(1, 2, 'open', 'in_progress', '2023-01-01 11:00:00');
-        $this->createTask(1, 3, 'closed', 'completed', '2023-01-01 12:00:00'); // 5th completed globally
-        $this->createTask(1, 4, 'closed', 'completed', '2023-01-01 13:00:00'); // 4th completed globally
-        $this->createTask(1, 5, 'closed', 'completed', '2023-01-01 14:00:00'); // 3rd completed globally
-        $this->createTask(1, 6, 'closed', 'completed', '2023-01-01 15:00:00'); // 2nd completed globally
-        $this->createTask(1, 7, 'closed', 'failed', '2023-01-01 16:00:00');    // failed, should be hidden
+        $this->createTask(1, 1, 'open', 'CREATED', '2023-01-01 10:00:00');
+        $this->createTask(1, 2, 'open', 'PROCESSING', '2023-01-01 11:00:00');
+        $this->createTask(1, 3, 'closed', 'FINISHED', '2023-01-01 12:00:00'); // 5th completed globally
+        $this->createTask(1, 4, 'closed', 'FINISHED', '2023-01-01 13:00:00'); // 4th completed globally
+        $this->createTask(1, 5, 'closed', 'FINISHED', '2023-01-01 14:00:00'); // 3rd completed globally
+        $this->createTask(1, 6, 'closed', 'FINISHED', '2023-01-01 15:00:00'); // 2nd completed globally
+        $this->createTask(1, 7, 'closed', 'FAILED', '2023-01-01 16:00:00');    // failed, should be hidden
 
         // Project 2 (just to test findByUserProjects)
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'repo1'), (2, 1, 'repo2')");
-        $this->createTask(2, 10, 'open', 'pending', '2023-01-01 10:00:00');
-        $this->createTask(2, 11, 'closed', 'completed', '2023-01-01 17:00:00'); // 1st completed globally
+        $this->createTask(2, 10, 'open', 'CREATED', '2023-01-01 10:00:00');
+        $this->createTask(2, 11, 'closed', 'FINISHED', '2023-01-01 17:00:00'); // 1st completed globally
 
         // Orphan and invalid tasks
-        $this->createTask(1, 0, 'open', 'pending', '2023-01-01 18:00:00'); // issue_number 0
+        $this->createTask(1, 0, 'open', 'CREATED', '2023-01-01 18:00:00'); // issue_number 0
         $stmt = $this->pdo->prepare("INSERT INTO tasks (user_id, project_id, issue_number, title, github_state, status) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute([1, 1, 99, "", "open", "pending"]); // empty title
+        $stmt->execute([1, 1, 99, "", "open", "CREATED"]); // empty title
 
         // findByProjectId(1, false)
         $tasks = $this->taskModel->findByProjectId(1, false);
@@ -84,7 +86,7 @@ class TaskFilteringTest extends TestCase
         // Expected issues for Project 1: 1, 2 (open), 4, 5, 6 (last 3 completed for this project)
         $issueNumbers = array_column($tasks, 'issue_number');
         sort($issueNumbers);
-        $this->assertEquals([1, 2, 4, 5, 6], $issueNumbers, "Should only show open issues and last 3 completed issues for Project 1");
+        $this->assertEquals([1, 2, 4, 5, 6], $issueNumbers, "Should only show open issues and last 3 FINISHED issues for Project 1");
 
         // findActiveByUserProjects(1)
         $activeTasks = $this->taskModel->findActiveByUserProjects(1);

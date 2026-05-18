@@ -56,7 +56,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     issue_number INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     body TEXT,
-    status TEXT DEFAULT 'pending',
+    status TEXT, substatus TEXT DEFAULT 'CREATED',
     github_state VARCHAR(20) DEFAULT 'open',
     github_data TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -99,7 +99,7 @@ $github_data = json_encode([
     'state' => 'open',
     'labels' => [['name' => 'autorepeat']]
 ]);
-$pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state, github_data) VALUES (1, 1, 123, 'Autorepeat Task Title', 'pending', 'open', '$github_data')");
+$pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state, github_data) VALUES (1, 1, 123, 'Autorepeat Task Title', 'CREATED', 'open', '$github_data')");
 
 // Include index.php
 include __DIR__ . '/../../src/frontend/index.php';

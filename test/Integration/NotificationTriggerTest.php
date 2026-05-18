@@ -43,16 +43,16 @@ class NotificationTriggerTest extends TestCase
         $pk = $driver === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
 
         $this->pdo->exec("DROP TABLE IF EXISTS task_external_peers");
-        $this->pdo->exec("DROP TABLE IF EXISTS notifications");
-        $this->pdo->exec("DROP TABLE IF EXISTS user_notification_settings");
-        $this->pdo->exec("DROP TABLE IF EXISTS project_notification_settings");
-        $this->pdo->exec("DROP TABLE IF EXISTS user_event_notification_settings");
-        $this->pdo->exec("DROP TABLE IF EXISTS project_status_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS task_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS tasks");
+        $this->pdo->exec("DROP TABLE IF EXISTS project_status_notification_settings");
+        $this->pdo->exec("DROP TABLE IF EXISTS project_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS projects");
-        $this->pdo->exec("DROP TABLE IF EXISTS users");
+        $this->pdo->exec("DROP TABLE IF EXISTS user_event_notification_settings");
+        $this->pdo->exec("DROP TABLE IF EXISTS user_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS user_telegram_accounts");
+        $this->pdo->exec("DROP TABLE IF EXISTS users");
+        $this->pdo->exec("DROP TABLE IF EXISTS notifications");
 
         $this->pdo->exec("CREATE TABLE users (
             user_id $pk,

@@ -84,8 +84,8 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     issue_number INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     body TEXT,
-    status TEXT DEFAULT 'pending',
-    jules_status VARCHAR(50) DEFAULT 'pending',
+    status TEXT, substatus TEXT DEFAULT 'CREATED',
+    jules_status VARCHAR(50), substatus VARCHAR(50) DEFAULT 'CREATED',
     github_state VARCHAR(20) DEFAULT 'open',
     github_data TEXT,
     github_pr_data TEXT,
@@ -133,7 +133,7 @@ $pdo->exec("INSERT INTO projects (project_id, user_id, github_account_id, github
 
 // Create a mock task
 $pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, body, status, jules_status, pr_url, jules_url)
-            VALUES (101, 1, 1, 101, 'Mock Task Title', 'This is a mock task description.', 'in_progress', 'coding', 'https://github.com/owner/repo/pull/1', 'https://jules.example.com/session/1')");
+            VALUES (101, 1, 1, 101, 'Mock Task Title', 'This is a mock task description.', 'PROCESSING', 'coding', 'https://github.com/owner/repo/pull/1', 'https://jules.example.com/session/1')");
 
 // Add some logs
 $pdo->exec("INSERT INTO task_logs (task_id, user_id, level, message) VALUES (101, 1, 'info', 'Started coding phase')");

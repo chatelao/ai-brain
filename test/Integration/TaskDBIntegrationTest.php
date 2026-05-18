@@ -26,15 +26,25 @@ class TaskDBIntegrationTest extends TestCase
         $pk = $driver === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
         $timestamp = $driver === 'sqlite' ? 'DATETIME DEFAULT CURRENT_TIMESTAMP' : 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP';
 
-        $this->pdo->exec("CREATE TABLE tasks (
+
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS task_external_peers (
+            peer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INT NOT NULL,
+            source VARCHAR(50) NOT NULL,
+            id VARCHAR(255) NOT NULL,
+            state VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(task_id, source, id)
+        )");
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
             task_id $pk,
             user_id INT NOT NULL,
             project_id INT NOT NULL,
             issue_number INT NOT NULL,
             title VARCHAR(255) NOT NULL,
             body TEXT,
-            status TEXT DEFAULT 'CREATED',
-            substatus TEXT,
+            status TEXT, substatus TEXT DEFAULT 'CREATED',
             github_state VARCHAR(20) DEFAULT 'open',
             github_data TEXT,
             created_at $timestamp,

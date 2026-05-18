@@ -27,7 +27,7 @@ class UserDBIntegrationTest extends TestCase
         $pk = $driver === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
         $timestamp = $driver === 'sqlite' ? 'DATETIME DEFAULT CURRENT_TIMESTAMP' : 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP';
 
-        $this->pdo->exec("CREATE TABLE users (
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS users (
             user_id $pk,
             google_id VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
@@ -36,7 +36,7 @@ class UserDBIntegrationTest extends TestCase
             created_at $timestamp
         )");
 
-        $this->pdo->exec("CREATE TABLE user_github_accounts (
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS user_github_accounts (
             github_account_id $pk,
             user_id INT NOT NULL,
             github_username VARCHAR(255) NOT NULL,

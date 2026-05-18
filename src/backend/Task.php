@@ -18,12 +18,12 @@ class Task
 
         if (!$showAll) {
             $sql .= " AND (t1.github_state = 'open' OR (
-                t1.github_state = 'closed' AND t1.status = 'completed'
+                t1.github_state = 'closed' AND t1.status = 'FINISHED'
                 AND (
                     SELECT COUNT(*) FROM tasks t2
                     WHERE t2.project_id = t1.project_id
                     AND t2.github_state = 'closed'
-                    AND t2.status = 'completed'
+                    AND t2.status = 'FINISHED'
                     AND (t2.created_at > t1.created_at OR (t2.created_at = t1.created_at AND t2.task_id > t1.task_id))
                 ) < 3
             ))";
@@ -53,12 +53,12 @@ class Task
 
         if (!$showAll) {
             $sql .= " AND (t.github_state = 'open' OR (
-                t.github_state = 'closed' AND t.status = 'completed'
+                t.github_state = 'closed' AND t.status = 'FINISHED'
                 AND (
                     SELECT COUNT(*) FROM tasks t3
                     WHERE t3.user_id = ?
                     AND t3.github_state = 'closed'
-                    AND t3.status = 'completed'
+                    AND t3.status = 'FINISHED'
                     AND (t3.created_at > t.created_at OR (t3.created_at = t.created_at AND t3.task_id > t.task_id))
                 ) < 3
             ))";

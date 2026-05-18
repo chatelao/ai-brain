@@ -24,7 +24,7 @@ class AdminDashboardIntegrationTest extends TestCase
         // Reset database
         $this->pdo->exec("DROP TABLE IF EXISTS users");
         $this->pdo->exec("DROP TABLE IF EXISTS projects");
-        $this->pdo->exec("CREATE TABLE users (
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             google_id VARCHAR(255) UNIQUE NOT NULL,
             name VARCHAR(255) NOT NULL,
@@ -33,7 +33,7 @@ class AdminDashboardIntegrationTest extends TestCase
             role VARCHAR(20) DEFAULT 'user',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
-        $this->pdo->exec("CREATE TABLE projects (
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS projects (
             project_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             github_account_id INTEGER NOT NULL,

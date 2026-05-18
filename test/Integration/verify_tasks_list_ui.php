@@ -52,8 +52,8 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     issue_number INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     body TEXT,
-    status TEXT DEFAULT 'pending',
-    jules_status VARCHAR(50) DEFAULT 'pending',
+    status TEXT, substatus TEXT DEFAULT 'CREATED',
+    jules_status VARCHAR(50), substatus VARCHAR(50) DEFAULT 'CREATED',
     github_state VARCHAR(20) DEFAULT 'open',
     github_data TEXT,
     agent_response TEXT,
@@ -92,10 +92,10 @@ $pdo->exec("INSERT INTO projects (project_id, user_id, github_account_id, github
 
 // Create mock tasks for different filters
 $pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state) VALUES (1, 1, 1, 'GitHub Running Task', 'implemented', 'open')");
-$pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state) VALUES (1, 1, 2, 'GitHub Passed Task', 'completed', 'open')");
-$pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state) VALUES (1, 1, 3, 'GitHub Failed Task', 'failed_pr', 'open')");
+$pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state) VALUES (1, 1, 2, 'GitHub Passed Task', 'FINISHED', 'open')");
+$pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state) VALUES (1, 1, 3, 'GitHub Failed Task', 'FAILED_pr', 'open')");
 $pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state) VALUES (1, 1, 4, 'Jules Running Task', 'coding', 'open')");
-$pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state) VALUES (1, 1, 5, 'Jules Failed Task', 'failed_jules', 'open')");
+$pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, github_state) VALUES (1, 1, 5, 'Jules Failed Task', 'FAILED_jules', 'open')");
 
 // Include tasks.php
 include __DIR__ . '/../../src/frontend/tasks.php';

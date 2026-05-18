@@ -18,15 +18,14 @@ class WebhookHandlerTest extends TestCase
         $this->pdo = new PDO('sqlite::memory:');
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        $this->pdo->exec("CREATE TABLE tasks (
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
             task_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INT NOT NULL,
             project_id INT NOT NULL,
             issue_number INT NOT NULL,
             title VARCHAR(255) NOT NULL,
             body TEXT,
-            status TEXT DEFAULT 'CREATED',
-            substatus TEXT,
+            status TEXT, substatus TEXT DEFAULT 'CREATED',
             github_state VARCHAR(20) DEFAULT 'open',
             github_data TEXT,
             agent_response TEXT,
@@ -36,7 +35,7 @@ class WebhookHandlerTest extends TestCase
             UNIQUE(project_id, issue_number)
         )");
 
-        $this->pdo->exec("CREATE TABLE task_external_peers (
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS task_external_peers (
             peer_id INTEGER PRIMARY KEY AUTOINCREMENT,
             task_id INT NOT NULL,
             source VARCHAR(50) NOT NULL,

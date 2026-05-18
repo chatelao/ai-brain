@@ -61,7 +61,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     issue_number INT NOT NULL,
     title VARCHAR(255) NOT NULL,
     body TEXT,
-    status TEXT DEFAULT 'pending',
+    status TEXT, substatus TEXT DEFAULT 'CREATED',
     github_state VARCHAR(20) DEFAULT 'open',
     github_data TEXT,
     agent_response TEXT,
@@ -175,7 +175,7 @@ $taskModel->create([
     'issue_number' => 101,
     'title' => 'Sample Issue #1',
     'body' => 'Description for issue 1',
-    'status' => 'pending'
+    'status' => 'CREATED'
 ]);
 
 // Task with mergeable PR
@@ -202,7 +202,7 @@ $taskModel->create([
     'issue_number' => 102,
     'title' => 'Another Bug #2',
     'body' => 'Description for bug 2',
-    'status' => 'in_progress'
+    'status' => 'PROCESSING'
 ]);
 
 // Include the actual file to test
