@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use App\Database;
 use App\User;
 use App\TelegramService;
+use App\GitHubService;
 use App\TelegramWebhookHandler;
 use App\WebhookLogger;
 
@@ -28,9 +29,11 @@ if ($userId) {
 }
 
 $telegramService = new TelegramService(null, $botToken);
+$githubService = new GitHubService();
 $handler = new TelegramWebhookHandler(
     $userModel,
     $telegramService,
+    $githubService,
     $webhookSecret
 );
 

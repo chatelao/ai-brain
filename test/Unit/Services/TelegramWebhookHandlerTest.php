@@ -18,7 +18,8 @@ class TelegramWebhookHandlerTest extends TestCase
     {
         $this->userModel = $this->createMock(User::class);
         $this->telegramService = $this->createMock(TelegramService::class);
-        $this->handler = new TelegramWebhookHandler($this->userModel, $this->telegramService, $this->secret);
+        $githubService = $this->createMock(\App\GitHubService::class);
+        $this->handler = new TelegramWebhookHandler($this->userModel, $this->telegramService, $githubService, $this->secret);
     }
 
     public function testVerifySecretSuccess()

@@ -39,6 +39,27 @@ if ($result && $action === 'closed' && $githubService) {
 - **Observation**: Issue #770 was labeled with **"Auto-Repeat"**.
 - **Result**: The condition `$hasAutorepeat` evaluated to `false`, the duplication logic was skipped, and no new issue was created automatically.
 
+## 3. Analysis of Failure for #446 and #451
+
+Pull Request #446 and #451 also failed to trigger the auto-repeat mechanism, but for different technical reasons.
+
+### Failure 1: PR Events Bypass Autorepeat Logic
+In `src/backend/WebhookHandler.php`, the auto-repeat check is only implemented within the handling of `issues` events.
+- When a Pull Request is merged, GitHub sends a `pull_request` event with `action: closed` and `merged: true`.
+- The current code routes this to `handlePullRequest`, which only sends a notification and returns `true`.
+- It completely bypasses the label-checking and issue-duplication logic located further down in the main `handle` method.
+
+### Failure 2: Missing `state_reason` in App-Initiated Closure
+The system requires `state_reason === 'completed'` to trigger duplication. 
+- However, `App\GitHubService::closeIssue` (called by the "Merge & Close" UI button) only sends `['state' => 'closed']`.
+- GitHub defaults the reason to `not_planned` or leaves it empty when closed via this API call without an explicit reason.
+- This prevents auto-repeat for any task completed using the application's internal "Merge & Close" feature.
+
+### Failure 3: Issue Deletion Exception
+Issue #441 (the parent of PR #446) was deleted on GitHub.
+- The `WebhookHandler` treats `action: deleted` as a cleanup task, removing the task from the local database and returning immediately.
+- This is by design, but it means deleted issues can never trigger an auto-repeat duplication.
+
 ### Inconsistencies in the Codebase
 There is a lack of uniformity in how the auto-repeat label is handled across the application:
 1. **`src/backend/WebhookHandler.php`**: Uses case-sensitive `autorepeat`.
