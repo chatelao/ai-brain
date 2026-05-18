@@ -3,6 +3,89 @@
 ## Architecture
 The application follows a modular architecture, separating concerns between the presentation layer, business logic, and data access.
 
+### Component Diagram
+The following diagram illustrates the high-level components and their interactions:
+
+```plantuml
+@startuml
+!theme plain
+skinparam componentStyle uml2
+
+package "Frontend (Tailwind CSS, Alpine.js)" {
+    [UI Pages] as UI
+    [AJAX Endpoints] as AJAX
+}
+
+package "Backend (PHP 8.3)" {
+    package "API Handlers" {
+        [WebhookHandler] as WH
+        [TelegramWebhookHandler] as TWH
+    }
+
+    package "Services" {
+        [GitHubService] as GHS
+        [JulesService] as JS
+        [TelegramService] as TS
+        [NotificationService] as NS
+        [MigrationService] as MS
+    }
+
+    package "Models & Data Access" {
+        [User] as UserM
+        [Project] as ProjectM
+        [Task] as TaskM
+        [Database] as DB
+        [Auth] as AuthM
+    }
+
+    package "Logging & Monitoring" {
+        [Logger] as Log
+        [WebhookLogger] as WHLog
+    }
+}
+
+database "MySQL Database" as MySQL
+
+cloud "External Systems" {
+    [GitHub API/Webhooks] as GitHub
+    [Google Jules API] as Jules
+    [Telegram API] as Telegram
+    [Google SSO] as SSO
+}
+
+' Interactions
+UI --> AJAX : fetch/post
+AJAX --> AuthM : authenticate
+AJAX --> GHS : repo/issue data
+AJAX --> JS : agent status
+AJAX --> NS : notifications
+AJAX --> UserM : profile/settings
+
+WH --> GHS : process events
+WH --> TaskM : update tasks
+WH --> NS : trigger notifications
+
+TWH --> TS : response
+TWH --> UserM : link accounts
+
+NS --> TS : external delivery
+NS --> [BrowserChannelHandler] : in-app delivery
+
+GHS --> GitHub : REST API
+JS --> Jules : REST API
+TS --> Telegram : REST API
+AuthM --> SSO : OAuth 2.0
+
+UserM --> DB
+ProjectM --> DB
+TaskM --> DB
+DB --> MySQL
+Log --> MySQL
+WHLog --> MySQL
+
+@enduml
+```
+
 ## Tech Stack
 - **Development & Production**:
     - **Language**: PHP 8.3+
