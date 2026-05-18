@@ -162,17 +162,7 @@ class Task
             }
 
             $isOpen = ($githubData['state'] ?? '') === 'open';
-            $hasAutorepeat = false;
-            $labels = $githubData['labels'] ?? [];
-            foreach ($labels as $label) {
-                $name = strtolower($label['name'] ?? '');
-                if ($name === 'autorepeat' || $name === 'auto-repeat') {
-                    $hasAutorepeat = true;
-                    break;
-                }
-            }
-
-            return $isOpen && $hasAutorepeat;
+            return $isOpen && $this->hasAutorepeatLabel($task);
         });
     }
 

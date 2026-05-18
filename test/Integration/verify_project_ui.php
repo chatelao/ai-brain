@@ -70,6 +70,9 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     last_synced_at TIMESTAMP NULL,
     jules_url VARCHAR(255),
     pr_url VARCHAR(255),
+    github_pr_data TEXT,
+    github_comments_data TEXT,
+    github_data_updated_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(project_id, issue_number)
@@ -174,6 +177,20 @@ $taskModel->create([
     'body' => 'Description for issue 1',
     'status' => 'pending'
 ]);
+
+// Task with mergeable PR
+$pdo->prepare("INSERT INTO tasks (user_id, project_id, issue_number, title, body, status, pr_url, github_pr_data, github_data_updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    ->execute([
+        1,
+        $project['project_id'],
+        103,
+        'Feature implementation',
+        'Implements the new feature',
+        'implemented',
+        'https://github.com/owner/repo/pull/1',
+        json_encode(['state' => 'open', 'mergeable_state' => 'clean', 'draft' => false]),
+        date('Y-m-d H:i:s')
+    ]);
 
 // Add some logs to task 1
 $logger = new \App\Logger($db);
