@@ -272,10 +272,12 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                             <div class="flex items-center space-x-2">
                                 <span class="px-4 py-1.5 text-sm font-semibold rounded-full bg-<?= $statusColor ?>-100 text-<?= $statusColor ?>-800 flex items-center shadow-sm">
                                     <?php
-                                    if ($task['status'] === 'completed') {
+                                    if ($task['status'] === 'completed' || $task['status'] === 'ready') {
                                         echo '✅ ';
-                                    } elseif (in_array($task['status'], ['in_progress', 'coding', 'testing'])) {
+                                    } elseif (in_array($task['status'], ['in_progress', 'coding', 'testing', 'verifying'])) {
                                         echo '🚧 ';
+                                    } elseif ($task['status'] === 'checking') {
+                                        echo '🔍 ';
                                     } elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') {
                                         echo '❌ Jules ';
                                     } elseif ($task['status'] === 'failed_pr') {
@@ -286,7 +288,7 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                                         echo '⏳ ';
                                     }
                                     ?>
-                                    <?= htmlspecialchars(str_replace(['failed_jules', 'failed_pr'], 'failed', $task['status'] ?? '')) ?>
+                                    <?= htmlspecialchars(ucwords(str_replace(['_', '-'], [' ', ' '], $task['status'] ?? ''))) ?>
                                 </span>
                             </div>
                         </div>

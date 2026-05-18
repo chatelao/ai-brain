@@ -507,25 +507,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                         $bgClass = 'bg-red-100 text-red-800';
                                                     } elseif ($statusColor === 'purple') {
                                                         $bgClass = 'bg-purple-100 text-purple-800';
+                                                    } elseif ($statusColor === 'orange') {
+                                                        $bgClass = 'bg-orange-100 text-orange-800';
                                                     }
                                                     ?>
                                                     <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
                                                         <?php
                                                         if (($task['github_state'] ?? 'open') === 'closed') {
                                                             echo '✅ ';
-                                                        } elseif ($task['status'] === 'completed') {
+                                                        } elseif ($task['status'] === 'completed' || $task['status'] === 'ready') {
                                                             echo '✅ ';
+                                                        } elseif ($task['status'] === 'checking') {
+                                                            echo '🔍 ';
                                                         } elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') {
                                                             echo '❌ Jules ';
                                                         } elseif ($task['status'] === 'failed_pr') {
                                                             echo '❌ PR ';
-                                                        } elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented'])) {
+                                                        } elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented', 'verifying'])) {
                                                             echo '🚧 ';
                                                         } else {
                                                             echo '⏳ ';
                                                         }
                                                         ?>
-                                                        <?= htmlspecialchars(str_replace(['failed_jules', 'failed_pr'], 'failed', $task['status'] ?? '')) ?>
+                                                        <?= htmlspecialchars(ucwords(str_replace(['_', '-'], [' ', ' '], $task['status'] ?? ''))) ?>
                                                     </span>
                                                 </td>
                                                 <td class="px-6 py-4">
