@@ -39,6 +39,9 @@ class NotificationTriggerTest extends TestCase
 
     private function setUpDatabase(): void
     {
+        $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $pk = $driver === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
+
         $this->pdo->exec("DROP TABLE IF EXISTS notifications");
         $this->pdo->exec("DROP TABLE IF EXISTS user_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS project_notification_settings");
@@ -47,9 +50,10 @@ class NotificationTriggerTest extends TestCase
         $this->pdo->exec("DROP TABLE IF EXISTS tasks");
         $this->pdo->exec("DROP TABLE IF EXISTS projects");
         $this->pdo->exec("DROP TABLE IF EXISTS users");
+        $this->pdo->exec("DROP TABLE IF EXISTS user_telegram_accounts");
 
         $this->pdo->exec("CREATE TABLE users (
-            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id $pk,
             google_id VARCHAR(255) UNIQUE,
             name VARCHAR(255),
             email VARCHAR(255),
@@ -66,7 +70,7 @@ class NotificationTriggerTest extends TestCase
         )");
 
         $this->pdo->exec("CREATE TABLE projects (
-            project_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id $pk,
             user_id INT,
             github_repo VARCHAR(255),
             github_token VARCHAR(255),
@@ -74,7 +78,7 @@ class NotificationTriggerTest extends TestCase
         )");
 
         $this->pdo->exec("CREATE TABLE tasks (
-            task_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id $pk,
             user_id INT,
             project_id INT,
             issue_number INT,
@@ -92,7 +96,7 @@ class NotificationTriggerTest extends TestCase
         )");
 
         $this->pdo->exec("CREATE TABLE notifications (
-            notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            notification_id $pk,
             user_id INT,
             project_id INT,
             type VARCHAR(50),
