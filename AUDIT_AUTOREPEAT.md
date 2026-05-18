@@ -1,63 +1,71 @@
-# Audit: Auto-Repeat Failure Analysis
+# Audit: Auto-Repeat Failure Analysis (Issue #770)
 
-This document describes the analysis of historical and recent failures in the "Auto-Repeat" automation mechanism.
+This document describes the analysis of why Pull Request [chatelao/alpheusafpparser#771](https://github.com/chatelao/alpheusafpparser/pull/771) was not automatically merged and why the automatic duplication of Issue #770 failed, requiring the manual creation of [chatelao/alpheusafpparser#772](https://github.com/chatelao/alpheusafpparser/issues/772).
 
-## 1. Why PR #771 was not automatically merged (Historical)
+## 1. Why PR #771 was not automatically merged
 
-*Note: This section is historical. The "Merge & Close" feature has since been implemented.*
+According to `AUTOMATION_CONCEPT.md`, the system should provide a "Merge & Close" operation if certain conditions are met. However, analysis of the current codebase reveals:
 
-Previously, the "Merge & Close" operation was documented only as a concept. It has now been implemented across:
-- **Backend**: `App\GitHubService::mergePullRequest` and `App\GitHubService::closeIssue`.
-- **Frontend**: `src/frontend/task.php` now includes a "Merge & Close" button that appears when PR conditions are met.
+- **Missing Implementation**: The "Merge & Close" logic is documented as a concept but is **not implemented** in either the frontend (`src/frontend/project.php`, `src/frontend/task.php`) or the backend (`src/backend/WebhookHandler.php`).
+- **No API Calls**: There are no calls to the GitHub Merge API (`/repos/{owner}/{repo}/pulls/{pull_number}/merge`) in the `GitHubService.php` or anywhere else in the application.
+- **Manual Step Required**: Since the automation is not yet part of the codebase, all PR merges must currently be performed manually via the GitHub UI.
 
-## 2. Why the automatic duplication of Issue #770 failed (Historical)
+## 2. Why the automatic duplication of Issue #770 failed
 
-Issue #770 carried the "Auto-Repeat" label, but failed to duplicate upon closure.
+Issue #770 was expected to be duplicated upon closing because it carried the "Auto-Repeat" label. The duplication failed due to a **label mismatch** in the `WebhookHandler.php`.
 
-### Root Cause: Case-Sensitive Label Check (Fixed)
-The `WebhookHandler.php` previously used a case-sensitive check: `($label['name'] ?? '') === 'autorepeat'`.
-The issue was labeled "Auto-Repeat", which failed the check.
-
-**Resolution**: The code now uses `strtolower($label['name'])` and recognizes both `autorepeat` and `auto-repeat`.
-
-## 3. Analysis of Issue #441 Autorepeat Failure
-
-Issue #441 carried the "Auto-Repeat" label but failed to duplicate when closed via the "Merge & Close" button.
-
-### Root Cause 1: Missing `state_reason` in API Call
-The autorepeat logic in `App\WebhookHandler::handle` requires the issue to be closed with a `state_reason` of `completed`:
+### Root Cause: Case-Sensitive Label Check
+In `src/backend/WebhookHandler.php` (lines 89-106), the code handles the duplication logic when an issue is closed:
 
 ```php
-if ($stateReason === 'completed' && $hasAutorepeat) { ... }
-```
+if ($result && $action === 'closed' && $githubService) {
+    $stateReason = $issue['state_reason'] ?? '';
+    $labels = $issue['labels'] ?? [];
+    $hasAutorepeat = false;
+    foreach ($labels as $label) {
+        if (($label['name'] ?? '') === 'autorepeat') {
+            $hasAutorepeat = true;
+            break;
+        }
+    }
 
-However, the "Merge & Close" implementation in `src/frontend/task.php` calls `App\GitHubService::closeIssue`, which performs a PATCH request to the GitHub API:
-
-```php
-public function closeIssue(string $repo, int $issueNumber): array
-{
-    // ...
-    return $this->apiCall(
-        'GitHub API',
-        "PATCH issue $repo/issues/$issueNumber",
-        fn() => $this->client->api('issue')->update($username, $repository, $issueNumber, ['state' => 'closed'])
-    );
+    if ($stateReason === 'completed' && $hasAutorepeat) {
+        // ... duplication logic ...
+    }
 }
 ```
 
-This call **omits** the `state_reason` parameter. When an issue is closed via the API without this parameter, GitHub does not necessarily mark it as "completed" in the webhook payload, causing the autorepeat condition to fail.
+- **Problem**: The check `($label['name'] ?? '') === 'autorepeat'` is **case-sensitive** and looks for the exact string `"autorepeat"`.
+- **Observation**: Issue #770 was labeled with **"Auto-Repeat"**.
+- **Result**: The condition `$hasAutorepeat` evaluated to `false`, the duplication logic was skipped, and no new issue was created automatically.
 
-### Root Cause 2: Early Return for Pull Request Events
-In `src/backend/WebhookHandler.php`, the `handle` method returns early if a `pull_request` event is detected:
+## 3. Analysis of Failure for #446 and #451
 
-```php
-if ($pullRequest) {
-    return $this->handlePullRequest($project, $event, $notificationService);
-}
-```
+Pull Request #446 and #451 also failed to trigger the auto-repeat mechanism, but for different technical reasons.
 
-While GitHub typically sends a separate `issues` event when a PR "closes" an issue, any logic that depends on the PR merge itself (as specified in `CONCEPT_ONEVENT_ONSTATE.md`) is bypassed because the autorepeat logic is located further down in the `handle` method, after this early return.
+### Failure 1: PR Events Bypass Autorepeat Logic
+In `src/backend/WebhookHandler.php`, the auto-repeat check is only implemented within the handling of `issues` events.
+- When a Pull Request is merged, GitHub sends a `pull_request` event with `action: closed` and `merged: true`.
+- The current code routes this to `handlePullRequest`, which only sends a notification and returns `true`.
+- It completely bypasses the label-checking and issue-duplication logic located further down in the main `handle` method.
 
-## Recommendations
-1. Update `App\GitHubService::closeIssue` to allow passing a `state_reason`, and ensure "Merge & Close" sets it to `completed`.
-2. Consolidate the autorepeat logic into a dedicated method that can be called from both `issue` and `pull_request` event handlers.
+### Failure 2: Missing `state_reason` in App-Initiated Closure
+The system requires `state_reason === 'completed'` to trigger duplication. 
+- However, `App\GitHubService::closeIssue` (called by the "Merge & Close" UI button) only sends `['state' => 'closed']`.
+- GitHub defaults the reason to `not_planned` or leaves it empty when closed via this API call without an explicit reason.
+- This prevents auto-repeat for any task completed using the application's internal "Merge & Close" feature.
+
+### Failure 3: Issue Deletion Exception
+Issue #441 (the parent of PR #446) was deleted on GitHub.
+- The `WebhookHandler` treats `action: deleted` as a cleanup task, removing the task from the local database and returning immediately.
+- This is by design, but it means deleted issues can never trigger an auto-repeat duplication.
+
+### Inconsistencies in the Codebase
+There is a lack of uniformity in how the auto-repeat label is handled across the application:
+1. **`src/backend/WebhookHandler.php`**: Uses case-sensitive `autorepeat`.
+2. **`src/backend/Task.php` (`hasAutorepeatLabel`)**: Uses case-insensitive check for `autorepeat` or `auto-repeat`.
+3. **`src/backend/Task.php` (`getRunningAutorepeatTasks`)**: Uses case-sensitive `autorepeat`.
+4. **`src/frontend/index.php`**: The "Running Autorepeat Tasks" section only recognizes the label `autorepeat`.
+
+## Conclusion
+The failure of the automatic merge was due to **missing feature implementation**. The failure of the issue duplication was due to a **strict, case-sensitive label check** in the webhook handler that did not match the "Auto-Repeat" label used on GitHub.

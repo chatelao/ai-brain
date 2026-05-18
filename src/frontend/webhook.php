@@ -10,6 +10,7 @@ use App\JulesService;
 use App\RateLimiter;
 use App\WebhookLogger;
 use App\NotificationService;
+use App\User;
 
 $db = new Database();
 $rateLimiter = new RateLimiter($db);
@@ -83,6 +84,9 @@ if (!$verified) {
 }
 
 if ($event === 'ping') {
+    if (!empty($projects)) {
+        $logger->log($projects[0]['user_id'], 'github', $payload, $headersStr, 200, 'PONG');
+    }
     http_response_code(200);
     exit('PONG');
 }
