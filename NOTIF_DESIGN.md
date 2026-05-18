@@ -22,6 +22,33 @@ A `App\NotificationService` is the primary entry point for triggering notificati
                       +--> [TelegramChannelHandler] -> [Telegram Bot API]
 ```
 
+## Notification Triggers & Emojis
+
+The system sends notifications for the following events:
+
+### GitHub Webhooks (`src/backend/WebhookHandler.php`)
+*   **Issues**:
+    *   `opened`: 🆕 Issue Opened
+    *   `closed`: 🔒 Issue Closed
+    *   `reopened`: 🔓 Issue Reopened
+    *   `deleted`: 🗑️ Issue Deleted
+*   **Pull Requests**:
+    *   `opened`: 🆕 PR Opened
+    *   `closed`: 💜 PR Merged or ❌ PR Closed
+    *   `reopened`: 🔓 PR Reopened
+    *   `synchronize`: 🔄 PR Pushed
+*   **Check Suites**:
+    *   `completed`: Triggered when PR checks finish.
+    *   Failing checks -> ❌ PR Failed
+    *   Passing checks (if previously failed) -> ✅ PR Fixed
+
+### Jules Status Sync (`src/backend/Task.php`)
+*   **Status Changes**: Triggered when a Jules session status changes.
+    *   States: `researching`, `planning`, `coding`, `testing`, `in_progress`.
+    *   `implemented`: Jules finished but PR not yet detected.
+    *   `completed`: ✅ Task Completed (PR detected).
+    *   `failed_jules`: ❌ Jules Failed.
+
 ## Database Schema
 
 ### `notifications`
