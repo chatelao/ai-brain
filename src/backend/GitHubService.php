@@ -60,7 +60,7 @@ class GitHubService
     /**
      * @throws Exception
      */
-    public function closeIssue(string $repo, int $issueNumber): array
+    public function closeIssue(string $repo, int $issueNumber, ?string $stateReason = null): array
     {
         $parts = explode('/', $repo);
         if (count($parts) !== 2) {
@@ -69,10 +69,15 @@ class GitHubService
 
         [$username, $repository] = $parts;
 
+        $params = ['state' => 'closed'];
+        if ($stateReason) {
+            $params['state_reason'] = $stateReason;
+        }
+
         return $this->apiCall(
             'GitHub API',
             "PATCH issue $repo/issues/$issueNumber",
-            fn() => $this->client->api('issue')->update($username, $repository, $issueNumber, ['state' => 'closed'])
+            fn() => $this->client->api('issue')->update($username, $repository, $issueNumber, $params)
         );
     }
 
