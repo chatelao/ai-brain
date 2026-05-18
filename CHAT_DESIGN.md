@@ -10,7 +10,7 @@ The following diagram highlights the changes required for Telegram Chat Control,
 - **Orange**: Existing components requiring significant logic updates.
 - **Green**: New components, interactions, or removed/deprecated flows (per requirement).
 
-![Telegram Chat Control Component Diagram](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/CHAT_COMPONENT.puml)
+![Telegram Chat Control Component Diagram](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/specification/CHAT_COMPONENT.puml)
 
 ## Technical Details
 

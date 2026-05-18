@@ -79,8 +79,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['merge_close'])) {
         // 1. Merge the PR
         $githubService->mergePullRequest($project['github_repo'], $prNumber, "Merged via Agent Control: " . $task['title']);
 
-        // 2. Close the issue
-        $githubService->closeIssue($project['github_repo'], $task['issue_number']);
+        // 2. Close the issue (pass 'completed' to trigger auto-repeat)
+        $githubService->closeIssue($project['github_repo'], $task['issue_number'], 'completed');
 
         header("Location: task.php?id=$taskId&success=merged_closed");
         exit;
