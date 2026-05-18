@@ -2,12 +2,12 @@
 
 The following table lists the abbreviations used in this project:
 
-| Abbreviation | Meaning |
-| :--- | :--- |
+| Abbreviation | Term| Meaning |
+| :--- | :--- | :--- |
 | BC | Business Case |
 | UC | Use Case |
 | TG | Telegram |
-| WF | workflow |
+| WF | workflow | A Github action workflow |
 | PR | pull-request |
 | GH | github |
 | EVT | event |
