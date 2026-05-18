@@ -119,9 +119,8 @@ $title = $filterLabels[$filter] ?? 'Tasks';
                                             </td>
                                             <td class="px-6 py-4">
                                                 <div class="text-base text-gray-900 font-normal">
-                                                    <a href="task.php?id=<?= $task['task_id'] ?>" class="hover:underline">#<?= htmlspecialchars($task['issue_number'] ?? '') ?></a>
-                                                    <a href="<?= htmlspecialchars($taskModel->getTargetUrl($task)) ?>" target="_blank" rel="noopener noreferrer" class="hover:underline">
-                                                        <?= htmlspecialchars($task['title'] ?? '') ?>
+                                                    <a href="task.php?id=<?= $task['task_id'] ?>" class="hover:underline">
+                                                        <?= htmlspecialchars($task['issue_number'] ?? '') ?> - <?= htmlspecialchars($task['title'] ?? '') ?>
                                                     </a>
                                                 </div>
                                             </td>
