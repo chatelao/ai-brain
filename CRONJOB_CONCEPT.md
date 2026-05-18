@@ -14,4 +14,4 @@ The Cron Job system provides a periodic trigger mechanism to perform background 
 - **<a name="UC-CJ3"></a>Multi-User Background Processing (UC-CJ3)**: The cron job iterates through all registered users and their projects, performing maintenance tasks at scale.
 
 ## Logic Flow
-The cron system implements "Event Source Parity", ensuring that system events are triggered consistently whether they arrive via real-time webhooks, periodic polling, or manual refreshes.
+The cron system implements "Event Source Parity". For detailed information on how periodic polling affects task states and transitions, refer to [STATE_EVENTS_CONCEPT.md](STATE_EVENTS_CONCEPT.md).
