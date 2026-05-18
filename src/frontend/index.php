@@ -231,19 +231,18 @@ $errorMessage = $errorMessage ?? null;
                                                         $state = $task['github_state'] ?? 'open';
 
                                                         $emoji = '⏳';
-                                                        $statusLabel = ucwords(str_replace(['failed_jules', 'failed_pr', '_', '-'], ['failed', 'failed', ' ', ' '], $task['status'] ?? ''));
-                                                        if ($state === 'closed') {
+                                                        $statusLabel = ucwords(str_replace('_', ' ', $task['status'] ?? ''));
+                                                        if ($task['status'] === App\Task::STATUS_FINISHED) {
                                                             $emoji = '✅';
-                                                            $statusLabel = 'Closed';
-                                                        } elseif ($task['status'] === 'completed' || $task['status'] === 'ready') {
+                                                        } elseif ($task['status'] === App\Task::STATUS_READY) {
                                                             $emoji = '✅';
-                                                        } elseif ($task['status'] === 'checking') {
+                                                        } elseif ($task['status'] === App\Task::STATUS_CHECKING) {
                                                             $emoji = '🔍';
-                                                        } elseif ($task['status'] === 'failed' || $task['status'] === 'failed_jules') {
+                                                        } elseif ($task['status'] === App\Task::STATUS_FAILED_JULES) {
                                                             $emoji = '❌';
-                                                        } elseif ($task['status'] === 'failed_pr') {
+                                                        } elseif ($task['status'] === App\Task::STATUS_FAILED_PR) {
                                                             $emoji = '❌';
-                                                        } elseif (in_array($task['status'], ['pending', 'analyzed', 'researching', 'planning', 'in_progress', 'coding', 'testing', 'implemented', 'verifying'])) {
+                                                        } elseif (in_array($task['status'], [App\Task::STATUS_ANALYZING, App\Task::STATUS_PLANNING, App\Task::STATUS_EXECUTING, App\Task::STATUS_VERIFYING, App\Task::STATUS_IMPLEMENTED])) {
                                                             $emoji = '🚧';
                                                         }
                                                         ?>

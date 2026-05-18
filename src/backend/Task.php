@@ -6,8 +6,99 @@ use PDO;
 
 class Task
 {
+    public const STATUS_CREATED = 'created';
+    public const STATUS_ANALYZING = 'analyzing';
+    public const STATUS_PLANNING = 'planning';
+    public const STATUS_EXECUTING = 'executing';
+    public const STATUS_VERIFYING = 'verifying';
+    public const STATUS_CHECKING = 'checking';
+    public const STATUS_READY = 'ready';
+    public const STATUS_FINISHED = 'finished';
+    public const STATUS_IMPLEMENTED = 'implemented';
+    public const STATUS_FAILED_JULES = 'failed_jules';
+    public const STATUS_FAILED_PR = 'failed_pr';
+
     public function __construct(private Database $db)
     {
+    }
+
+    public function resolveStatus(array $task, ?array $prData = null, ?array $checkSuitesData = null): string
+    {
+        $githubState = $task['github_state'] ?? 'open';
+        if ($githubState === 'closed') {
+            return self::STATUS_FINISHED;
+        }
+
+        $julesStatus = $task['jules_status'] ?? '';
+        if ($julesStatus === 'failed' || $julesStatus === 'error') {
+            return self::STATUS_FAILED_JULES;
+        }
+
+        $prUrl = $task['pr_url'] ?? null;
+        if ($prUrl) {
+            // Check results from check suites
+            // Handle both webhook (singular 'check_suite') and API (array 'check_suites')
+            $suites = [];
+            if ($checkSuitesData) {
+                if (isset($checkSuitesData['check_suites'])) {
+                    $suites = $checkSuitesData['check_suites'];
+                } elseif (isset($checkSuitesData['check_suite'])) {
+                    $suites = [$checkSuitesData['check_suite']];
+                }
+            }
+
+            if (!empty($suites)) {
+                $failed = false;
+                $running = false;
+                $success = true;
+
+                foreach ($suites as $suite) {
+                    $status = $suite['status'] ?? '';
+                    $conclusion = $suite['conclusion'] ?? '';
+
+                    if ($status !== 'completed') {
+                        $running = true;
+                        $success = false;
+                    } elseif (in_array($conclusion, ['failure', 'timed_out', 'cancelled', 'action_required'])) {
+                        $failed = true;
+                        $success = false;
+                    } elseif ($conclusion !== 'success' && $conclusion !== 'neutral' && $conclusion !== 'skipped') {
+                        $success = false;
+                    }
+                }
+
+                if ($failed) {
+                    return self::STATUS_FAILED_PR;
+                }
+                if ($success) {
+                    return self::STATUS_READY;
+                }
+                if ($running || $julesStatus === 'finished' || $julesStatus === 'completed') {
+                    return self::STATUS_CHECKING;
+                }
+            } elseif ($julesStatus === 'finished' || $julesStatus === 'completed') {
+                return self::STATUS_CHECKING;
+            }
+        }
+
+        // Jules Processing substates
+        switch ($julesStatus) {
+            case 'researching':
+                return self::STATUS_ANALYZING;
+            case 'planning':
+            case 'awaiting_plan_approval':
+                return self::STATUS_PLANNING;
+            case 'in-progress':
+            case 'coding':
+                return self::STATUS_EXECUTING;
+            case 'testing':
+                return self::STATUS_VERIFYING;
+            case 'finished':
+            case 'completed':
+                return self::STATUS_IMPLEMENTED;
+        }
+
+        return self::STATUS_CREATED;
     }
 
     public function findByProjectId(int $projectId, bool $showAll = true): array
@@ -82,12 +173,12 @@ class Task
         $sql = "SELECT
                     COUNT(*) as total,
                     SUM(CASE WHEN github_state = 'open' THEN 1 ELSE 0 END) as open_issues,
-                    SUM(CASE WHEN github_state = 'closed' OR status = 'completed' THEN 1 ELSE 0 END) as completed_tasks,
-                    SUM(CASE WHEN github_state = 'open' AND status IN ('researching', 'planning', 'in_progress', 'coding', 'testing') THEN 1 ELSE 0 END) as jules_running,
-                    SUM(CASE WHEN github_state = 'open' AND status IN ('failed', 'failed_jules') THEN 1 ELSE 0 END) as jules_failed,
-                    SUM(CASE WHEN github_state = 'open' AND status = 'implemented' THEN 1 ELSE 0 END) as github_running,
-                    SUM(CASE WHEN github_state = 'open' AND status = 'completed' THEN 1 ELSE 0 END) as github_passed,
-                    SUM(CASE WHEN github_state = 'open' AND status = 'failed_pr' THEN 1 ELSE 0 END) as github_failed
+                    SUM(CASE WHEN status = '" . self::STATUS_FINISHED . "' THEN 1 ELSE 0 END) as completed_tasks,
+                    SUM(CASE WHEN github_state = 'open' AND status IN ('" . self::STATUS_ANALYZING . "', '" . self::STATUS_PLANNING . "', '" . self::STATUS_EXECUTING . "', '" . self::STATUS_VERIFYING . "') THEN 1 ELSE 0 END) as jules_running,
+                    SUM(CASE WHEN github_state = 'open' AND status = '" . self::STATUS_FAILED_JULES . "' THEN 1 ELSE 0 END) as jules_failed,
+                    SUM(CASE WHEN github_state = 'open' AND status = '" . self::STATUS_CHECKING . "' THEN 1 ELSE 0 END) as github_running,
+                    SUM(CASE WHEN github_state = 'open' AND status = '" . self::STATUS_READY . "' THEN 1 ELSE 0 END) as github_passed,
+                    SUM(CASE WHEN github_state = 'open' AND status = '" . self::STATUS_FAILED_PR . "' THEN 1 ELSE 0 END) as github_failed
                 FROM tasks
                 WHERE user_id = ?";
 
@@ -117,19 +208,19 @@ class Task
 
         switch ($filter) {
             case 'github_running':
-                $sql .= " AND t.github_state = 'open' AND t.status = 'implemented'";
+                $sql .= " AND t.github_state = 'open' AND t.status = '" . self::STATUS_CHECKING . "'";
                 break;
             case 'github_passed':
-                $sql .= " AND t.github_state = 'open' AND t.status = 'completed'";
+                $sql .= " AND t.github_state = 'open' AND t.status = '" . self::STATUS_READY . "'";
                 break;
             case 'github_failed':
-                $sql .= " AND t.github_state = 'open' AND t.status = 'failed_pr'";
+                $sql .= " AND t.github_state = 'open' AND t.status = '" . self::STATUS_FAILED_PR . "'";
                 break;
             case 'jules_running':
-                $sql .= " AND t.github_state = 'open' AND t.status IN ('researching', 'planning', 'in_progress', 'coding', 'testing')";
+                $sql .= " AND t.github_state = 'open' AND t.status IN ('" . self::STATUS_ANALYZING . "', '" . self::STATUS_PLANNING . "', '" . self::STATUS_EXECUTING . "', '" . self::STATUS_VERIFYING . "')";
                 break;
             case 'jules_failed':
-                $sql .= " AND t.github_state = 'open' AND t.status IN ('failed', 'failed_jules')";
+                $sql .= " AND t.github_state = 'open' AND t.status = '" . self::STATUS_FAILED_JULES . "'";
                 break;
             case 'open_issues':
                 $sql .= " AND t.github_state = 'open'";
@@ -267,6 +358,11 @@ class Task
 
     public function create(array $data): bool
     {
+        $status = $data['status'] ?? self::STATUS_CREATED;
+        if (($data['github_state'] ?? '') === 'closed') {
+            $status = self::STATUS_FINISHED;
+        }
+
         $stmt = $this->db->getConnection()->prepare(
             "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
@@ -277,7 +373,7 @@ class Task
             $data['title'],
             $data['body'] ?? '',
             $data['github_data'] ?? null,
-            $data['status'] ?? 'pending',
+            $status,
             $data['github_state'] ?? 'open'
         ]);
     }
@@ -324,6 +420,8 @@ class Task
 
         $stmt = $connection->prepare($sql);
 
+        $status = ($issue['state'] ?? 'open') === 'closed' ? self::STATUS_FINISHED : self::STATUS_CREATED;
+
         return $stmt->execute([
             $userId,
             $projectId,
@@ -331,7 +429,7 @@ class Task
             $issue['title'],
             $issue['body'],
             json_encode($issue),
-            'pending',
+            $status,
             $issue['state'] ?? 'open'
         ]);
     }
@@ -344,31 +442,30 @@ class Task
 
     public function getStatusColor(array $task): string
     {
-        $state = $task['github_state'] ?? 'open';
+        $status = $task['status'] ?? self::STATUS_CREATED;
 
-        if ($state === 'closed') {
-            return 'purple';
+        if ($status === self::STATUS_FINISHED) {
+            $githubState = $task['github_state'] ?? 'closed';
+            return $githubState === 'closed' ? 'purple' : 'green';
         }
 
-        $status = $task['status'] ?? 'pending';
-
-        if ($status === 'failed' || str_starts_with($status, 'failed_')) {
+        if (str_starts_with($status, 'failed_') || $status === 'failed') {
             return 'red';
         }
 
-        if (in_array($status, ['in_progress', 'implemented', 'coding', 'testing', 'verifying'])) {
+        if (in_array($status, [self::STATUS_EXECUTING, self::STATUS_VERIFYING, self::STATUS_IMPLEMENTED])) {
             return 'yellow';
         }
 
-        if (in_array($status, ['analyzed', 'researching', 'planning', 'awaiting-plan-approval', 'awaiting-user-feedback'])) {
+        if (in_array($status, [self::STATUS_ANALYZING, self::STATUS_PLANNING])) {
             return 'blue';
         }
 
-        if ($status === 'checking') {
+        if ($status === self::STATUS_CHECKING) {
             return 'orange';
         }
 
-        if ($status === 'completed' || $status === 'ready') {
+        if ($status === self::STATUS_READY) {
             return 'green';
         }
 
@@ -616,6 +713,7 @@ class Task
                                     "UPDATE tasks SET jules_session_id = ? WHERE task_id = ?"
                                 );
                                 $updateStmt->execute([$sessionId, $task['task_id']]);
+                                $task['jules_session_id'] = $sessionId;
                                 break;
                             }
                         }
@@ -629,6 +727,7 @@ class Task
                                     "UPDATE tasks SET pr_url = ? WHERE task_id = ?"
                                 );
                                 $updateStmt->execute([$prUrl, $task['task_id']]);
+                                $task['pr_url'] = $prUrl;
                                 break;
                             }
                         }
@@ -638,48 +737,66 @@ class Task
                 }
             }
 
+            $julesUrl = $task['jules_url'];
+            $julesStatus = $task['jules_status'];
+
             if ($sessionId && $apiKey) {
                 $julesData = $julesService->fetchSessionStatus($sessionId, $apiKey);
                 if ($julesData) {
-                    $newStatus = $julesData['status'];
-                    $mappedStatus = $task['status'];
-                    $julesUrl = $julesData['url'] ?? null;
+                    $julesStatus = $julesData['status'];
+                    $julesUrl = $julesData['url'] ?? $julesUrl;
+                }
+            }
 
-                    if (in_array($newStatus, ['coding', 'testing', 'researching', 'planning', 'in-progress'])) {
-                        $mappedStatus = str_replace('-', '_', $newStatus);
-                    } elseif ($newStatus === 'completed' || $newStatus === 'finished') {
-                        $mappedStatus = !empty($prUrl) ? 'completed' : 'implemented';
-                    } elseif ($newStatus === 'failed' || $newStatus === 'error') {
-                        $mappedStatus = 'failed_jules';
-                    }
-
-                    if ($mappedStatus !== $task['status'] || $newStatus !== $task['jules_status']) {
-                        $updateStmt = $this->db->getConnection()->prepare(
-                            "UPDATE tasks SET jules_status = ?, status = ?, jules_url = ?, last_synced_at = ? WHERE task_id = ?"
-                        );
-                        $updateStmt->execute([$newStatus, $mappedStatus, $julesUrl, date('Y-m-d H:i:s'), $task['task_id']]);
-
-                        if ($notificationService && $mappedStatus !== $task['status']) {
-                            $title = "Task Update: #" . $task['issue_number'];
-                            $message = "Task \"" . $task['title'] . "\" status changed to " . $mappedStatus . ".";
-                            if ($mappedStatus === 'completed' || $mappedStatus === 'implemented') {
-                                $title = "✅ Task Completed: #" . $task['issue_number'];
-                            } elseif ($mappedStatus === 'failed_jules') {
-                                $title = "❌ Jules Failed: #" . $task['issue_number'];
-                                $message = "Jules session for \"" . $task['title'] . "\" failed.";
-                            } elseif ($mappedStatus === 'failed_pr') {
-                                $title = "❌ PR Failed: #" . $task['issue_number'];
-                                $message = "PR checks for \"" . $task['title'] . "\" failed.";
-                            }
-
-                            $notificationService->notify($userId, 'task_status', $title, $message, [
-                                'task_id' => $task['task_id'],
-                                'project_id' => $task['project_id'],
-                                'status' => $mappedStatus,
-                                'source_url' => $this->getTargetUrl($task)
-                            ]);
+            // Also check PR checks if we have a PR
+            $checkSuites = null;
+            if ($prUrl) {
+                try {
+                    $prNumber = $githubService->extractPrNumber($prUrl);
+                    if ($prNumber) {
+                        $pr = $githubService->getPullRequest($task['github_repo'], $prNumber);
+                        $sha = $pr['head']['sha'] ?? null;
+                        if ($sha) {
+                            $checkSuites = $githubService->getCheckSuites($task['github_repo'], $sha);
                         }
                     }
+                } catch (\Exception $e) {
+                    // Ignore PR check errors
+                }
+            }
+
+            $tempTask = $task;
+            $tempTask['jules_status'] = $julesStatus;
+            $mappedStatus = $this->resolveStatus($tempTask, null, $checkSuites);
+
+            if ($mappedStatus !== $task['status'] || $julesStatus !== $task['jules_status']) {
+                $updateStmt = $this->db->getConnection()->prepare(
+                    "UPDATE tasks SET jules_status = ?, status = ?, jules_url = ?, last_synced_at = ? WHERE task_id = ?"
+                );
+                $updateStmt->execute([$julesStatus, $mappedStatus, $julesUrl, date('Y-m-d H:i:s'), $task['task_id']]);
+
+                if ($notificationService && $mappedStatus !== $task['status']) {
+                    $title = "Task Update: #" . $task['issue_number'];
+                    $message = "Task \"" . $task['title'] . "\" status changed to " . ucwords(str_replace('_', ' ', $mappedStatus)) . ".";
+                    if ($mappedStatus === self::STATUS_FINISHED) {
+                        $title = "✅ Task Completed: #" . $task['issue_number'];
+                    } elseif ($mappedStatus === self::STATUS_READY) {
+                        $title = "🚀 Task Ready: #" . $task['issue_number'];
+                        $message = "Task \"" . $task['title'] . "\" is ready to merge.";
+                    } elseif ($mappedStatus === self::STATUS_FAILED_JULES) {
+                        $title = "❌ Jules Failed: #" . $task['issue_number'];
+                        $message = "Jules session for \"" . $task['title'] . "\" failed.";
+                    } elseif ($mappedStatus === self::STATUS_FAILED_PR) {
+                        $title = "❌ PR Failed: #" . $task['issue_number'];
+                        $message = "PR checks for \"" . $task['title'] . "\" failed.";
+                    }
+
+                    $notificationService->notify($userId, 'task_status', $title, $message, [
+                        'task_id' => $task['task_id'],
+                        'project_id' => $task['project_id'],
+                        'status' => $mappedStatus,
+                        'source_url' => $this->getTargetUrl(array_merge($task, ['status' => $mappedStatus]))
+                    ]);
                 }
             } else {
                 // Still update last_synced_at even if no sessionId or apiKey to avoid constant retries

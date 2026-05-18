@@ -81,9 +81,9 @@ class TaskDBIntegrationTest extends TestCase
         $tasks = $this->taskModel->findByProjectId(1);
         $taskId = $tasks[0]['task_id'];
 
-        $this->assertTrue($this->taskModel->updateStatus($taskId, 'in_progress'));
+        $this->assertTrue($this->taskModel->updateStatus($taskId, App\Task::STATUS_EXECUTING));
 
         $task = $this->taskModel->findById($taskId);
-        $this->assertEquals('in_progress', $task['status']);
+        $this->assertEquals(App\Task::STATUS_EXECUTING, $task['status']);
     }
 }

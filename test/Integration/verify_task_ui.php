@@ -130,7 +130,7 @@ $pdo->exec("INSERT INTO projects (project_id, user_id, github_account_id, github
 // Create a mock task
 $now = date('Y-m-d H:i:s');
 $pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, body, status, jules_status, pr_url, jules_url, github_pr_data, github_data_updated_at)
-            VALUES (101, 1, 1, 101, 'Mock Task Title', 'This is a mock task description.', 'in_progress', 'coding', 'https://github.com/owner/repo/pull/1', 'https://jules.example.com/session/1', '{\"state\":\"open\",\"mergeable_state\":\"clean\",\"draft\":false}', '$now')");
+            VALUES (101, 1, 1, 101, 'Mock Task Title', 'This is a mock task description.', executing, 'coding', 'https://github.com/owner/repo/pull/1', 'https://jules.example.com/session/1', '{\"state\":\"open\",\"mergeable_state\":\"clean\",\"draft\":false}', '$now')");
 
 // Add some logs
 $pdo->exec("INSERT INTO task_logs (task_id, user_id, level, message) VALUES (101, 1, 'info', 'Started coding phase')");

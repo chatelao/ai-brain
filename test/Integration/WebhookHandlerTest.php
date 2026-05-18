@@ -73,7 +73,7 @@ class WebhookHandlerTest extends TestCase
         $this->assertNotFalse($task);
         $this->assertEquals('Test Issue', $task['title']);
         $this->assertEquals('Issue description', $task['body']);
-        $this->assertEquals('pending', $task['status']);
+        $this->assertEquals('created', $task['status']);
     }
 
     public function testHandleAutorepeat()
