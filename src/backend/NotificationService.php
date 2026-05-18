@@ -17,7 +17,7 @@ class NotificationService
         $this->channels[$name] = $channel;
     }
 
-    public function notify(int $userId, string $type, string $title, string $message, array $data = []): bool
+    public function notify(int $userId, string $type, string $title, string $message, array $data = [], array $actions = []): bool
     {
         // 1. Check task-level mute (if task_id is provided)
         if (isset($data['task_id']) && $this->isTaskMuted($data['task_id'])) {
@@ -75,7 +75,7 @@ class NotificationService
             $channel = $this->getChannelInstance($channelName);
 
             if ($channel) {
-                $channel->send($notification);
+                $channel->send($notification, $actions);
             }
         }
 

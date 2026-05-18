@@ -155,6 +155,18 @@ class User
         return $result ? (int)$result['telegram_chat_id'] : null;
     }
 
+    public function findByTelegramChatId(int $chatId): ?array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT u.* FROM users u
+             JOIN user_telegram_accounts uta ON u.user_id = uta.user_id
+             WHERE uta.telegram_chat_id = ?"
+        );
+        $stmt->execute([$chatId]);
+        $user = $stmt->fetch();
+        return $user ?: null;
+    }
+
     public function updateJulesApiKey(int $userId, ?string $apiKey): bool
     {
         $stmt = $this->db->getConnection()->prepare(

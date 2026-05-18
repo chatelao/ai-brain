@@ -2,6 +2,8 @@
 
 namespace App;
 
+use App\Task;
+
 class TelegramWebhookHandler
 {
     public function __construct(
@@ -23,6 +25,10 @@ class TelegramWebhookHandler
 
     public function handle(array $update): bool
     {
+        if (isset($update['callback_query'])) {
+            return $this->handleCallback($update['callback_query']);
+        }
+
         $message = $update['message'] ?? null;
         if (!$message) {
             return false;
@@ -46,6 +52,64 @@ class TelegramWebhookHandler
         }
 
         return false;
+    }
+
+    private function handleCallback(array $callbackQuery): bool
+    {
+        $callbackId = $callbackQuery['id'];
+        $data = $callbackQuery['data'] ?? '';
+        $chatId = $callbackQuery['message']['chat']['id'] ?? null;
+
+        if (!$chatId) {
+            return false;
+        }
+
+        // 1. Authenticate user by chatId
+        $user = $this->userModel->findByTelegramChatId($chatId);
+        if (!$user) {
+            $this->telegramService->answerCallbackQuery($callbackId, [
+                'text' => "Unauthorized. Please link your account.",
+                'show_alert' => true
+            ]);
+            return false;
+        }
+
+        // 2. Parse action and taskId
+        // Expected format: "action:taskId"
+        $parts = explode(':', $data);
+        $action = $parts[0] ?? '';
+        $taskId = isset($parts[1]) ? (int)$parts[1] : null;
+
+        if (!$taskId || !in_array($action, ['retry', 'restart', 'merge'])) {
+            $this->telegramService->answerCallbackQuery($callbackId, [
+                'text' => "Invalid action.",
+                'show_alert' => true
+            ]);
+            return false;
+        }
+
+        // 3. Verify project permissions
+        $taskModel = new Task($this->userModel->getDb());
+        $task = $taskModel->findById($taskId);
+
+        if (!$task || (int)$task['user_id'] !== (int)$user['user_id']) {
+            $this->telegramService->answerCallbackQuery($callbackId, [
+                'text' => "Task not found or access denied.",
+                'show_alert' => true
+            ]);
+            return false;
+        }
+
+        // 4. Acknowledge the query
+        $this->telegramService->answerCallbackQuery($callbackId, [
+            'text' => "Processing " . ucfirst($action) . "..."
+        ]);
+
+        // Note: Actual execution via GHS or JS will be implemented in Phase 3 & 4.
+        // For now, we just acknowledge that the infrastructure is ready.
+        $this->telegramService->sendMessage($chatId, "Infrastructure for <b>$action</b> is ready. Actual execution will be implemented soon.");
+
+        return true;
     }
 
     private function handleLink(int $chatId, string $token): bool

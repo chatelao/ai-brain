@@ -26,6 +26,37 @@ class TelegramService
     }
 
     /**
+     * @throws Exception
+     */
+    public function answerCallbackQuery(string $callbackQueryId, array $extraParams = []): bool
+    {
+        $params = array_merge([
+            'callback_query_id' => $callbackQueryId,
+        ], $extraParams);
+
+        $this->apiRequest('answerCallbackQuery', $params);
+
+        return true;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function editMessageText(int $chatId, int $messageId, string $text, array $extraParams = []): bool
+    {
+        $params = array_merge([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $text,
+            'parse_mode' => 'HTML'
+        ], $extraParams);
+
+        $this->apiRequest('editMessageText', $params);
+
+        return true;
+    }
+
+    /**
      * @throws GuzzleException
      * @throws Exception
      */
