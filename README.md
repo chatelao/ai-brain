@@ -87,7 +87,7 @@ php -S localhost:8080 -t src/frontend
 - `src/sql/`: Database schema and migrations.
 - `test/`: PHPUnit tests and testing tools.
 - `specification/`: Additional documentation, mockups, and external know-how.
-- `CONCEPT.md`, `DESIGN.md`, `GEMINI.md`, `ROADMAP.md`: Project documentation.
+- `CONCEPT.md`, `DESIGN.md`, `GEMINI.md`, `ROADMAP.md`, `NOTIF_ROADMAP.md`, `CHAT_ROADMAP.md`: Project documentation.
 
 ## Documentation
 - [**User Wiki**](wiki/Home.md) - Comprehensive guide for users.
@@ -95,3 +95,5 @@ php -S localhost:8080 -t src/frontend
 - [Design](DESIGN.md)
 - [Gemini Project Goal](GEMINI.md)
 - [Roadmap](ROADMAP.md)
+- [Notification Roadmap](NOTIF_ROADMAP.md)
+- [Telegram Chat Roadmap](CHAT_ROADMAP.md)

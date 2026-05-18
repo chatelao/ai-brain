@@ -238,6 +238,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
         $githubService = new GitHubService(null, $githubToken);
         $taskModel->syncIssues($user['user_id'], $project['project_id'], $project['github_repo'], $githubService);
 
+        // Also refresh roadmap cache during sync
+        $roadmapFiles = $githubService->getRoadmapFiles($project['github_repo']);
+        $projectModel->updateRoadmapCache($projectId, $roadmapFiles);
+
         header("Location: project.php?id=$projectId&success=synced");
         exit;
     } catch (Exception $e) {
