@@ -651,10 +651,8 @@ class Task
                     $mappedStatus = $task['status'];
                     $julesUrl = $julesData['url'] ?? null;
 
-                    if (in_array($newStatus, ['coding', 'testing', 'researching', 'planning'])) {
+                    if (in_array($newStatus, ['coding', 'testing', 'researching', 'planning', 'in-progress'])) {
                         $mappedStatus = str_replace('-', '_', $newStatus);
-                    } elseif ($newStatus === 'in-progress') {
-                        $mappedStatus = 'in_progress';
                     } elseif ($newStatus === 'completed' || $newStatus === 'finished') {
                         $mappedStatus = !empty($prUrl) ? 'completed' : 'implemented';
                     } elseif ($newStatus === 'failed' || $newStatus === 'error') {
