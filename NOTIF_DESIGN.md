@@ -6,12 +6,12 @@ The notification system is designed as a modular service within the Agent Contro
 ## Architecture
 
 ### Centralized Notification Service
-A `App\NotificationService` will be the primary entry point for triggering notifications. It will:
-1.  Check user and project-level notification preferences.
-2.  Persist notifications to the database for the In-App Inbox.
-3.  Dispatch delivery to active channels (Browser, Telegram) via specific channel handlers.
+A `App\NotificationService` is the primary entry point for triggering notifications. It handles:
+1.  Checking user and project-level notification preferences.
+2.  Persisting notifications to the database for the In-App Inbox.
+3.  Dispatching delivery to active channels (Browser, Telegram) via specific channel handlers.
 
-### Component Diagram (Conceptual)
+### Component Diagram
 ```
 [Event Source] -> [NotificationService]
                       |
@@ -28,11 +28,11 @@ A `App\NotificationService` will be the primary entry point for triggering notif
 Stores the history of notifications for each user.
 - `notification_id` (INT, PK)
 - `user_id` (INT, FK)
-- `type` (VARCHAR): e.g., `build_failed`, `pr_available`, `session_failed`, `task_completed`.
+- `type` (VARCHAR)
 - `title` (VARCHAR)
 - `message` (TEXT)
-- `data` (JSON): Additional context (e.g., `project_id`, `task_id`, `source_url`).
-- `is_read` (BOOLEAN): Default `false`.
+- `data` (JSON): Context (e.g., `project_id`, `task_id`, `source_url`).
+- `is_read` (BOOLEAN)
 - `created_at` (TIMESTAMP)
 
 ### `user_notification_settings`
@@ -40,73 +40,62 @@ Global toggles for notification channels.
 - `user_id` (INT, FK)
 - `channel` (VARCHAR): `in_app`, `browser`, `telegram`.
 - `is_enabled` (BOOLEAN)
-- *Primary Key: (user_id, channel)*
+
+### `user_event_notification_settings` (Patch 015)
+Global toggles for event types.
+- `user_id` (INT, FK)
+- `event_type` (VARCHAR): `github_issue`, `github_pr`, `task_status`, `agent_event`.
+- `is_enabled` (BOOLEAN)
 
 ### `project_notification_settings`
 Granular control per project and event type.
 - `project_id` (INT, FK)
-- `notification_type` (VARCHAR): `build_failed`, `pr_available`, etc.
+- `notification_type` (VARCHAR)
 - `is_enabled` (BOOLEAN)
-- *Primary Key: (project_id, notification_type)*
 
 ### `task_notification_settings`
-Mute or prioritize specific tasks.
+Mute specific tasks.
 - `task_id` (INT, FK)
 - `is_muted` (BOOLEAN)
-- *Primary Key: (task_id)*
 
-## Delivery Channels
+## Delivery Mechanism
 
 ### 1. In-App Inbox
 - Notifications are fetched from the `notifications` table.
 - A notification bell in `navbar.php` displays the unread count.
-- A dropdown or dedicated page allows users to view and mark notifications as read.
-- **Deep Linking**: Each notification item in the inbox is rendered as a clickable link that directs the user to the `source_url` provided in the notification data.
+- **Deep Linking**: Each notification in the inbox is a clickable link directing the user to the `source_url` provided in the notification data.
 
 ### 2. Active Browser Notifications
 - Uses the `Web Notifications API`.
-- When the dashboard is open, it either polls or uses a lightweight event mechanism to trigger desktop alerts.
-- Permission is requested on the "Account Settings" page.
+- Triggered when the dashboard is open.
+- Permission requested on the "Settings" page.
 
 ### 3. Telegram
-- Uses the existing `user_telegram_accounts` and Telegram bot configuration.
-- Notifications are sent as instant messages to the linked `telegram_chat_id`.
-- Handled asynchronously to avoid blocking the main execution flow.
+- Uses `user_telegram_accounts` and Telegram Bot API.
+- Notifications sent to linked `telegram_chat_id`.
+- Handled asynchronously via `fastcgi_finish_request()` to avoid blocking.
 
 ## Implementation Details
 
 ### Deep Linking
-The `NotificationService` populates the `source_url` in the `data` payload based on the event context:
--   **GitHub PR events**: URL of the Pull Request.
--   **Jules Session events**: URL of the AI agent session.
--   **Task/Issue events**: URL of the GitHub Issue.
+The `NotificationService` populates `source_url` in the `data` payload:
+- **GitHub PR events**: URL of the Pull Request.
+- **Jules Session events**: URL of the AI agent session.
+- **Task/Issue events**: URL of the GitHub Issue.
 
-The frontend uses this URL to provide a direct "Jump to Source" action for each notification.
-
-### Notification Service Dispatching
+### Dispatching Logic
 ```php
 class NotificationService {
     public function notify(User $user, string $type, string $title, string $message, array $data = []) {
-        // 1. Check if project-level settings allow this type (if project_id is in $data)
+        // 1. Check user and project-level settings
         // 2. Persist to 'notifications' table
-        // 3. For each enabled channel in 'user_notification_settings':
+        // 3. For each enabled channel:
         //    - Dispatch to ChannelHandler
     }
 }
 ```
 
-### Event Integration
-- **GitHub Webhooks**: `WebhookHandler` will trigger `NotificationService::notify` for relevant events (e.g., `check_run.completed` for build failures).
-- **Jules API Responses**: Task status changes in `Task::refreshJulesStatus` or `github-callback.php` can trigger notifications.
-
-## Frontend UI
-
-### Settings Page (`src/frontend/settings.php`)
-- Added sections for "Notification Preferences".
-- Channel toggles (In-App, Browser, Telegram).
-- Global event type toggles.
-- "Request Browser Notification Permission" button.
-
-### Project Page (`src/frontend/project.php`)
-- A "Notifications" tab or modal to manage project-specific overrides.
-- Individual tasks in the task list can be "Muted" via a context menu or toggle.
+### Frontend Integration
+- **Settings Page (`src/frontend/settings.php`)**: Sections for channel toggles, global event type toggles, and browser notification permission.
+- **Project Page (`src/frontend/project.php`)**: Tab to manage project-specific overrides.
+- **Task List**: Option to "Mute" individual tasks.

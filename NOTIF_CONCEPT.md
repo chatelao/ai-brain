@@ -12,12 +12,21 @@ The notification system aims to keep users informed about critical events across
 2.  **Active Browser Notifications**: Real-time push notifications or browser-level alerts when the dashboard is open.
 3.  **Telegram**: Instant messages delivered via the linked Telegram bot for mobile and desktop connectivity.
 
-## Key Notification Events
-Users can toggle notifications for the following event types:
--   **Build Failed**: Alert when a CI/CD build or deployment fails.
--   **PR Available**: Notification when a new Pull Request is created or requires attention.
--   **Session Failed**: Error alerts when an AI agent (Jules) session fails or encounters an error.
--   **Task Completed**: Success notification when a task or issue is resolved.
+## Key Notification Events & Logic
+The system triggers notifications based on the following logic:
+
+### Event Types
+-   **Build Failed**: Triggered when a GitHub Check Suite or Check Run fails.
+-   **PR Available**: Triggered when a new Pull Request is discovered or created.
+-   **Session Failed**: Triggered when a Jules session enters a failed or error state.
+-   **Task Completed**: Triggered when a task reaches the `completed` or `implemented` status.
+-   **Issue State Change**: Triggered when a GitHub issue is opened, closed, reopened, or deleted.
+
+### Triggering Rules
+Notifications are generated consistently across multiple event sources (Event Source Parity):
+-   **Real-time Webhooks**: Immediate triggers from incoming GitHub or CI/CD webhooks.
+-   **Backend Polling (`cronjob.php`)**: Periodic synchronization that detects changes missed by webhooks.
+-   **Manual Refreshes (`project.php`)**: User-initiated synchronizations that refresh project and task states.
 
 ## Use Cases
 -   **<a name="UC-N1"></a>Jump to Source (Deep Linking) (UC-N1)**: A user clicks on a "PR Available" notification and is immediately taken to the corresponding GitHub Pull Request page.
@@ -30,35 +39,13 @@ Users can toggle notifications for the following event types:
 ## Configuration & Customization
 To avoid notification fatigue, users can customize their preferences at multiple levels:
 
-### Per-Project Settings
-Enable or disable specific notification types for an entire repository.
--   Example: Only receive "Build Failed" alerts for `production-repo`, but all alerts for `dev-repo`.
+### User-Level Settings
+- Global toggles for active channels (In-App, Browser, Telegram).
+- Global toggles for notification types (e.g., `github_issue`, `github_pr`, `task_status`, `agent_event`).
 
-### Per-Task/Issue Settings
-Mute or prioritize notifications for specific tasks.
--   Example: Following a critical hotfix task with all notification channels active.
+### Project-Level Settings
+- Enable or disable specific notification types for an entire repository.
+- Broadcast filters for internal task statuses.
 
-### Channel Toggles
-Globally or per project, users can choose which channels are active (e.g., Browser only, Telegram only, or both).
-
-## Technical Architecture (Proposed)
-
-### 1. Database Schema
--   `notifications`: Stores the actual notification messages, status (read/unread), and recipient user.
--   `user_notification_settings`: Stores user-level channel preferences and global toggles.
--   `project_notification_settings`: Stores overrides for specific projects.
-
-### 2. Delivery Mechanism
--   **Webhooks**: GitHub and CI/CD webhooks trigger the notification logic.
--   **Polling/SSE/WebSockets**: For real-time in-app updates and active browser notifications.
--   **Telegram Bot API**: Asynchronous delivery of messages to configured `telegram_chat_id`.
-
-### 3. Frontend Integration
--   **Inbox UI**: A notification bell icon with a dropdown/slide-over showing recent events.
--   **Settings Page**: A dedicated section in "Account Settings" to manage all notification preferences.
-
-### 4. Event Source Parity
-To ensure a reliable user experience, the system implements "Event Source Parity". This means that notifications for system events (such as issue state changes, PR discovery, or check suite results) are triggered consistently, regardless of how the event was detected:
--   **Real-time Webhooks**: Immediate triggers from incoming GitHub or CI/CD webhooks.
--   **Backend Polling (`cronjob.php`)**: Periodic synchronization that detects changes missed by webhooks.
--   **Manual Refreshes (`project.php`)**: User-initiated synchronizations that refresh project and task states.
+### Task-Level Settings
+- Mute notifications for specific tasks/issues.

@@ -29,6 +29,16 @@ The following diagram illustrates the high-level components and their interactio
 - **Agents**: Configurable agent definitions and their capabilities.
 - **Tasks**: Logs of agent activities, linked to GitHub issues and project progress.
 
+### Performance Logs Table
+Performance data is stored in the `performance_logs` table with the following schema:
+- `performance_log_id`: Unique identifier for the log entry.
+- `user_id`: The ID of the user whose action triggered the event (if applicable).
+- `type`: The category of the event (e.g., 'DB', 'GitHub API', 'Jules API').
+- `target`: The specific query or endpoint being accessed.
+- `duration`: The time taken in seconds (float).
+- `context`: Additional JSON data (e.g., parameters, headers, status codes).
+- `created_at`: Timestamp of the log entry.
+
 ## API Integration Strategy
 - **GitHub**: Use webhooks to listen for issue events and the REST API to fetch details and post updates.
 - **Google Jules**: Utilize secure API calls to trigger and manage agent sessions.
@@ -45,6 +55,12 @@ The following diagram illustrates the high-level components and their interactio
   4. The bot receives the token, matches it to the user, and stores the `telegram_chat_id` in the `user_telegram_accounts` table.
   5. The `telegram_link_token` is cleared upon successful linking.
 
+## Logging & Monitoring Implementation
+- **Database**: Instrumented using a custom `PDOStatement` decorator (`TimedPDOStatement`).
+- **GitHub API**: Instrumented by wrapping `php-github-api` calls with timing logic in `GitHubService`.
+- **Jules API**: Instrumented using a Guzzle middleware in `JulesService`.
+- **Logger**: A centralized `Logger` class provides the `logPerformance` method and handles database persistence.
+
 ## Security
 - Secure storage of API tokens using environment variables.
 - Input validation and sanitization for all user-provided data.
@@ -55,5 +71,6 @@ Detailed architectural and technical designs for specific features can be found 
 
 | Design | File | Description |
 | :--- | :--- | :--- |
+| **Cron Job System** | [`CRONJOB_DESIGN.md`](CRONJOB_DESIGN.md) | Background synchronization and maintenance task architecture. |
 | **Telegram Chat Control** | [`CHAT_DESIGN.md`](CHAT_DESIGN.md) | Callback handling, inline keyboards, and mobile interaction logic. |
 | **Notification System** | [`NOTIF_DESIGN.md`](NOTIF_DESIGN.md) | Service architecture, delivery channel implementations, and database schema. |
