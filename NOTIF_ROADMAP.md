@@ -37,7 +37,7 @@
 ## Phase 3: Telegram Integration
 - [x] Implement `TelegramChannelHandler`.
 - [x] Integrate with existing `user_telegram_accounts` and Telegram bot configuration.
-- [ ] Ensure asynchronous delivery (e.g., using `fastcgi_finish_request()` or a queue).
+- [x] Ensure asynchronous delivery (e.g., using `fastcgi_finish_request()` or a queue).
 - [x] Test Telegram notification delivery.
 
 ## Phase 4: Browser Notifications
@@ -52,7 +52,7 @@
     - [x] In-App Inbox
     - [x] Telegram
     - [x] Browser
-- [ ] Implement global event type toggles in settings.
+- [x] Implement global event type toggles in settings.
 - [x] Add notification settings to the project page (`src/frontend/project-settings.php`).
 - [x] Implement per-task "Mute" functionality.
 
@@ -61,4 +61,4 @@
 - [x] Trigger notifications on PR creation/updates.
 - [x] Trigger notifications on Jules session failures or completions.
 - [x] Trigger notifications on task status changes.
-- [ ] Final end-to-end testing of all notification flows.
+- [x] Final end-to-end testing of all notification flows.

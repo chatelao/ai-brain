@@ -24,12 +24,17 @@ class NotificationService
             return false;
         }
 
-        // 2. Check project-level settings (if project_id is provided)
+        // 2. Check global user event settings
+        if (!$this->isUserTypeEnabled($userId, $type)) {
+            return false;
+        }
+
+        // 3. Check project-level settings (if project_id is provided)
         if (isset($data['project_id']) && !$this->isProjectTypeEnabled($data['project_id'], $type)) {
             return false;
         }
 
-        // 3. Get enabled channels
+        // 4. Get enabled channels
         $enabledChannels = $this->getEnabledChannels($userId);
         if (empty($enabledChannels)) {
             return false;
@@ -37,12 +42,12 @@ class NotificationService
 
         $notificationId = null;
 
-        // 4. Persist to 'notifications' table if 'in_app' channel is enabled
+        // 5. Persist to 'notifications' table if 'in_app' channel is enabled
         if (in_array('in_app', $enabledChannels)) {
             $notificationId = $this->persistNotification($userId, $type, $title, $message, $data);
         }
 
-        // 5. Check if broadcast is enabled for this status (if it's a task_status event)
+        // 6. Check if broadcast is enabled for this status (if it's a task_status event)
         $shouldBroadcast = true;
         if ($type === 'task_status' && isset($data['project_id']) && isset($data['status'])) {
             $shouldBroadcast = $this->isStatusBroadcastEnabled((int)$data['project_id'], $data['status']);
@@ -52,7 +57,7 @@ class NotificationService
             return true;
         }
 
-        // 6. Dispatch to other enabled channels
+        // 7. Dispatch to other enabled channels
         $notification = [
             'notification_id' => $notificationId,
             'user_id' => $userId,
@@ -279,6 +284,12 @@ class NotificationService
         return $settings['is_muted'];
     }
 
+    private function isUserTypeEnabled(int $userId, string $type): bool
+    {
+        $settings = $this->getUserEventSettings($userId);
+        return $settings[$type] ?? true;
+    }
+
     private function isProjectTypeEnabled(int $projectId, string $type): bool
     {
         $settings = $this->getProjectSettings($projectId);
@@ -455,6 +466,61 @@ class NotificationService
                     );
                 }
                 $stmt->execute([$userId, $channel, (int)$enabled]);
+            }
+            $db->commit();
+            return true;
+        } catch (\Exception $e) {
+            $db->rollBack();
+            return false;
+        }
+    }
+
+    public function getUserEventSettings(int $userId): array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT notification_type, is_enabled FROM user_event_notification_settings WHERE user_id = ?"
+        );
+        $stmt->execute([$userId]);
+        $rows = $stmt->fetchAll();
+
+        $settings = [];
+        foreach ($rows as $row) {
+            $settings[$row['notification_type']] = (bool)$row['is_enabled'];
+        }
+
+        // Default settings if not present
+        $types = ['github_issue', 'github_pr', 'task_status', 'agent_event'];
+        foreach ($types as $type) {
+            if (!isset($settings[$type])) {
+                $settings[$type] = true;
+            }
+        }
+
+        return $settings;
+    }
+
+    public function updateUserEventSettings(int $userId, array $settings): bool
+    {
+        $db = $this->db->getConnection();
+        $db->beginTransaction();
+
+        try {
+            foreach ($settings as $type => $enabled) {
+                $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+                if ($driver === 'sqlite') {
+                    $stmt = $db->prepare(
+                        "INSERT INTO user_event_notification_settings (user_id, notification_type, is_enabled)
+                         VALUES (?, ?, ?)
+                         ON CONFLICT(user_id, notification_type) DO UPDATE SET is_enabled = excluded.is_enabled"
+                    );
+                } else {
+                    $stmt = $db->prepare(
+                        "INSERT INTO user_event_notification_settings (user_id, notification_type, is_enabled)
+                         VALUES (?, ?, ?)
+                         ON DUPLICATE KEY UPDATE is_enabled = VALUES(is_enabled)"
+                    );
+                }
+                $stmt->execute([$userId, $type, (int)$enabled]);
             }
             $db->commit();
             return true;

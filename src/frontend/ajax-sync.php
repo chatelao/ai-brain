@@ -35,48 +35,79 @@ $julesService = new JulesService(null, $user['jules_api_key'] ?? null);
 $notificationService = new NotificationService($db);
 
 try {
-    if ($projectId > 0) {
-        $project = $projectModel->findById($projectId);
-        if ($project && $project['user_id'] === $userId) {
-            $githubToken = $project['github_token'] ?? null;
-            if ($githubToken) {
-                $githubService = new GitHubService(null, $githubToken);
-                $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService, null, $projectId);
-            }
-        }
-    } else {
-        // Global refresh for dashboard
-        $githubAccounts = $userModel->getGitHubAccounts($userId);
-        if (!empty($githubAccounts)) {
-            // Use the first account's token for refreshing Jules status
-            $githubService = new GitHubService(null, $githubAccounts[0]['github_token']);
-            $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
-        } else {
-            // Fallback without token
-            $githubService = new GitHubService();
-            $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
+    // 1. Return current state immediately if fast=1 is NOT requested (wait, logic check)
+    // Actually, if fast=1 we SKIP the external API calls.
+    $fast = isset($_GET['fast']) && $_GET['fast'] === '1';
+
+    if (!$fast) {
+        // If we have fastcgi_finish_request, we can return current state and then refresh in background
+        if (function_exists('fastcgi_finish_request')) {
+            $counts = $taskModel->getTaskCounts($userId);
+            echo json_encode([
+                'status' => 'success',
+                'quota_usage' => $user['jules_quota_usage'] ?? 0,
+                'quota_limit' => $user['jules_quota_limit'] ?? 0,
+                'total_tasks' => $counts['total'] ?? 0,
+                'open_issues' => $counts['open_issues'] ?? 0,
+                'completed_tasks' => $counts['completed_tasks'] ?? 0,
+                'jules_running' => $counts['jules_running'] ?? 0,
+                'jules_failed' => $counts['jules_failed'] ?? 0,
+                'github_running' => $counts['github_running'] ?? 0,
+                'github_passed' => $counts['github_passed'] ?? 0,
+                'github_failed' => $counts['github_failed'] ?? 0
+            ]);
+            fastcgi_finish_request();
+            ignore_user_abort(true);
         }
     }
 
-    // Re-fetch user to get updated quota
-    $updatedUser = $userModel->findById($userId);
+    if (!$fast) {
+        if ($projectId > 0) {
+            $project = $projectModel->findById($projectId);
+            if ($project && $project['user_id'] === $userId) {
+                $githubToken = $project['github_token'] ?? null;
+                if ($githubToken) {
+                    $githubService = new GitHubService(null, $githubToken);
+                    $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService, null, $projectId);
+                }
+            }
+        } else {
+            // Global refresh for dashboard
+            $githubAccounts = $userModel->getGitHubAccounts($userId);
+            if (!empty($githubAccounts)) {
+                // Use the first account's token for refreshing Jules status
+                $githubService = new GitHubService(null, $githubAccounts[0]['github_token']);
+                $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
+            } else {
+                // Fallback without token
+                $githubService = new GitHubService();
+                $taskModel->refreshJulesStatus($userId, $githubService, $julesService, $notificationService);
+            }
+        }
+    }
 
-    // Calculate updated counts
-    $counts = $taskModel->getTaskCounts($userId);
+    // Only output JSON if it hasn't been sent yet (i.e. no fastcgi_finish_request or fast=1)
+    if (!headers_sent()) {
+        // Re-fetch user to get updated quota
+        $updatedUser = $userModel->findById($userId);
 
-    echo json_encode([
-        'status' => 'success',
-        'quota_usage' => $updatedUser['jules_quota_usage'] ?? 0,
-        'quota_limit' => $updatedUser['jules_quota_limit'] ?? 0,
-        'total_tasks' => $counts['total'] ?? 0,
-        'open_issues' => $counts['open_issues'] ?? 0,
-        'completed_tasks' => $counts['completed_tasks'] ?? 0,
-        'jules_running' => $counts['jules_running'] ?? 0,
-        'jules_failed' => $counts['jules_failed'] ?? 0,
-        'github_running' => $counts['github_running'] ?? 0,
-        'github_passed' => $counts['github_passed'] ?? 0,
-        'github_failed' => $counts['github_failed'] ?? 0
-    ]);
+        // Calculate updated counts
+        $counts = $taskModel->getTaskCounts($userId);
+
+        echo json_encode([
+            'status' => 'success',
+            'quota_usage' => $updatedUser['jules_quota_usage'] ?? 0,
+            'quota_limit' => $updatedUser['jules_quota_limit'] ?? 0,
+            'total_tasks' => $counts['total'] ?? 0,
+            'open_issues' => $counts['open_issues'] ?? 0,
+            'completed_tasks' => $counts['completed_tasks'] ?? 0,
+            'jules_running' => $counts['jules_running'] ?? 0,
+            'jules_failed' => $counts['jules_failed'] ?? 0,
+            'github_running' => $counts['github_running'] ?? 0,
+            'github_passed' => $counts['github_passed'] ?? 0,
+            'github_failed' => $counts['github_failed'] ?? 0
+        ]);
+    }
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
