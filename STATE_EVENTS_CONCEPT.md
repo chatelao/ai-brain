@@ -128,13 +128,13 @@ A shared set of visual indicators (Colors and Emojis) is used across the web das
 | Unified State | Substate | Color (Web) | Emoji | Meaning |
 | :--- | :--- | :--- | :--- | :--- |
 | **`CREATED`** | - | Grey | ⏳ | Waiting for agent |
-| **`PROCESSING`** | **`ANALYZING`** | Blue | 🚧 | Agent is researching |
-| | **`PLANNING`** | Blue | 🚧 | Agent is planning |
+| **`PROCESSING`** | **`ANALYZING`** | Yellow | 🚧 | Agent is researching |
+| | **`PLANNING`** | LightBlue | 🚧 | Agent is planning |
 | | **`EXECUTING`** | Yellow | 🚧 | Agent is coding |
 | | **`VERIFYING`** | Yellow | 🚧 | Agent is testing locally |
 | | **`CHECKING`** | Orange | 🔍 | Awaiting PR check results |
 | **`READY`** | - | Green | ✅ | Validated and ready to merge |
-| **`FINISHED`** | - | Purple / Green | ✅ | Task completed and closed |
+| **`FINISHED`** | - | Purple | ✅ | Task completed and closed |
 | **`FAILED`** | **`FAILED_JULES`** | Red | ❌ | Agent execution error |
 | | **`FAILED_PR`** | Red | ❌ | PR verification (CI) failed |
 
