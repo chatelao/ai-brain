@@ -23,10 +23,19 @@ class WebhookHandler
 
     public function handle(array $project, array $event, ?GitHubService $githubService = null, ?NotificationService $notificationService = null, ?JulesService $julesService = null): bool
     {
+        if (empty($event['repository'])) {
+            return false;
+        }
+
         $action = $event['action'] ?? '';
         $issue = $event['issue'] ?? null;
         $pullRequest = $event['pull_request'] ?? null;
         $checkSuite = $event['check_suite'] ?? null;
+
+        // Skip events without an action, except for check_suite which might have different triggers
+        if (empty($action) && !$checkSuite) {
+            return true;
+        }
 
         $taskModel = new Task($this->db);
 
@@ -230,12 +239,16 @@ class WebhookHandler
         $action = $event['action'] ?? '';
         $checkSuite = $event['check_suite'] ?? null;
 
-        if (!in_array($action, ['requested', 'rerequested', 'completed']) || !$checkSuite) {
+        if (!$checkSuite || (!empty($action) && !in_array($action, ['requested', 'rerequested', 'completed']))) {
             return true;
         }
 
-        $conclusion = $checkSuite['conclusion'] ?? '';
         $pullRequests = $checkSuite['pull_requests'] ?? [];
+
+        if (empty($pullRequests)) {
+            // Some check suites might not be associated with a PR yet or at all
+            return true;
+        }
 
         foreach ($pullRequests as $pr) {
             $prUrl = $pr['url'] ?? '';
