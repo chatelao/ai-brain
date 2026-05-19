@@ -10,6 +10,7 @@
 | 4 | [UC-C2] One-Tap PR Merging | ✅ |
 | 5 | UX & Feedback Loop | 🚧 |
 | 6 | [UC-C3] Quick Task Acknowledgment | ✅ |
+| 7 | [UC-C4] Chat Cleanup | 🚧 |
 
 ## Goals
 
@@ -54,3 +55,9 @@
 - [x] Implement `acknowledge` action handler in `TelegramWebhookHandler`.
 - [x] Define what "Acknowledgment" does in the system (e.g., clear from pending queue).
 - [x] Verify acknowledgment flow from a "New Issue" notification.
+
+## Phase 7: [UC-C4] Chat Cleanup
+- [x] Implement `deleteMessage` in `App\TelegramService`.
+- [x] Capture Telegram `message_id` and `chat_id` in `TelegramChannelHandler` and store in notification metadata.
+- [ ] Implement automatic message deletion when notification is marked as read.
+- [ ] Verify cleanup flow by marking a notification as read and checking Telegram.

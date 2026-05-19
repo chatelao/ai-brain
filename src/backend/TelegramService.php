@@ -42,7 +42,7 @@ class TelegramService
     /**
      * @throws Exception
      */
-    public function editMessageText(int $chatId, int $messageId, string $text, array $extraParams = []): bool
+    public function editMessageText(int $chatId, int $messageId, string $text, array $extraParams = []): array
     {
         $params = array_merge([
             'chat_id' => $chatId,
@@ -51,16 +51,14 @@ class TelegramService
             'parse_mode' => 'HTML'
         ], $extraParams);
 
-        $this->apiRequest('editMessageText', $params);
-
-        return true;
+        return $this->apiRequest('editMessageText', $params);
     }
 
     /**
      * @throws GuzzleException
      * @throws Exception
      */
-    public function sendMessage(int $chatId, string $text, array $extraParams = []): bool
+    public function sendMessage(int $chatId, string $text, array $extraParams = []): array
     {
         $params = array_merge([
             'chat_id' => $chatId,
@@ -68,7 +66,20 @@ class TelegramService
             'parse_mode' => 'HTML'
         ], $extraParams);
 
-        $this->apiRequest('sendMessage', $params);
+        return $this->apiRequest('sendMessage', $params);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function deleteMessage(int $chatId, int $messageId): bool
+    {
+        $params = [
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+        ];
+
+        $this->apiRequest('deleteMessage', $params);
 
         return true;
     }

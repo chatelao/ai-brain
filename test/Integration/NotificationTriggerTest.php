@@ -231,7 +231,7 @@ class NotificationTriggerTest extends TestCase
         $mockWithToken->expects($this->once())
             ->method('sendMessage')
             ->with('12345', $this->anything())
-            ->willReturn(true);
+            ->willReturn(['ok' => true]);
 
         // We need to inject the mocked TelegramService into the NotificationService's channel
         $userModel = new \App\User($this->db);
