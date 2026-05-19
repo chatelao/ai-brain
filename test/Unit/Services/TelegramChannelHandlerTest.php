@@ -50,7 +50,7 @@ class TelegramChannelHandlerTest extends TestCase
         $mockService->expects($this->once())
             ->method('sendMessage')
             ->with(123456, $this->stringContains('<b>Test Notification</b>'))
-            ->willReturn(true);
+            ->willReturn(['ok' => true]);
 
         $result = $this->handler->send($notification);
         $this->assertTrue($result);
@@ -143,7 +143,7 @@ class TelegramChannelHandlerTest extends TestCase
         $customService->expects($this->once())
             ->method('sendMessage')
             ->with(123456, $this->stringContains('Test Notification'))
-            ->willReturn(true);
+            ->willReturn(['ok' => true]);
 
         $result = $this->handler->send($notification);
         $this->assertTrue($result);

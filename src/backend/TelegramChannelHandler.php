@@ -63,10 +63,38 @@ class TelegramChannelHandler implements NotificationChannelInterface
         }
 
         try {
-            return $this->telegramService->withToken($botToken)->sendMessage($chatId, $text, $extraParams);
+            $response = $this->telegramService->withToken($botToken)->sendMessage($chatId, $text, $extraParams);
+
+            // Capture message_id and update notification if available
+            $messageId = $response['result']['message_id'] ?? null;
+            if ($messageId && isset($notification['notification_id'])) {
+                $this->updateNotificationMetadata((int)$notification['notification_id'], (int)$chatId, (int)$messageId);
+            }
+
+            return true;
         } catch (\Exception $e) {
             error_log("Telegram Send Error for user $userId: " . $e->getMessage());
             return false;
         }
+    }
+
+    private function updateNotificationMetadata(int $notificationId, int $chatId, int $messageId): void
+    {
+        $db = $this->userModel->getDb()->getConnection();
+
+        $stmt = $db->prepare("SELECT data FROM notifications WHERE notification_id = ?");
+        $stmt->execute([$notificationId]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            return;
+        }
+
+        $data = json_decode($row['data'], true) ?: [];
+        $data['telegram_chat_id'] = $chatId;
+        $data['telegram_message_id'] = $messageId;
+
+        $stmt = $db->prepare("UPDATE notifications SET data = ? WHERE notification_id = ?");
+        $stmt->execute([json_encode($data), $notificationId]);
     }
 }

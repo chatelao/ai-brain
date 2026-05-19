@@ -14,8 +14,9 @@ class TelegramServiceTest extends TestCase
 {
     public function testSendMessageSuccess()
     {
+        $responseBody = ['ok' => true, 'result' => ['message_id' => 999]];
         $mock = new MockHandler([
-            new Response(200, [], json_encode(['ok' => true])),
+            new Response(200, [], json_encode($responseBody)),
         ]);
 
         $handlerStack = HandlerStack::create($mock);
@@ -24,7 +25,9 @@ class TelegramServiceTest extends TestCase
         $service = new TelegramService($client, 'fake-token');
         $result = $service->sendMessage(123456, 'Hello World');
 
-        $this->assertTrue($result);
+        $this->assertIsArray($result);
+        $this->assertTrue($result['ok']);
+        $this->assertEquals(999, $result['result']['message_id']);
     }
 
     public function testSendMessageApiError()
@@ -60,7 +63,7 @@ class TelegramServiceTest extends TestCase
             function ($request) {
                 $body = json_decode($request->getBody()->getContents(), true);
                 if ($body['reply_markup']['force_reply'] === true) {
-                    return new Response(200, [], json_encode(['ok' => true]));
+                    return new Response(200, [], json_encode(['ok' => true, 'result' => []]));
                 }
                 return new Response(200, [], json_encode(['ok' => false]));
             },
@@ -73,6 +76,40 @@ class TelegramServiceTest extends TestCase
         $result = $service->sendMessage(123456, 'Hello World', [
             'reply_markup' => ['force_reply' => true]
         ]);
+
+        $this->assertIsArray($result);
+        $this->assertTrue($result['ok']);
+    }
+
+    public function testEditMessageTextSuccess()
+    {
+        $responseBody = ['ok' => true, 'result' => ['message_id' => 123, 'text' => 'Updated']];
+        $mock = new MockHandler([
+            new Response(200, [], json_encode($responseBody)),
+        ]);
+
+        $handlerStack = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handlerStack]);
+
+        $service = new TelegramService($client, 'fake-token');
+        $result = $service->editMessageText(123456, 123, 'Updated');
+
+        $this->assertIsArray($result);
+        $this->assertTrue($result['ok']);
+        $this->assertEquals('Updated', $result['result']['text']);
+    }
+
+    public function testDeleteMessageSuccess()
+    {
+        $mock = new MockHandler([
+            new Response(200, [], json_encode(['ok' => true, 'result' => true])),
+        ]);
+
+        $handlerStack = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handlerStack]);
+
+        $service = new TelegramService($client, 'fake-token');
+        $result = $service->deleteMessage(123456, 123);
 
         $this->assertTrue($result);
     }
