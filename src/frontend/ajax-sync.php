@@ -31,6 +31,7 @@ $userId = $auth->getUserId();
 $user = $userModel->findById($userId);
 
 $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$taskId = isset($_GET['task_id']) ? (int)$_GET['task_id'] : 0;
 $julesService = new JulesService(null, $user['jules_api_key'] ?? null);
 $notificationService = new NotificationService($db);
 
@@ -63,7 +64,20 @@ try {
     }
 
     if (!$fast) {
-        if ($projectId > 0) {
+        if ($taskId > 0) {
+            $task = $taskModel->findById($taskId);
+            if ($task && $task['user_id'] === $userId) {
+                $project = $projectModel->findById($task['project_id']);
+                if ($project) {
+                    $githubToken = $project['github_token'] ?? null;
+                    if ($githubToken) {
+                        $githubService = new GitHubService(null, $githubToken);
+                        // Manual sync should not trigger notifications
+                        $taskModel->refreshJulesStatus($userId, $githubService, $julesService, null, $taskId);
+                    }
+                }
+            }
+        } elseif ($projectId > 0) {
             $project = $projectModel->findById($projectId);
             if ($project && $project['user_id'] === $userId) {
                 $githubToken = $project['github_token'] ?? null;

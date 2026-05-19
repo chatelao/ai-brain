@@ -139,4 +139,38 @@ class TaskStateTest extends TestCase
 
         $this->assertStringContainsString("t.status IN ('finished', 'completed')", $capturedSql);
     }
+
+    public function testExtractSessionId()
+    {
+        // Markdown links
+        $this->assertEquals('123456789', $this->taskModel->extractSessionId('Jules session: [link](https://jules.google.com/task/123456789)'));
+        $this->assertEquals('abc-def', $this->taskModel->extractSessionId('https://jules.googleapis.com/v1alpha/sessions/abc-def'));
+
+        // Case insensitivity
+        $this->assertEquals('123', $this->taskModel->extractSessionId('JULES.GOOGLE.COM/TASK/123'));
+
+        // Explicit labels
+        $this->assertEquals('xyz', $this->taskModel->extractSessionId('session_id: xyz'));
+        $this->assertEquals('xyz', $this->taskModel->extractSessionId('taskId=xyz'));
+        $this->assertEquals('xyz', $this->taskModel->extractSessionId('sessionId : xyz'));
+
+        // Long numeric IDs
+        $this->assertEquals('12345678901234567890', $this->taskModel->extractSessionId('Session 12345678901234567890 started'));
+    }
+
+    public function testExtractPrUrl()
+    {
+        // Full URL
+        $url = 'https://github.com/owner/repo/pull/123';
+        $this->assertEquals($url, $this->taskModel->extractPrUrl("PR is at $url"));
+        $this->assertEquals($url, $this->taskModel->extractPrUrl($url));
+
+        // Relative reference with repo context
+        $repo = 'owner/repo';
+        $this->assertEquals("https://github.com/$repo/pull/456", $this->taskModel->extractPrUrl('Fixes #456', $repo));
+        $this->assertEquals("https://github.com/$repo/pull/789", $this->taskModel->extractPrUrl('See pull/789', $repo));
+
+        // No repo context, relative reference should return null
+        $this->assertNull($this->taskModel->extractPrUrl('Fixes #456'));
+    }
 }
