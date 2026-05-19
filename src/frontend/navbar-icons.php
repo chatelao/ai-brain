@@ -127,8 +127,17 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
         // Fetch Sync Status
         if (!this.syncStatus) {
             this.syncing = true;
-            const projectId = new URLSearchParams(window.location.search).get('id');
-            const url = (projectId ? 'ajax-sync.php?id=' + projectId : 'ajax-sync.php');
+            const params = new URLSearchParams(window.location.search);
+            const projectId = params.get('id');
+            const isTaskPage = window.location.pathname.includes('task.php');
+
+            let url = 'ajax-sync.php';
+            if (isTaskPage && projectId) {
+                url += '?task_id=' + projectId;
+            } else if (projectId) {
+                url += '?id=' + projectId;
+            }
+
             fetch(basePath + url)
                 .then(res => res.json())
                 .then(data => {

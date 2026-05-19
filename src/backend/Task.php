@@ -588,28 +588,35 @@ class Task
     public function extractSessionId(string $text): ?string
     {
         // 1. Markdown links like [Jules Task](.../sessions/ID) or .../task/ID
-        if (preg_match('/jules\.(?:google|googleapis)\.com\/(?:v1alpha\/)?(?:sessions|task)\/([a-zA-Z0-9_-]+)/', $text, $matches)) {
+        if (preg_match('/jules\.(?:google|googleapis)\.com\/(?:v1alpha\/)?(?:sessions|task)\/([a-zA-Z0-9_-]+)/i', $text, $matches)) {
             return $matches[1];
         }
 
         // 2. Explicit task_id or session_id labels
-        if (preg_match('/(?:task_id|session_id|sessionId|taskId)[:=]\s*([a-zA-Z0-9_-]+)/i', $text, $matches)) {
+        if (preg_match('/(?:task_id|session_id|sessionId|taskId)\s*[:=]\s*([a-zA-Z0-9_-]+)/i', $text, $matches)) {
             return $matches[1];
         }
 
         // 3. Look for a long numeric ID that looks like a session ID
-        if (preg_match('/\b(\d{15,25})\b/', $text, $matches)) {
+        if (preg_match('/\b(\d{15,30})\b/', $text, $matches)) {
             return $matches[1];
         }
 
         return null;
     }
 
-    public function extractPrUrl(string $text): ?string
+    public function extractPrUrl(string $text, ?string $repo = null): ?string
     {
-        if (preg_match('/https:\/\/github\.com\/[^\/]+\/[^\/]+\/pull\/\d+/', $text, $matches)) {
+        // Full URL
+        if (preg_match('/https?:\/\/github\.com\/([^\/]+\/[^\/]+)\/pull\/(\d+)/i', $text, $matches)) {
             return $matches[0];
         }
+
+        // Relative reference like #123 or pull/#123
+        if ($repo && preg_match('/(?:pull\/|#)(\d+)/i', $text, $matches)) {
+            return "https://github.com/$repo/pull/{$matches[1]}";
+        }
+
         return null;
     }
 
@@ -709,41 +716,58 @@ class Task
 
             if (!$sessionId || !$prUrl) {
                 try {
-                    $comments = $githubService->getIssueComments($task['github_repo'], $task['issue_number']);
+                    // Fetch fresh issue to get latest body and possibly PR info
+                    $issue = $githubService->getIssue($task['github_repo'], $task['issue_number']);
 
                     if (!$sessionId) {
-                        // Reverse to find the latest "on it" comment
+                        $sessionId = $this->extractSessionId($issue['body'] ?? '');
+                    }
+
+                    if (!$prUrl) {
+                        $prUrl = $this->extractPrUrl($issue['body'] ?? '', $task['github_repo']);
+                    }
+
+                    $comments = $githubService->getIssueComments($task['github_repo'], $task['issue_number']);
+
+                    // Search for sessionId in comments if not found in body
+                    if (!$sessionId) {
+                        // Reverse to find the latest comment from Jules first
                         $julesComments = array_reverse(array_filter($comments, function ($c) {
                             $login = strtolower($c['user']['login'] ?? '');
-                            return ($login === 'google-labs-jules[bot]' || $login === 'jules') &&
-                                stripos($c['body'] ?? '', 'on it') !== false;
+                            return ($login === 'google-labs-jules[bot]' || $login === 'jules');
                         }));
 
                         foreach ($julesComments as $comment) {
                             $sessionId = $this->extractSessionId($comment['body'] ?? '');
-                            if ($sessionId) {
-                                $updateStmt = $this->db->getConnection()->prepare(
-                                    "UPDATE tasks SET jules_session_id = ? WHERE task_id = ?"
-                                );
-                                $updateStmt->execute([$sessionId, $task['task_id']]);
-                                $task['jules_session_id'] = $sessionId;
-                                break;
+                            if ($sessionId) break;
+                        }
+                    }
+
+                    // Search for prUrl in comments if not found in body
+                    if (!$prUrl) {
+                        // Check if issue object already has a PR link (GitHub does this sometimes)
+                        if (isset($issue['pull_request']['html_url'])) {
+                            $prUrl = $issue['pull_request']['html_url'];
+                        } else {
+                            foreach (array_reverse($comments) as $comment) {
+                                $prUrl = $this->extractPrUrl($comment['body'] ?? '', $task['github_repo']);
+                                if ($prUrl) break;
                             }
                         }
                     }
 
-                    if (!$prUrl) {
-                        foreach ($comments as $comment) {
-                            $prUrl = $this->extractPrUrl($comment['body'] ?? '');
-                            if ($prUrl) {
-                                $updateStmt = $this->db->getConnection()->prepare(
-                                    "UPDATE tasks SET pr_url = ? WHERE task_id = ?"
-                                );
-                                $updateStmt->execute([$prUrl, $task['task_id']]);
-                                $task['pr_url'] = $prUrl;
-                                break;
-                            }
-                        }
+                    // Update database if found
+                    if ($sessionId !== $task['jules_session_id'] || $prUrl !== $task['pr_url']) {
+                        $updateStmt = $this->db->getConnection()->prepare(
+                            "UPDATE tasks SET jules_session_id = ?, pr_url = ? WHERE task_id = ?"
+                        );
+                        $updateStmt->execute([
+                            $sessionId ?: $task['jules_session_id'],
+                            $prUrl ?: $task['pr_url'],
+                            $task['task_id']
+                        ]);
+                        $task['jules_session_id'] = $sessionId ?: $task['jules_session_id'];
+                        $task['pr_url'] = $prUrl ?: $task['pr_url'];
                     }
                 } catch (\Exception $e) {
                     // Log error if needed
