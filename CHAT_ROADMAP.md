@@ -9,7 +9,7 @@
 | 3 | [UC-C1] Remote Task Recovery | ✅ |
 | 4 | [UC-C2] One-Tap PR Merging | ✅ |
 | 5 | UX & Feedback Loop | 🚧 |
-| 6 | [UC-C3] Quick Task Acknowledgment | 🚧 |
+| 6 | [UC-C3] Quick Task Acknowledgment | ✅ |
 
 ## Goals
 
@@ -50,7 +50,7 @@
 - [ ] Final end-to-end testing of the interactive chat experience.
 
 ## Phase 6: [UC-C3] Quick Task Acknowledgment
-- [ ] Update `WebhookHandler` to include the `acknowledge` action for new 'jules' issues.
-- [ ] Implement `acknowledge` action handler in `TelegramWebhookHandler`.
-- [ ] Define what "Acknowledgment" does in the system (e.g., clear from pending queue).
-- [ ] Verify acknowledgment flow from a "New Issue" notification.
+- [x] Update `WebhookHandler` to include the `acknowledge` action for new 'jules' issues.
+- [x] Implement `acknowledge` action handler in `TelegramWebhookHandler`.
+- [x] Define what "Acknowledgment" does in the system (e.g., clear from pending queue).
+- [x] Verify acknowledgment flow from a "New Issue" notification.

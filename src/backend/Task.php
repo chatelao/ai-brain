@@ -791,12 +791,21 @@ class Task
                         $message = "PR checks for \"" . $task['title'] . "\" failed.";
                     }
 
+                    $actions = [];
+                    if ($mappedStatus === self::STATUS_READY) {
+                        $actions = ['merge'];
+                    } elseif ($mappedStatus === self::STATUS_FAILED_JULES || $mappedStatus === self::STATUS_FAILED_PR) {
+                        $actions = ['retry', 'restart'];
+                    } else {
+                        $actions = ['acknowledge'];
+                    }
+
                     $notificationService->notify($userId, 'task_status', $title, $message, [
                         'task_id' => $task['task_id'],
                         'project_id' => $task['project_id'],
                         'status' => $mappedStatus,
                         'source_url' => $this->getTargetUrl(array_merge($task, ['status' => $mappedStatus]))
-                    ]);
+                    ], $actions);
                 }
             } else {
                 // Still update last_synced_at even if no sessionId or apiKey to avoid constant retries

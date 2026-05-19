@@ -188,6 +188,10 @@ class WebhookHandlerTest extends TestCase
 
         $this->pdo->method('getAttribute')->with(PDO::ATTR_DRIVER_NAME)->willReturn('sqlite');
         $this->pdo->method('prepare')->willReturnCallback(function($sql) use ($stmt) {
+            // Depending on the order of calls, we might see different SQLs
+            if (str_contains($sql, 'SELECT * FROM tasks')) {
+                return $stmt;
+            }
             $this->assertStringContainsString('ON CONFLICT', $sql);
             return $stmt;
         });
