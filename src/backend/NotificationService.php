@@ -63,6 +63,33 @@ class NotificationService
             $shouldBroadcast = $this->isStatusBroadcastEnabled((int)$data['project_id'], $data['status']);
         }
 
+        // 6.1 Only system-triggered events with human follow-up are broadcasted
+        // If is_system is explicitly set to false, it's a human action -> no broadcast
+        if (!isset($data['is_system']) || $data['is_system'] === false) {
+            $shouldBroadcast = false;
+        }
+
+        // 6.2 Filter non-actionable system events
+        // Even if it's a system event, only broadcast if it needs human follow-up
+        if ($shouldBroadcast) {
+            $actionableTypes = ['task_status', 'github_issue', 'github_pr'];
+            if (!in_array($type, $actionableTypes)) {
+                $shouldBroadcast = false;
+            }
+
+            // For task_status, only specific states need follow-up
+            if ($type === 'task_status' && isset($data['status'])) {
+                $actionableStatuses = [
+                    Task::STATUS_READY,
+                    Task::STATUS_FAILED_JULES,
+                    Task::STATUS_FAILED_PR
+                ];
+                if (!in_array($data['status'], $actionableStatuses)) {
+                    $shouldBroadcast = false;
+                }
+            }
+        }
+
         if (!$shouldBroadcast) {
             return true;
         }
@@ -247,10 +274,31 @@ class NotificationService
         }
 
         // Default settings if not present
-        $statuses = ['researching', 'planning', 'coding', 'testing', 'in_progress', 'implemented', Task::STATUS_FINISHED, 'completed', 'failed_jules', 'failed_pr'];
+        $statuses = [
+            Task::STATUS_CREATED,
+            Task::STATUS_ANALYZING,
+            Task::STATUS_PLANNING,
+            Task::STATUS_EXECUTING,
+            Task::STATUS_VERIFYING,
+            Task::STATUS_IMPLEMENTED,
+            Task::STATUS_CHECKING,
+            Task::STATUS_READY,
+            Task::STATUS_FINISHED,
+            Task::STATUS_FAILED_JULES,
+            Task::STATUS_FAILED_PR
+        ];
+
+        // Actionable states default to broadcast enabled
+        $broadcastByDefault = [
+            Task::STATUS_READY,
+            Task::STATUS_FAILED_JULES,
+            Task::STATUS_FAILED_PR
+        ];
+
         foreach ($statuses as $status) {
-            if (!isset($settings[$status])) {
-                $settings[$status] = true;
+            $normalizedStatus = str_replace('-', '_', $status);
+            if (!isset($settings[$normalizedStatus])) {
+                $settings[$normalizedStatus] = in_array($status, $broadcastByDefault);
             }
         }
 

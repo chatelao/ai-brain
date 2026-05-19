@@ -65,7 +65,8 @@ class WebhookHandler
                 $effectiveNotifService->notify($project['user_id'], 'github_issue', "🗑️ Issue Deleted: #" . $issue['number'], "Issue \"" . ($issue['title'] ?? 'Unknown') . "\" was deleted in " . $project['github_repo'], [
                     'project_id' => $project['project_id'],
                     'issue_number' => $issue['number'],
-                    'source_url' => $issue['html_url'] ?? ''
+                    'source_url' => $issue['html_url'] ?? '',
+                    'is_system' => !$this->isUserTriggered($event)
                 ]);
             }
             return $result;
@@ -87,7 +88,8 @@ class WebhookHandler
                 'task_id' => $task['task_id'],
                 'project_id' => $project['project_id'],
                 'issue_number' => $issue['number'],
-                'source_url' => $issue['html_url']
+                'source_url' => $issue['html_url'],
+                'is_system' => !$this->isUserTriggered($event)
             ];
 
             if ($action === 'opened') {
@@ -100,13 +102,13 @@ class WebhookHandler
         }
 
         if ($result && $action === 'closed' && $githubService) {
-            $this->maybeDuplicateTask($project, $event, $githubService);
+            $this->maybeDuplicateTask($project, $event, $githubService, $effectiveNotifService);
         }
 
         return $result;
     }
 
-    private function maybeDuplicateTask(array $project, array $event, GitHubService $githubService): void
+    private function maybeDuplicateTask(array $project, array $event, GitHubService $githubService, ?NotificationService $notificationService = null): void
     {
         $issue = $event['issue'] ?? null;
         if (!$issue) {
@@ -182,6 +184,15 @@ class WebhookHandler
 
             $githubService->createIssue($repo, $issue['title'], $issue['body'] ?? null, array_values($labelNames));
             $githubService->removeLabel($repo, $issue['number'], $autorepeatLabelName);
+
+            if ($notificationService) {
+                $notificationService->notify($project['user_id'], 'github_issue', "🔁 Auto-Repeat: #" . $issue['number'], "Task \"" . $issue['title'] . "\" was merged/closed with Auto-Repeat. A new issue has been created.", [
+                    'project_id' => $project['project_id'],
+                    'issue_number' => $issue['number'],
+                    'source_url' => $issue['html_url'] ?? '',
+                    'is_system' => true
+                ]);
+            }
         }
     }
 
@@ -215,7 +226,8 @@ class WebhookHandler
             $notificationService->notify($project['user_id'], 'github_pr', "$emoji PR $actionText: #" . $pr['number'], "Pull Request \"" . $pr['title'] . "\" was $actionText in " . $project['github_repo'], [
                 'project_id' => $project['project_id'],
                 'pr_number' => $pr['number'],
-                'source_url' => $pr['html_url']
+                'source_url' => $pr['html_url'],
+                'is_system' => !$this->isUserTriggered($event)
             ]);
         }
 
@@ -231,7 +243,7 @@ class WebhookHandler
                     $pseudoEvent['issue'] = $githubData;
                     // Force state_reason to 'completed' because it was merged
                     $pseudoEvent['issue']['state_reason'] = 'completed';
-                    $this->maybeDuplicateTask($project, $pseudoEvent, $githubService);
+                    $this->maybeDuplicateTask($project, $pseudoEvent, $githubService, $notificationService);
                 }
             }
         }
@@ -325,7 +337,8 @@ class WebhookHandler
                         'task_id' => $task['task_id'],
                         'project_id' => $task['project_id'],
                         'status' => $newStatus,
-                        'source_url' => $taskModel->getTargetUrl(array_merge($task, ['status' => $newStatus]))
+                        'source_url' => $taskModel->getTargetUrl(array_merge($task, ['status' => $newStatus])),
+                        'is_system' => true // Check suite events are always system-driven
                     ], $actions);
                 }
             }

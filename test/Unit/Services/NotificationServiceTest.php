@@ -153,7 +153,8 @@ class NotificationServiceTest extends TestCase
         // The current implementation: if ANY settings exist, it only uses what's enabled.
         $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'test_channel', 1)");
 
-        $this->notificationService->notify($userId, 'type', 'title', 'message');
+        // We must use an actionable type and mark as system event for broadcast to trigger
+        $this->notificationService->notify($userId, 'github_issue', 'title', 'message', ['is_system' => true]);
     }
 
     public function testNotifyDoesNotPersistIfInAppDisabled()

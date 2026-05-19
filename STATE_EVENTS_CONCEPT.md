@@ -2,6 +2,9 @@
 
 This document describes the reactive behaviors of the Agent Control application, detailing how it responds to external events and how it behaves based on its internal state.
 
+### Related Concepts
+- **[Notifications System (NOTIF_CONCEPT.md)](NOTIF_CONCEPT.md)**: Describes how state transitions and events trigger user alerts. (Secondary concept).
+
 ## 1. Unified Task State Mapping
 
 The application defines a set of unified task states to provide a consistent view of progress across different external tools (GitHub, Jules). These states represent the "Source of Truth" for the task's lifecycle and include a shared set of visual indicators (Colors and Emojis) used across the web dashboard and Telegram.
@@ -124,3 +127,41 @@ The system exhibits different behaviors and interactive options depending on the
 
 - **Merge & Close**: Only available if state is `READY`, PR is mergeable and checks passed.
 - **Retry / Restart**: Only available when state is `FAILED`.
+
+## 6. Notifications & Broadcasts
+
+The application triggers notifications for state transitions and external events. A "Broadcast" is a notification sent to external channels (Telegram, Browser), while all notifications are persisted in the In-App Inbox.
+
+### 6.1 State Transition Notifications
+
+| Unified State | Notification | Broadcast (Default) | Human Follow-up Required |
+| :--- | :---: | :---: | :--- |
+| `CREATED` | Yes | No | No |
+| `ANALYZING` | Yes | No | No |
+| `PLANNING` | Yes | No | No |
+| `EXECUTING` | Yes | No | No |
+| `VERIFYING` | Yes | No | No |
+| `IMPLEMENTED` | Yes | No | No |
+| `CHECKING` | Yes | No | No |
+| `READY` | Yes | **Yes** | **Yes** (Merge needed) |
+| `FINISHED` | Yes | No | No (FYI) |
+| `FAILED_JULES` | Yes | **Yes** | **Yes** (Retry/Restart needed) |
+| `FAILED_PR` | Yes | **Yes** | **Yes** (Fix needed) |
+
+### 6.2 Event Trigger Sources
+
+Only system-triggered events with a need for human follow-up are typically broadcast to external channels to minimize noise.
+
+| Event | Trigger Source | Follow-up Needed | Broadcast |
+| :--- | :--- | :---: | :---: |
+| **Issue Opened** | User (GitHub) | No | No |
+| **Issue Closed** | User (GitHub) / System (Merge) | No | No |
+| **Issue Reopened** | User (GitHub) | No | No |
+| **Issue Deleted** | User (GitHub) | No | No |
+| **PR Created** | System (Jules) | No | No |
+| **PR Merged** | User (UI) / System (Auto) | No | No |
+| **Agent Started** | User (UI) / System (Label) | No | No |
+| **Agent Completed**| System (Jules) | No | No |
+| **Check Suite Fail**| System (GitHub CI) | **Yes** | **Yes** |
+| **Check Suite Pass**| System (GitHub CI) | **Yes** | **Yes** |
+| **Auto-Repeat** | System | **Yes** | **Yes** |

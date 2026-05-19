@@ -69,15 +69,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notifications'
     ];
 
     $statusSettings = [
-        'researching' => isset($_POST['broadcast_researching']),
-        'planning' => isset($_POST['broadcast_planning']),
-        'coding' => isset($_POST['broadcast_coding']),
-        'testing' => isset($_POST['broadcast_testing']),
-        'in_progress' => isset($_POST['broadcast_in_progress']),
-        'implemented' => isset($_POST['broadcast_implemented']),
-        'completed' => isset($_POST['broadcast_completed']),
-        'failed_jules' => isset($_POST['broadcast_failed_jules']),
-        'failed_pr' => isset($_POST['broadcast_failed_pr'])
+        str_replace('-', '_', Task::STATUS_CREATED) => isset($_POST['broadcast_' . Task::STATUS_CREATED]),
+        str_replace('-', '_', Task::STATUS_ANALYZING) => isset($_POST['broadcast_' . Task::STATUS_ANALYZING]),
+        str_replace('-', '_', Task::STATUS_PLANNING) => isset($_POST['broadcast_' . Task::STATUS_PLANNING]),
+        str_replace('-', '_', Task::STATUS_EXECUTING) => isset($_POST['broadcast_' . Task::STATUS_EXECUTING]),
+        str_replace('-', '_', Task::STATUS_VERIFYING) => isset($_POST['broadcast_' . Task::STATUS_VERIFYING]),
+        str_replace('-', '_', Task::STATUS_IMPLEMENTED) => isset($_POST['broadcast_' . Task::STATUS_IMPLEMENTED]),
+        str_replace('-', '_', Task::STATUS_CHECKING) => isset($_POST['broadcast_' . Task::STATUS_CHECKING]),
+        str_replace('-', '_', Task::STATUS_READY) => isset($_POST['broadcast_' . Task::STATUS_READY]),
+        str_replace('-', '_', Task::STATUS_FINISHED) => isset($_POST['broadcast_' . Task::STATUS_FINISHED]),
+        str_replace('-', '_', Task::STATUS_FAILED_JULES) => isset($_POST['broadcast_' . Task::STATUS_FAILED_JULES]),
+        str_replace('-', '_', Task::STATUS_FAILED_PR) => isset($_POST['broadcast_' . Task::STATUS_FAILED_PR])
     ];
 
     if (
@@ -328,22 +330,25 @@ if (isset($_GET['success'])) {
                                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                         <?php
                                         $statuses = [
-                                            'researching' => 'Researching',
-                                            'planning' => 'Planning',
-                                            'coding' => 'Coding',
-                                            'testing' => 'Testing',
-                                            'in_progress' => 'In Progress',
-                                            'implemented' => 'Implemented',
-                                            'completed' => 'Completed',
-                                            'failed_jules' => 'Jules Failed',
-                                            'failed_pr' => 'PR Failed'
+                                            Task::STATUS_CREATED => 'Waiting for Agent',
+                                            Task::STATUS_ANALYZING => 'Analyzing',
+                                            Task::STATUS_PLANNING => 'Planning',
+                                            Task::STATUS_EXECUTING => 'Executing',
+                                            Task::STATUS_VERIFYING => 'Verifying',
+                                            Task::STATUS_IMPLEMENTED => 'Implemented',
+                                            Task::STATUS_CHECKING => 'Checking',
+                                            Task::STATUS_READY => 'Ready',
+                                            Task::STATUS_FINISHED => 'Finished',
+                                            Task::STATUS_FAILED_JULES => 'Jules Failed',
+                                            Task::STATUS_FAILED_PR => 'PR Failed'
                                         ];
                                         foreach ($statuses as $id => $label) :
+                                            $normalizedId = str_replace('-', '_', $id);
                                             ?>
                                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100 shadow-sm">
                                             <span class="text-xs font-medium text-gray-600"><?= $label ?></span>
                                             <label class="relative inline-flex items-center cursor-pointer scale-75">
-                                                <input type="checkbox" name="broadcast_<?= $id ?>" class="sr-only peer" <?= ($statusNotifSettings[$id] ?? true) ? 'checked' : '' ?>>
+                                                <input type="checkbox" name="broadcast_<?= $id ?>" class="sr-only peer" <?= ($statusNotifSettings[$normalizedId] ?? false) ? 'checked' : '' ?>>
                                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                                             </label>
                                         </div>

@@ -849,7 +849,8 @@ class Task
                         'task_id' => $task['task_id'],
                         'project_id' => $task['project_id'],
                         'status' => $mappedStatus,
-                        'source_url' => $this->getTargetUrl(array_merge($task, ['status' => $mappedStatus]))
+                        'source_url' => $this->getTargetUrl(array_merge($task, ['status' => $mappedStatus])),
+                        'is_system' => true // Polling/Sync is system-driven
                     ], $actions);
                 }
             } else {
