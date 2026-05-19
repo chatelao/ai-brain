@@ -451,7 +451,7 @@ class Task
     {
         $status = $task['status'] ?? self::STATUS_CREATED;
 
-        if ($status === self::STATUS_FINISHED) {
+        if ($status === self::STATUS_FINISHED || $status === 'completed') {
             $githubState = $task['github_state'] ?? 'closed';
             return $githubState === 'closed' ? 'purple' : 'green';
         }
@@ -477,10 +477,10 @@ class Task
         }
 
         if ($status === self::STATUS_CREATED) {
-            return 'grey';
+            return 'gray';
         }
 
-        return 'grey';
+        return 'gray';
     }
 
     public function hasAutorepeatLabel(array $task): bool
