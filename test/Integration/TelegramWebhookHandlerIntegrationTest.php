@@ -37,7 +37,7 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
         $this->pdo->exec("CREATE TABLE users (user_id $pk, email VARCHAR(255), telegram_bot_token VARCHAR(255), jules_api_key VARCHAR(255), jules_quota_updated_at TIMESTAMP NULL)");
         $this->pdo->exec("CREATE TABLE user_github_accounts (github_account_id $pk, user_id INT, github_username VARCHAR(255), github_token VARCHAR(255))");
         $this->pdo->exec("CREATE TABLE projects (project_id $pk, user_id INT, github_account_id INT, github_repo VARCHAR(255))");
-        $this->pdo->exec("CREATE TABLE tasks (task_id $pk, user_id INT, project_id INT, issue_number INT, title VARCHAR(255), pr_url VARCHAR(255))");
+        $this->pdo->exec("CREATE TABLE tasks (task_id $pk, user_id INT, project_id INT, issue_number INT, title VARCHAR(255), pr_url VARCHAR(255), status VARCHAR(50), github_state VARCHAR(50))");
         $this->pdo->exec("CREATE TABLE user_telegram_accounts (telegram_account_id $pk, user_id INT, telegram_chat_id BIGINT UNIQUE)");
 
         $this->db = $this->createMock(Database::class);
