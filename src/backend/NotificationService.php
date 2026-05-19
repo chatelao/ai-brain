@@ -52,41 +52,38 @@ class NotificationService
 
         $notificationId = null;
 
-        // 5. Persist to 'notifications' table if 'in_app' channel is enabled
+        // 5. Check if notification is enabled for this status (if it's a task_status event)
+        if ($type === 'task_status' && isset($data['status'])) {
+            // 5.1 Check global user status settings
+            if (!$this->isUserStatusEnabled($userId, $data['status'])) {
+                return false;
+            }
+
+            // 5.2 Check project-level status settings (if project_id is provided)
+            if (isset($data['project_id']) && !$this->isProjectStatusEnabled((int)$data['project_id'], $data['status'])) {
+                return false;
+            }
+        }
+
+        // 6. Persist to 'notifications' table if 'in_app' channel is enabled
         if (in_array('in_app', $enabledChannels)) {
             $notificationId = $this->persistNotification($userId, $type, $title, $message, $data);
         }
 
-        // 6. Check if broadcast is enabled for this status (if it's a task_status event)
+        // 7. Determine if broadcast (Telegram, Browser) is needed
         $shouldBroadcast = true;
-        if ($type === 'task_status' && isset($data['project_id']) && isset($data['status'])) {
-            $shouldBroadcast = $this->isStatusBroadcastEnabled((int)$data['project_id'], $data['status']);
-        }
 
-        // 6.1 Only system-triggered events with human follow-up are broadcasted
+        // 7.1 Only system-triggered events are broadcasted
         // If is_system is explicitly set to false, it's a human action -> no broadcast
         if (!isset($data['is_system']) || $data['is_system'] === false) {
             $shouldBroadcast = false;
         }
 
-        // 6.2 Filter non-actionable system events
-        // Even if it's a system event, only broadcast if it needs human follow-up
+        // 7.2 Only specific event types are broadcasted
         if ($shouldBroadcast) {
             $actionableTypes = ['task_status', 'github_issue', 'github_pr'];
             if (!in_array($type, $actionableTypes)) {
                 $shouldBroadcast = false;
-            }
-
-            // For task_status, only specific states need follow-up
-            if ($type === 'task_status' && isset($data['status'])) {
-                $actionableStatuses = [
-                    Task::STATUS_READY,
-                    Task::STATUS_FAILED_JULES,
-                    Task::STATUS_FAILED_PR
-                ];
-                if (!in_array($data['status'], $actionableStatuses)) {
-                    $shouldBroadcast = false;
-                }
             }
         }
 
@@ -260,7 +257,7 @@ class NotificationService
         }
     }
 
-    public function getStatusSettings(int $projectId): array
+    public function getProjectStatusSettings(int $projectId): array
     {
         $stmt = $this->db->getConnection()->prepare(
             "SELECT status, is_enabled FROM project_status_notification_settings WHERE project_id = ?"
@@ -288,8 +285,8 @@ class NotificationService
             Task::STATUS_FAILED_PR
         ];
 
-        // Actionable states default to broadcast enabled
-        $broadcastByDefault = [
+        // Actionable states default to enabled
+        $enabledByDefault = [
             Task::STATUS_READY,
             Task::STATUS_FAILED_JULES,
             Task::STATUS_FAILED_PR
@@ -298,14 +295,14 @@ class NotificationService
         foreach ($statuses as $status) {
             $normalizedStatus = str_replace('-', '_', $status);
             if (!isset($settings[$normalizedStatus])) {
-                $settings[$normalizedStatus] = in_array($status, $broadcastByDefault);
+                $settings[$normalizedStatus] = in_array($status, $enabledByDefault);
             }
         }
 
         return $settings;
     }
 
-    public function updateStatusSettings(int $projectId, array $settings): bool
+    public function updateProjectStatusSettings(int $projectId, array $settings): bool
     {
         $db = $this->db->getConnection();
         $db->beginTransaction();
@@ -354,10 +351,17 @@ class NotificationService
         return $settings[$type] ?? true;
     }
 
-    private function isStatusBroadcastEnabled(int $projectId, string $status): bool
+    private function isProjectStatusEnabled(int $projectId, string $status): bool
     {
         $normalizedStatus = str_replace('-', '_', $status);
-        $settings = $this->getStatusSettings($projectId);
+        $settings = $this->getProjectStatusSettings($projectId);
+        return $settings[$normalizedStatus] ?? true;
+    }
+
+    private function isUserStatusEnabled(int $userId, string $status): bool
+    {
+        $normalizedStatus = str_replace('-', '_', $status);
+        $settings = $this->getUserStatusSettings($userId);
         return $settings[$normalizedStatus] ?? true;
     }
 
@@ -586,6 +590,82 @@ class NotificationService
                     );
                 }
                 $stmt->execute([$userId, $type, (int)$enabled]);
+            }
+            $db->commit();
+            return true;
+        } catch (\Exception $e) {
+            $db->rollBack();
+            return false;
+        }
+    }
+
+    public function getUserStatusSettings(int $userId): array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT status, is_enabled FROM user_status_notification_settings WHERE user_id = ?"
+        );
+        $stmt->execute([$userId]);
+        $rows = $stmt->fetchAll();
+
+        $settings = [];
+        foreach ($rows as $row) {
+            $settings[$row['status']] = (bool)$row['is_enabled'];
+        }
+
+        // Default settings if not present
+        $statuses = [
+            Task::STATUS_CREATED,
+            Task::STATUS_ANALYZING,
+            Task::STATUS_PLANNING,
+            Task::STATUS_EXECUTING,
+            Task::STATUS_VERIFYING,
+            Task::STATUS_IMPLEMENTED,
+            Task::STATUS_CHECKING,
+            Task::STATUS_READY,
+            Task::STATUS_FINISHED,
+            Task::STATUS_FAILED_JULES,
+            Task::STATUS_FAILED_PR
+        ];
+
+        // Actionable states default to enabled
+        $enabledByDefault = [
+            Task::STATUS_READY,
+            Task::STATUS_FAILED_JULES,
+            Task::STATUS_FAILED_PR
+        ];
+
+        foreach ($statuses as $status) {
+            $normalizedStatus = str_replace('-', '_', $status);
+            if (!isset($settings[$normalizedStatus])) {
+                $settings[$normalizedStatus] = in_array($status, $enabledByDefault);
+            }
+        }
+
+        return $settings;
+    }
+
+    public function updateUserStatusSettings(int $userId, array $settings): bool
+    {
+        $db = $this->db->getConnection();
+        $db->beginTransaction();
+
+        try {
+            foreach ($settings as $status => $enabled) {
+                $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+                if ($driver === 'sqlite') {
+                    $stmt = $db->prepare(
+                        "INSERT INTO user_status_notification_settings (user_id, status, is_enabled)
+                         VALUES (?, ?, ?)
+                         ON CONFLICT(user_id, status) DO UPDATE SET is_enabled = excluded.is_enabled"
+                    );
+                } else {
+                    $stmt = $db->prepare(
+                        "INSERT INTO user_status_notification_settings (user_id, status, is_enabled)
+                         VALUES (?, ?, ?)
+                         ON DUPLICATE KEY UPDATE is_enabled = VALUES(is_enabled)"
+                    );
+                }
+                $stmt->execute([$userId, $status, (int)$enabled]);
             }
             $db->commit();
             return true;

@@ -22,6 +22,62 @@ class Task
     {
     }
 
+    public static function getStatusLabel(string $status): string
+    {
+        switch ($status) {
+            case self::STATUS_CREATED:
+                return 'Waiting for Agent';
+            case self::STATUS_ANALYZING:
+                return 'Analyzing';
+            case self::STATUS_PLANNING:
+                return 'Planning';
+            case self::STATUS_EXECUTING:
+                return 'Executing';
+            case self::STATUS_VERIFYING:
+                return 'Verifying';
+            case self::STATUS_IMPLEMENTED:
+                return 'Implemented';
+            case self::STATUS_CHECKING:
+                return 'Checking';
+            case self::STATUS_READY:
+                return 'Ready';
+            case self::STATUS_FINISHED:
+            case 'completed':
+                return 'Finished';
+            case self::STATUS_FAILED_JULES:
+                return 'Jules Failed';
+            case self::STATUS_FAILED_PR:
+                return 'PR Failed';
+            default:
+                return ucwords(str_replace('_', ' ', $status));
+        }
+    }
+
+    public static function getStatusEmoji(string $status): string
+    {
+        switch ($status) {
+            case self::STATUS_CREATED:
+                return '⏳';
+            case self::STATUS_ANALYZING:
+            case self::STATUS_PLANNING:
+            case self::STATUS_EXECUTING:
+            case self::STATUS_VERIFYING:
+            case self::STATUS_IMPLEMENTED:
+                return '🚧';
+            case self::STATUS_CHECKING:
+                return '🔍';
+            case self::STATUS_READY:
+            case self::STATUS_FINISHED:
+            case 'completed':
+                return '✅';
+            case self::STATUS_FAILED_JULES:
+            case self::STATUS_FAILED_PR:
+                return '❌';
+            default:
+                return '⏳';
+        }
+    }
+
     public function resolveStatus(array $task, ?array $prData = null, ?array $checkSuitesData = null): string
     {
         $githubState = $task['github_state'] ?? 'open';

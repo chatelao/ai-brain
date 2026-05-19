@@ -69,22 +69,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notifications'
     ];
 
     $statusSettings = [
-        str_replace('-', '_', Task::STATUS_CREATED) => isset($_POST['broadcast_' . Task::STATUS_CREATED]),
-        str_replace('-', '_', Task::STATUS_ANALYZING) => isset($_POST['broadcast_' . Task::STATUS_ANALYZING]),
-        str_replace('-', '_', Task::STATUS_PLANNING) => isset($_POST['broadcast_' . Task::STATUS_PLANNING]),
-        str_replace('-', '_', Task::STATUS_EXECUTING) => isset($_POST['broadcast_' . Task::STATUS_EXECUTING]),
-        str_replace('-', '_', Task::STATUS_VERIFYING) => isset($_POST['broadcast_' . Task::STATUS_VERIFYING]),
-        str_replace('-', '_', Task::STATUS_IMPLEMENTED) => isset($_POST['broadcast_' . Task::STATUS_IMPLEMENTED]),
-        str_replace('-', '_', Task::STATUS_CHECKING) => isset($_POST['broadcast_' . Task::STATUS_CHECKING]),
-        str_replace('-', '_', Task::STATUS_READY) => isset($_POST['broadcast_' . Task::STATUS_READY]),
-        str_replace('-', '_', Task::STATUS_FINISHED) => isset($_POST['broadcast_' . Task::STATUS_FINISHED]),
-        str_replace('-', '_', Task::STATUS_FAILED_JULES) => isset($_POST['broadcast_' . Task::STATUS_FAILED_JULES]),
-        str_replace('-', '_', Task::STATUS_FAILED_PR) => isset($_POST['broadcast_' . Task::STATUS_FAILED_PR])
+        str_replace('-', '_', Task::STATUS_CREATED) => isset($_POST['status_' . Task::STATUS_CREATED]),
+        str_replace('-', '_', Task::STATUS_ANALYZING) => isset($_POST['status_' . Task::STATUS_ANALYZING]),
+        str_replace('-', '_', Task::STATUS_PLANNING) => isset($_POST['status_' . Task::STATUS_PLANNING]),
+        str_replace('-', '_', Task::STATUS_EXECUTING) => isset($_POST['status_' . Task::STATUS_EXECUTING]),
+        str_replace('-', '_', Task::STATUS_VERIFYING) => isset($_POST['status_' . Task::STATUS_VERIFYING]),
+        str_replace('-', '_', Task::STATUS_IMPLEMENTED) => isset($_POST['status_' . Task::STATUS_IMPLEMENTED]),
+        str_replace('-', '_', Task::STATUS_CHECKING) => isset($_POST['status_' . Task::STATUS_CHECKING]),
+        str_replace('-', '_', Task::STATUS_READY) => isset($_POST['status_' . Task::STATUS_READY]),
+        str_replace('-', '_', Task::STATUS_FINISHED) => isset($_POST['status_' . Task::STATUS_FINISHED]),
+        str_replace('-', '_', Task::STATUS_FAILED_JULES) => isset($_POST['status_' . Task::STATUS_FAILED_JULES]),
+        str_replace('-', '_', Task::STATUS_FAILED_PR) => isset($_POST['status_' . Task::STATUS_FAILED_PR])
     ];
 
     if (
         $notificationService->updateProjectSettings($projectId, $settings) &&
-        $notificationService->updateStatusSettings($projectId, $statusSettings)
+        $notificationService->updateProjectStatusSettings($projectId, $statusSettings)
     ) {
         $redirectUrl = basename($_SERVER['PHP_SELF']) . "?id=$projectId&success=notifications_updated";
         header("Location: $redirectUrl");
@@ -289,7 +289,7 @@ if (isset($_GET['success'])) {
                             <h3 class="text-lg font-bold text-gray-900 mb-4">Notification Preferences</h3>
                             <?php
                             $projectNotifSettings = $notificationService->getProjectSettings($projectId);
-                            $statusNotifSettings = $notificationService->getStatusSettings($projectId);
+                            $statusNotifSettings = $notificationService->getProjectStatusSettings($projectId);
                             ?>
                             <form method="POST" class="space-y-6">
                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
@@ -325,30 +325,31 @@ if (isset($_GET['success'])) {
                                 </div>
 
                                 <div class="border-t border-gray-100 pt-4">
-                                    <h4 class="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wider">Status Broadcast Preferences</h4>
-                                    <p class="text-xs text-gray-500 mb-4">Choose which status changes trigger a broadcast (Telegram/Browser). All events still appear in the inbox.</p>
+                                    <h4 class="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wider">Status Notification Preferences</h4>
+                                    <p class="text-xs text-gray-500 mb-4">Choose which status changes trigger a notification for this project. This overrides global settings.</p>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                         <?php
                                         $statuses = [
-                                            Task::STATUS_CREATED => 'Waiting for Agent',
-                                            Task::STATUS_ANALYZING => 'Analyzing',
-                                            Task::STATUS_PLANNING => 'Planning',
-                                            Task::STATUS_EXECUTING => 'Executing',
-                                            Task::STATUS_VERIFYING => 'Verifying',
-                                            Task::STATUS_IMPLEMENTED => 'Implemented',
-                                            Task::STATUS_CHECKING => 'Checking',
-                                            Task::STATUS_READY => 'Ready',
-                                            Task::STATUS_FINISHED => 'Finished',
-                                            Task::STATUS_FAILED_JULES => 'Jules Failed',
-                                            Task::STATUS_FAILED_PR => 'PR Failed'
+                                            Task::STATUS_CREATED,
+                                            Task::STATUS_ANALYZING,
+                                            Task::STATUS_PLANNING,
+                                            Task::STATUS_EXECUTING,
+                                            Task::STATUS_VERIFYING,
+                                            Task::STATUS_IMPLEMENTED,
+                                            Task::STATUS_CHECKING,
+                                            Task::STATUS_READY,
+                                            Task::STATUS_FINISHED,
+                                            Task::STATUS_FAILED_JULES,
+                                            Task::STATUS_FAILED_PR
                                         ];
-                                        foreach ($statuses as $id => $label) :
+                                        foreach ($statuses as $id) :
                                             $normalizedId = str_replace('-', '_', $id);
+                                            $label = Task::getStatusLabel($id);
                                             ?>
                                         <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100 shadow-sm">
                                             <span class="text-xs font-medium text-gray-600"><?= $label ?></span>
                                             <label class="relative inline-flex items-center cursor-pointer scale-75">
-                                                <input type="checkbox" name="broadcast_<?= $id ?>" class="sr-only peer" <?= ($statusNotifSettings[$normalizedId] ?? false) ? 'checked' : '' ?>>
+                                                <input type="checkbox" name="status_<?= $id ?>" class="sr-only peer" <?= ($statusNotifSettings[$normalizedId] ?? false) ? 'checked' : '' ?>>
                                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                                             </label>
                                         </div>

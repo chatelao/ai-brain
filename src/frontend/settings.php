@@ -107,9 +107,29 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notif
         'task_status' => isset($_POST['notify_task_status']),
         'agent_event' => isset($_POST['notify_agent_event'])
     ];
+
+    $statusSettings = [];
+    $statuses = [
+        Task::STATUS_CREATED,
+        Task::STATUS_ANALYZING,
+        Task::STATUS_PLANNING,
+        Task::STATUS_EXECUTING,
+        Task::STATUS_VERIFYING,
+        Task::STATUS_IMPLEMENTED,
+        Task::STATUS_CHECKING,
+        Task::STATUS_READY,
+        Task::STATUS_FINISHED,
+        Task::STATUS_FAILED_JULES,
+        Task::STATUS_FAILED_PR
+    ];
+    foreach ($statuses as $status) {
+        $statusSettings[str_replace('-', '_', $status)] = isset($_POST['status_' . $status]);
+    }
+
     if (
         $notificationService->updateUserSettings($user['user_id'], $settings) &&
-        $notificationService->updateUserEventSettings($user['user_id'], $eventSettings)
+        $notificationService->updateUserEventSettings($user['user_id'], $eventSettings) &&
+        $notificationService->updateUserStatusSettings($user['user_id'], $statusSettings)
     ) {
         header('Location: settings.php?tab=notifications&success=notifications_updated');
         exit;
@@ -449,6 +469,40 @@ if ($user && !$telegramChatId && !empty($telegramBotName) && empty($telegramLink
                                             <span class="text-sm font-medium text-gray-700"><?= $label ?></span>
                                             <label class="relative inline-flex items-center cursor-pointer">
                                                 <input type="checkbox" name="notify_<?= $id ?>" class="sr-only peer" <?= ($userEventSettings[$id] ?? true) ? 'checked' : '' ?>>
+                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                            </label>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-gray-100 pt-4">
+                                    <h4 class="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wider">Status Notification Preferences</h4>
+                                    <p class="text-xs text-gray-500 mb-4">Choose which status changes trigger a notification. These global settings can be overridden per project.</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        <?php
+                                        $userStatusSettings = $notificationService->getUserStatusSettings($user['user_id']);
+                                        $statuses = [
+                                            Task::STATUS_CREATED,
+                                            Task::STATUS_ANALYZING,
+                                            Task::STATUS_PLANNING,
+                                            Task::STATUS_EXECUTING,
+                                            Task::STATUS_VERIFYING,
+                                            Task::STATUS_IMPLEMENTED,
+                                            Task::STATUS_CHECKING,
+                                            Task::STATUS_READY,
+                                            Task::STATUS_FINISHED,
+                                            Task::STATUS_FAILED_JULES,
+                                            Task::STATUS_FAILED_PR
+                                        ];
+                                        foreach ($statuses as $id) :
+                                            $normalizedId = str_replace('-', '_', $id);
+                                            $label = Task::getStatusLabel($id);
+                                        ?>
+                                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100 shadow-sm">
+                                            <span class="text-xs font-medium text-gray-600"><?= $label ?></span>
+                                            <label class="relative inline-flex items-center cursor-pointer scale-75">
+                                                <input type="checkbox" name="status_<?= $id ?>" class="sr-only peer" <?= ($userStatusSettings[$normalizedId] ?? false) ? 'checked' : '' ?>>
                                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                                             </label>
                                         </div>

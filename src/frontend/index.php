@@ -205,24 +205,9 @@ $errorMessage = $errorMessage ?? null;
                                                     } elseif ($statusColor === 'orange') {
                                                         $bgClass = 'bg-orange-100 text-orange-800';
                                                     }
-
-                                                    $emoji = '⏳';
-                                                    $statusLabel = ucwords(str_replace('_', ' ', $task['status'] ?? ''));
-                                                    if ($task['status'] === App\Task::STATUS_CREATED) {
-                                                        $emoji = '⏳';
-                                                        $statusLabel = 'Waiting for Agent';
-                                                    } elseif ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY || $task['status'] === 'completed') {
-                                                        $emoji = '✅';
-                                                    } elseif ($task['status'] === App\Task::STATUS_CHECKING) {
-                                                        $emoji = '🔍';
-                                                    } elseif ($task['status'] === App\Task::STATUS_FAILED_JULES || $task['status'] === App\Task::STATUS_FAILED_PR) {
-                                                        $emoji = '❌';
-                                                    } elseif (in_array($task['status'], [App\Task::STATUS_ANALYZING, App\Task::STATUS_PLANNING, App\Task::STATUS_EXECUTING, App\Task::STATUS_VERIFYING, App\Task::STATUS_IMPLEMENTED])) {
-                                                        $emoji = '🚧';
-                                                    }
                                                     ?>
                                                     <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
-                                                        <?= $emoji ?> <?= htmlspecialchars($statusLabel) ?>
+                                                        <?= App\Task::getStatusEmoji($task['status'] ?? '') ?> <?= htmlspecialchars(App\Task::getStatusLabel($task['status'] ?? '')) ?>
                                                     </span>
                                                 </td>
                                             </tr>
@@ -264,31 +249,13 @@ $errorMessage = $errorMessage ?? null;
                                                         $color = $taskModel->getStatusColor($task);
                                                         $isAutorepeat = $taskModel->hasAutorepeatLabel($task);
                                                         $state = $task['github_state'] ?? 'open';
-
-                                                        $emoji = '⏳';
-                                                        $statusLabel = ucwords(str_replace('_', ' ', $task['status'] ?? ''));
-
-                                                        if ($task['status'] === App\Task::STATUS_CREATED) {
-                                                            $emoji = '⏳';
-                                                            $statusLabel = 'Waiting for Agent';
-                                                        } elseif ($task['status'] === App\Task::STATUS_FINISHED) {
-                                                            $emoji = '✅';
-                                                        } elseif ($task['status'] === App\Task::STATUS_READY) {
-                                                            $emoji = '✅';
-                                                        } elseif ($task['status'] === App\Task::STATUS_CHECKING) {
-                                                            $emoji = '🔍';
-                                                        } elseif ($task['status'] === App\Task::STATUS_FAILED_JULES || $task['status'] === App\Task::STATUS_FAILED_PR) {
-                                                            $emoji = '❌';
-                                                        } elseif (in_array($task['status'], [App\Task::STATUS_ANALYZING, App\Task::STATUS_PLANNING, App\Task::STATUS_EXECUTING, App\Task::STATUS_VERIFYING, App\Task::STATUS_IMPLEMENTED])) {
-                                                            $emoji = '🚧';
-                                                        }
                                                         ?>
                                                         <div class="relative group">
                                                             <a href="task.php?id=<?= $task['task_id'] ?>"
                                                                class="status-square <?= $color ?> <?= $isAutorepeat ? 'auto-repeat-tag' : '' ?>">
                                                             </a>
                                                             <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">
-                                                                #<?= htmlspecialchars($task['issue_number'] ?? '') ?>: <?= $emoji ?> <?= htmlspecialchars($statusLabel) ?> - <?= htmlspecialchars(mb_substr($task['title'] ?? '', 0, 30)) ?><?= mb_strlen($task['title'] ?? '') > 30 ? '...' : '' ?>
+                                                                #<?= htmlspecialchars($task['issue_number'] ?? '') ?>: <?= App\Task::getStatusEmoji($task['status'] ?? '') ?> <?= htmlspecialchars(App\Task::getStatusLabel($task['status'] ?? '')) ?> - <?= htmlspecialchars(mb_substr($task['title'] ?? '', 0, 30)) ?><?= mb_strlen($task['title'] ?? '') > 30 ? '...' : '' ?>
                                                             </div>
                                                         </div>
                                                     <?php endforeach; ?>

@@ -144,26 +144,7 @@ $title = $filterLabels[$filter] ?? 'Tasks';
                                                 }
                                                 ?>
                                                 <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
-                                                    <?php
-                                                    $label = ucwords(str_replace('_', ' ', $task['status'] ?? ''));
-                                                    if ($task['status'] === App\Task::STATUS_CREATED) {
-                                                        echo '⏳ ';
-                                                        $label = 'Waiting for Agent';
-                                                    } elseif ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY) {
-                                                        echo '✅ ';
-                                                    } elseif ($task['status'] === App\Task::STATUS_CHECKING) {
-                                                        echo '🔍 ';
-                                                    } elseif ($task['status'] === App\Task::STATUS_FAILED_JULES) {
-                                                        echo '❌ Jules ';
-                                                    } elseif ($task['status'] === App\Task::STATUS_FAILED_PR) {
-                                                        echo '❌ PR ';
-                                                    } elseif (in_array($task['status'], [App\Task::STATUS_ANALYZING, App\Task::STATUS_PLANNING, App\Task::STATUS_EXECUTING, App\Task::STATUS_VERIFYING, App\Task::STATUS_IMPLEMENTED])) {
-                                                        echo '🚧 ';
-                                                    } else {
-                                                        echo '⏳ ';
-                                                    }
-                                                    ?>
-                                                    <?= htmlspecialchars($label) ?>
+                                                    <?= App\Task::getStatusEmoji($task['status'] ?? '') ?> <?= htmlspecialchars(App\Task::getStatusLabel($task['status'] ?? '')) ?>
                                                 </span>
                                             </td>
                                         </tr>
