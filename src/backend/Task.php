@@ -174,7 +174,7 @@ class Task
                     COUNT(*) as total,
                     SUM(CASE WHEN github_state = 'open' THEN 1 ELSE 0 END) as open_issues,
                     SUM(CASE WHEN status = '" . self::STATUS_FINISHED . "' THEN 1 ELSE 0 END) as completed_tasks,
-                    SUM(CASE WHEN github_state = 'open' AND status IN ('" . self::STATUS_ANALYZING . "', '" . self::STATUS_PLANNING . "', '" . self::STATUS_EXECUTING . "', '" . self::STATUS_VERIFYING . "') THEN 1 ELSE 0 END) as jules_running,
+                    SUM(CASE WHEN github_state = 'open' AND status IN ('" . self::STATUS_ANALYZING . "', '" . self::STATUS_PLANNING . "', '" . self::STATUS_EXECUTING . "', '" . self::STATUS_VERIFYING . "', '" . self::STATUS_IMPLEMENTED . "') THEN 1 ELSE 0 END) as jules_running,
                     SUM(CASE WHEN github_state = 'open' AND status = '" . self::STATUS_FAILED_JULES . "' THEN 1 ELSE 0 END) as jules_failed,
                     SUM(CASE WHEN github_state = 'open' AND status = '" . self::STATUS_CHECKING . "' THEN 1 ELSE 0 END) as github_running,
                     SUM(CASE WHEN github_state = 'open' AND status = '" . self::STATUS_READY . "' THEN 1 ELSE 0 END) as github_passed,
@@ -217,7 +217,7 @@ class Task
                 $sql .= " AND t.github_state = 'open' AND t.status = '" . self::STATUS_FAILED_PR . "'";
                 break;
             case 'jules_running':
-                $sql .= " AND t.github_state = 'open' AND t.status IN ('" . self::STATUS_ANALYZING . "', '" . self::STATUS_PLANNING . "', '" . self::STATUS_EXECUTING . "', '" . self::STATUS_VERIFYING . "')";
+                $sql .= " AND t.github_state = 'open' AND t.status IN ('" . self::STATUS_ANALYZING . "', '" . self::STATUS_PLANNING . "', '" . self::STATUS_EXECUTING . "', '" . self::STATUS_VERIFYING . "', '" . self::STATUS_IMPLEMENTED . "')";
                 break;
             case 'jules_failed':
                 $sql .= " AND t.github_state = 'open' AND t.status = '" . self::STATUS_FAILED_JULES . "'";
@@ -467,6 +467,10 @@ class Task
 
         if ($status === self::STATUS_READY) {
             return 'green';
+        }
+
+        if ($status === self::STATUS_CREATED) {
+            return 'grey';
         }
 
         return 'grey';

@@ -513,7 +513,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                     ?>
                                                     <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
                                                         <?php
-                                                        if ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY) {
+                                                        $label = ucwords(str_replace('_', ' ', $task['status'] ?? ''));
+                                                        if ($task['status'] === App\Task::STATUS_CREATED) {
+                                                            echo '⏳ ';
+                                                            $label = 'Waiting for Agent';
+                                                        } elseif ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY) {
                                                             echo '✅ ';
                                                         } elseif ($task['status'] === App\Task::STATUS_CHECKING) {
                                                             echo '🔍 ';
@@ -527,7 +531,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                             echo '⏳ ';
                                                         }
                                                         ?>
-                                                        <?= htmlspecialchars(ucwords(str_replace('_', ' ', $task['status'] ?? ''))) ?>
+                                                        <?= htmlspecialchars($label) ?>
                                                     </span>
                                                 </td>
                                                 <td class="px-6 py-4">

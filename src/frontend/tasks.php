@@ -138,11 +138,17 @@ $title = $filterLabels[$filter] ?? 'Tasks';
                                                     $bgClass = 'bg-red-100 text-red-800';
                                                 } elseif ($statusColor === 'purple') {
                                                     $bgClass = 'bg-purple-100 text-purple-800';
+                                                } elseif ($statusColor === 'orange') {
+                                                    $bgClass = 'bg-orange-100 text-orange-800';
                                                 }
                                                 ?>
                                                 <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
                                                     <?php
-                                                    if ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY) {
+                                                    $label = ucwords(str_replace('_', ' ', $task['status'] ?? ''));
+                                                    if ($task['status'] === App\Task::STATUS_CREATED) {
+                                                        echo '⏳ ';
+                                                        $label = 'Waiting for Agent';
+                                                    } elseif ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY) {
                                                         echo '✅ ';
                                                     } elseif ($task['status'] === App\Task::STATUS_CHECKING) {
                                                         echo '🔍 ';
@@ -156,7 +162,7 @@ $title = $filterLabels[$filter] ?? 'Tasks';
                                                         echo '⏳ ';
                                                     }
                                                     ?>
-                                                    <?= htmlspecialchars(ucwords(str_replace('_', ' ', $task['status'] ?? ''))) ?>
+                                                    <?= htmlspecialchars($label) ?>
                                                 </span>
                                             </td>
                                         </tr>
