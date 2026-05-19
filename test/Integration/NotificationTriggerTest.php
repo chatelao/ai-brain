@@ -195,6 +195,10 @@ class NotificationTriggerTest extends TestCase
     public function testRefreshJulesStatusTriggersNotificationOnStatusChange()
     {
         $userId = 1;
+        $projectId = 1;
+        // Enable 'executing' status notification
+        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, 'executing', 1)");
+
         $this->pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, jules_session_id, jules_status, github_data)
                           VALUES (1, 1, 303, 'Task 303', 'analyzing', 'sess-123', 'researching', '{\"assignee\":{\"login\":\"jules\"}}')");
         $taskId = $this->pdo->lastInsertId();
@@ -266,11 +270,11 @@ class NotificationTriggerTest extends TestCase
         $this->assertEquals(0, $stmt->fetchColumn());
     }
 
-    public function testNotificationRespectsStatusDisabledForBroadcastButKeepsInbox()
+    public function testNotificationRespectsStatusDisabledCompletely()
     {
         $userId = 1;
         $projectId = 1;
-        // Disable 'executing' status broadcast
+        // Disable 'executing' status completely
         $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, 'executing', 0)");
 
         // Enable a mock channel AND in_app
@@ -279,7 +283,7 @@ class NotificationTriggerTest extends TestCase
         $mockChannel = $this->createMock(NotificationChannelInterface::class);
         $this->notificationService->registerChannel('mock_channel', $mockChannel);
 
-        // Broadcast SHOULD NOT happen
+        // Neither Broadcast NOR Persistence SHOULD happen
         $mockChannel->expects($this->never())->method('send');
 
         $this->pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, jules_session_id, jules_status, github_data)
@@ -290,15 +294,15 @@ class NotificationTriggerTest extends TestCase
         $julesService = $this->createMock(JulesService::class);
 
         $julesService->method('fetchSessionStatus')->willReturn([
-            'status' => 'coding',
+            'status' => 'coding', // coding maps to executing
             'url' => '...'
         ]);
 
         $this->taskModel->refreshJulesStatus($userId, $githubService, $julesService, $this->notificationService, $taskId);
 
-        // Notification SHOULD still be in the inbox
+        // Notification SHOULD NOT be in the inbox
         $stmt = $this->pdo->query("SELECT COUNT(*) FROM notifications WHERE type = 'task_status'");
-        $this->assertEquals(1, $stmt->fetchColumn());
+        $this->assertEquals(0, $stmt->fetchColumn());
     }
 
     public function testNotificationNormalizationForHyphenatedStatus()

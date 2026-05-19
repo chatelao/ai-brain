@@ -44,6 +44,13 @@ class NotificationService
             return false;
         }
 
+        // 3.1 Check if notification is enabled for this status (if it's a task_status event)
+        if ($type === 'task_status' && isset($data['project_id']) && isset($data['status'])) {
+            if (!$this->isStatusNotificationEnabled((int)$data['project_id'], $data['status'])) {
+                return false;
+            }
+        }
+
         // 4. Get enabled channels
         $enabledChannels = $this->getEnabledChannels($userId);
         if (empty($enabledChannels)) {
@@ -57,37 +64,13 @@ class NotificationService
             $notificationId = $this->persistNotification($userId, $type, $title, $message, $data);
         }
 
-        // 6. Check if broadcast is enabled for this status (if it's a task_status event)
+        // 6. Determine if we should broadcast to external channels (Telegram, Browser)
         $shouldBroadcast = true;
-        if ($type === 'task_status' && isset($data['project_id']) && isset($data['status'])) {
-            $shouldBroadcast = $this->isStatusBroadcastEnabled((int)$data['project_id'], $data['status']);
-        }
 
-        // 6.1 Only system-triggered events with human follow-up are broadcasted
+        // 6.1 Only system-triggered events are broadcasted
         // If is_system is explicitly set to false, it's a human action -> no broadcast
         if (!isset($data['is_system']) || $data['is_system'] === false) {
             $shouldBroadcast = false;
-        }
-
-        // 6.2 Filter non-actionable system events
-        // Even if it's a system event, only broadcast if it needs human follow-up
-        if ($shouldBroadcast) {
-            $actionableTypes = ['task_status', 'github_issue', 'github_pr'];
-            if (!in_array($type, $actionableTypes)) {
-                $shouldBroadcast = false;
-            }
-
-            // For task_status, only specific states need follow-up
-            if ($type === 'task_status' && isset($data['status'])) {
-                $actionableStatuses = [
-                    Task::STATUS_READY,
-                    Task::STATUS_FAILED_JULES,
-                    Task::STATUS_FAILED_PR
-                ];
-                if (!in_array($data['status'], $actionableStatuses)) {
-                    $shouldBroadcast = false;
-                }
-            }
         }
 
         if (!$shouldBroadcast) {
@@ -354,7 +337,7 @@ class NotificationService
         return $settings[$type] ?? true;
     }
 
-    private function isStatusBroadcastEnabled(int $projectId, string $status): bool
+    private function isStatusNotificationEnabled(int $projectId, string $status): bool
     {
         $normalizedStatus = str_replace('-', '_', $status);
         $settings = $this->getStatusSettings($projectId);
