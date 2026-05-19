@@ -16,6 +16,11 @@ class WebhookHandler
         return hash_equals($hash, $signature);
     }
 
+    private function isUserTriggered(array $event): bool
+    {
+        return ($event['sender']['type'] ?? '') === 'User';
+    }
+
     public function handle(array $project, array $event, ?GitHubService $githubService = null, ?NotificationService $notificationService = null, ?JulesService $julesService = null): bool
     {
         $action = $event['action'] ?? '';
@@ -25,12 +30,15 @@ class WebhookHandler
 
         $taskModel = new Task($this->db);
 
+        // Don't trigger any notification directly from user triggered actions
+        $effectiveNotifService = $this->isUserTriggered($event) ? null : $notificationService;
+
         if ($pullRequest) {
-            return $this->handlePullRequest($project, $event, $notificationService, $githubService);
+            return $this->handlePullRequest($project, $event, $effectiveNotifService, $githubService);
         }
 
         if ($checkSuite) {
-            return $this->handleCheckSuite($project, $event, $taskModel, $notificationService);
+            return $this->handleCheckSuite($project, $event, $taskModel, $effectiveNotifService);
         }
 
         if (!$issue) {
@@ -39,8 +47,8 @@ class WebhookHandler
 
         if ($action === 'deleted') {
             $result = $taskModel->deleteByIssueNumber($project['project_id'], $issue['number']);
-            if ($result && $notificationService) {
-                $notificationService->notify($project['user_id'], 'github_issue', "🗑️ Issue Deleted: #" . $issue['number'], "Issue \"" . ($issue['title'] ?? 'Unknown') . "\" was deleted in " . $project['github_repo'], [
+            if ($result && $effectiveNotifService) {
+                $effectiveNotifService->notify($project['user_id'], 'github_issue', "🗑️ Issue Deleted: #" . $issue['number'], "Issue \"" . ($issue['title'] ?? 'Unknown') . "\" was deleted in " . $project['github_repo'], [
                     'project_id' => $project['project_id'],
                     'issue_number' => $issue['number'],
                     'source_url' => $issue['html_url'] ?? ''
@@ -58,25 +66,25 @@ class WebhookHandler
         if ($result && $julesService && $githubService) {
             $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
             if ($task) {
-                $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $notificationService, (int)$task['task_id']);
+                $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $effectiveNotifService, (int)$task['task_id']);
             }
         }
 
-        if ($result && $notificationService) {
+        if ($result && $effectiveNotifService) {
             if ($action === 'opened') {
-                $notificationService->notify($project['user_id'], 'github_issue', "🆕 Issue Opened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was opened in " . $project['github_repo'], [
+                $effectiveNotifService->notify($project['user_id'], 'github_issue', "🆕 Issue Opened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was opened in " . $project['github_repo'], [
                     'project_id' => $project['project_id'],
                     'issue_number' => $issue['number'],
                     'source_url' => $issue['html_url']
                 ]);
             } elseif ($action === 'closed') {
-                $notificationService->notify($project['user_id'], 'github_issue', "🔒 Issue Closed: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was closed in " . $project['github_repo'], [
+                $effectiveNotifService->notify($project['user_id'], 'github_issue', "🔒 Issue Closed: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was closed in " . $project['github_repo'], [
                     'project_id' => $project['project_id'],
                     'issue_number' => $issue['number'],
                     'source_url' => $issue['html_url']
                 ]);
             } elseif ($action === 'reopened') {
-                $notificationService->notify($project['user_id'], 'github_issue', "🔓 Issue Reopened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was reopened in " . $project['github_repo'], [
+                $effectiveNotifService->notify($project['user_id'], 'github_issue', "🔓 Issue Reopened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was reopened in " . $project['github_repo'], [
                     'project_id' => $project['project_id'],
                     'issue_number' => $issue['number'],
                     'source_url' => $issue['html_url']
