@@ -152,7 +152,8 @@ class NotificationServiceTest extends TestCase
     public function testNotifyDoesNotPersistIfInAppDisabled()
     {
         $userId = 1;
-        // Enable only some other channel, implicitly disabling in_app
+        // Explicitly disable in_app
+        $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'in_app', 0)");
         $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'other_channel', 1)");
 
         $this->notificationService->notify($userId, 'type', 'title', 'message');

@@ -40,8 +40,8 @@ class WebhookHandler
 
         $taskModel = new Task($this->db);
 
-        // Don't trigger any notification directly from user triggered actions
-        $effectiveNotifService = $this->isUserTriggered($event) ? null : $notificationService;
+        // Use the provided notification service directly
+        $effectiveNotifService = $notificationService;
 
         if ($comment && $issue) {
             return $this->handleIssueComment($project, $event, $taskModel, $githubService, $julesService, $effectiveNotifService);

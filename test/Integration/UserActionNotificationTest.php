@@ -137,11 +137,12 @@ class UserActionNotificationTest extends TestCase
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'owner/repo')");
     }
 
-    public function testHandleSkipsNotificationForUserSender()
+    public function testHandleSendsNotificationForUserSender()
     {
         $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
         $event = [
             'action' => 'opened',
+            'repository' => ['full_name' => 'owner/repo'],
             'sender' => ['type' => 'User'],
             'issue' => [
                 'number' => 101,
@@ -155,7 +156,7 @@ class UserActionNotificationTest extends TestCase
         $this->webhookHandler->handle($project, $event, null, $this->notificationService);
 
         $stmt = $this->pdo->query("SELECT COUNT(*) FROM notifications");
-        $this->assertEquals(0, $stmt->fetchColumn(), "Notification should NOT be triggered for human user action.");
+        $this->assertEquals(1, $stmt->fetchColumn(), "Notification SHOULD be triggered for human user action.");
     }
 
     public function testHandleSendsNotificationForBotSender()
@@ -201,11 +202,12 @@ class UserActionNotificationTest extends TestCase
         $this->assertEquals(1, $stmt->fetchColumn(), "Notification SHOULD be triggered if sender information is missing (backwards compatibility).");
     }
 
-    public function testHandlePrSkipsNotificationForUserSender()
+    public function testHandlePrSendsNotificationForUserSender()
     {
         $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
         $event = [
             'action' => 'opened',
+            'repository' => ['full_name' => 'owner/repo'],
             'sender' => ['type' => 'User'],
             'pull_request' => [
                 'number' => 201,
@@ -218,6 +220,6 @@ class UserActionNotificationTest extends TestCase
         $this->webhookHandler->handle($project, $event, null, $this->notificationService);
 
         $stmt = $this->pdo->query("SELECT COUNT(*) FROM notifications");
-        $this->assertEquals(0, $stmt->fetchColumn(), "Notification should NOT be triggered for human user PR action.");
+        $this->assertEquals(1, $stmt->fetchColumn(), "Notification SHOULD be triggered for human user PR action.");
     }
 }
