@@ -39,6 +39,8 @@ class Task
             // Check results from check suites
             // Handle both webhook (singular 'check_suite') and API (array 'check_suites')
             $suites = [];
+            $suitesProvided = ($checkSuitesData !== null);
+
             if ($checkSuitesData) {
                 if (isset($checkSuitesData['check_suites'])) {
                     $suites = $checkSuitesData['check_suites'];
@@ -79,7 +81,7 @@ class Task
                     return self::STATUS_CHECKING;
                 }
             } elseif ($julesStatus === 'finished' || $julesStatus === 'completed') {
-                return self::STATUS_CHECKING;
+                return $suitesProvided ? self::STATUS_READY : self::STATUS_CHECKING;
             }
         }
 
