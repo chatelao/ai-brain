@@ -45,21 +45,21 @@ These behaviors are triggered by specific events originating from GitHub (webhoo
 
 | Event | Action |
 | :--- | :--- |
-| **Issue Labeled (`Jules`)** | Triggers `App\Task::triggerAgent()`. Task moves to `PROCESSING/ANALYZING` (via Jules). |
-| **Issue Closed** | Updates `github_state` to `closed`. Task moves to `FINISHED`. May trigger "Auto-Repeat". |
-| **Issue Reopened** | Updates `github_state` to `open`. Task moves back to `CREATED` or active state. |
-| **Issue Deleted** | Triggers a notification and removes the task from the local database. |
-| **Pull Request Created** | Links the PR to the task. Task moves to `PROCESSING/CHECKING`. |
-| **Pull Request Merged** | Triggers "Auto-Repeat" logic if the issue has the `Auto-Repeat` label. |
-| **Check Suite Completed** | If `success`, task moves to `READY`. If `failure/timeout`, task moves to `FAILED/FAILED_PR`. |
+| **Issue labeled (`Jules`)** | Triggers `App\Task::triggerAgent()`. Task moves to `PROCESSING/ANALYZING` (via Jules). |
+| **Issue closed** | Updates `github_state` to `closed`. Task moves to `FINISHED`. May trigger "Auto-Repeat". |
+| **Issue reopened** | Updates `github_state` to `open`. Task moves back to `CREATED` or active state. |
+| **Issue deleted** | Triggers a notification and removes the task from the local database. |
+| **Pull Request created** | Links the PR to the task. Task moves to `PROCESSING/CHECKING`. |
+| **Pull Request merged** | Triggers "Auto-Repeat" logic if the issue has the `Auto-Repeat` label. |
+| **Check Suite completed** | If `success`, task moves to `READY`. If `failure/timeout`, task moves to `FAILED/FAILED_PR`. |
 
 ### 3.2 User Interactions (UI)
 
 | Action | Effect |
 | :--- | :--- |
-| **Manual Sync (Refresh Icon)** | Forces a synchronization of GitHub issues and Jules statuses for the project. |
+| **Manual sync (Refresh Icon)** | Forces a synchronization of GitHub issues and Jules statuses for the project. |
 | **Trigger Agent (Button)** | Manually starts a Jules session for a task. |
-| **Merge & Close (Button)** | Merges the associated PR and closes the GitHub issue via API (moves task to `FINISHED`). |
+| **Merge & close (Button)** | Merges the associated PR and closes the GitHub issue via API (moves task to `FINISHED`). |
 | **Retry (Button)** | Sends a "retry" command to a failed Jules session. |
 | **Restart (Button)** | Aborts the current Jules session and restarts it by toggling the `Jules` label. |
 
