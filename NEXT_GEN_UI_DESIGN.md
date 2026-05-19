@@ -5,8 +5,8 @@ The Next Gen UI follows a strict **Client-Server Separation** model.
 
 ### 1.1 Communication Layer
 - **RESTful API**: Standard interactions (listing projects, updating settings) use JSON over HTTP, as defined in `openapi.yaml`.
-- **Event Streaming**: Real-time updates for task statuses (moving from `EXECUTING` to `READY`) utilize **Server-Sent Events (SSE)**, implementing the AG-UI Protocol.
-- **Client Generation**: API clients for both Web (TypeScript) and Mobile (TypeScript) are automatically generated from the OpenAPI specifications to ensure type safety across the stack.
+- **Event Streaming**: Real-time updates for task statuses (moving from `EXECUTING` to `READY`) utilize background synchronization.
+- **Client Generation**: API clients for both Web (TypeScript) and Mobile (TypeScript) are automatically generated from the OpenAPI specification to ensure type safety across the stack.
 
 ### 1.2 State Management
 - **Server State**: Managed via **TanStack Query** (React Query). This handles caching, background synchronization, and optimistic updates for actions like "Trigger Agent".
