@@ -196,7 +196,7 @@ class NotificationTriggerTest extends TestCase
     {
         $userId = 1;
         $this->pdo->exec("INSERT INTO tasks (user_id, project_id, issue_number, title, status, jules_session_id, jules_status, github_data)
-                          VALUES (1, 1, 303, 'Task 303', 'researching', 'sess-123', 'researching', '{\"assignee\":{\"login\":\"jules\"}}')");
+                          VALUES (1, 1, 303, 'Task 303', 'analyzing', 'sess-123', 'researching', '{\"assignee\":{\"login\":\"jules\"}}')");
         $taskId = $this->pdo->lastInsertId();
 
         $githubService = $this->createMock(GitHubService::class);
@@ -214,7 +214,7 @@ class NotificationTriggerTest extends TestCase
 
         $this->assertNotFalse($notification);
         $this->assertStringContainsString('Task Update: #303', $notification['title']);
-        $this->assertStringContainsString('status changed to Executing', $notification['message']);
+        $this->assertStringContainsString('status: 🚧 ➡️ 🚧 Executing', $notification['message']);
     }
 
     public function testNotificationDispatchesToTelegram()

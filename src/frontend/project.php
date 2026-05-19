@@ -560,26 +560,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                     }
                                                     ?>
                                                     <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
-                                                        <?php
-                                                        $label = ucwords(str_replace('_', ' ', $task['status'] ?? ''));
-                                                        if ($task['status'] === App\Task::STATUS_CREATED) {
-                                                            echo '⏳ ';
-                                                            $label = 'Waiting for Agent';
-                                                        } elseif ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY || $task['status'] === 'completed') {
-                                                            echo '✅ ';
-                                                        } elseif ($task['status'] === App\Task::STATUS_CHECKING) {
-                                                            echo '🔍 ';
-                                                        } elseif ($task['status'] === App\Task::STATUS_FAILED_JULES) {
-                                                            echo '❌ Jules ';
-                                                        } elseif ($task['status'] === App\Task::STATUS_FAILED_PR) {
-                                                            echo '❌ PR ';
-                                                        } elseif (in_array($task['status'], [App\Task::STATUS_ANALYZING, App\Task::STATUS_PLANNING, App\Task::STATUS_EXECUTING, App\Task::STATUS_VERIFYING, App\Task::STATUS_IMPLEMENTED])) {
-                                                            echo '🚧 ';
-                                                        } else {
-                                                            echo '⏳ ';
-                                                        }
-                                                        ?>
-                                                        <?= htmlspecialchars($label) ?>
+                                                        <?= $taskModel->getStatusEmoji($task['status'] ?? '') ?>
+                                                        <?= htmlspecialchars($taskModel->getStatusLabel($task['status'] ?? '')) ?>
                                                     </span>
                                                 </td>
                                                 <td class="px-6 py-4">
