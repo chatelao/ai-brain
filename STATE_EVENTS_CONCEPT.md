@@ -165,3 +165,150 @@ Only system-triggered events with a need for human follow-up are typically broad
 | **Check Suite fail**| System (GitHub CI) | **Yes** | **Yes** |
 | **Check Suite pass**| System (GitHub CI) | **Yes** | **Yes** |
 | **Auto-Repeat** | System | **Yes** | **Yes** |
+
+## 7. Task State Machine (XState)
+
+This section describes the task lifecycle using the [XState](https://xstate.js.org/) v5 specification and Mermaid diagrams, derived from the unified state mapping.
+
+### 7.1 Visual Representation (Mermaid)
+
+The diagram visually groups the core **Jules Processing** activities to distinguish them from GitHub-managed states like `CHECKING`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> CREATED
+
+    CREATED --> PROCESSING : JULES_STARTED
+
+    state PROCESSING {
+        state "Jules Processing" as JULES_ACTIVITY #f0f6ff {
+            state ANALYZING #d1e9ff
+            state PLANNING #d1e9ff
+            state EXECUTING #fff4d1
+            state VERIFYING #fff4d1
+            state IMPLEMENTED #fff4d1
+
+            [*] --> ANALYZING
+            ANALYZING --> PLANNING : RESEARCH_COMPLETE
+            PLANNING --> EXECUTING : PLAN_APPROVED
+            EXECUTING --> VERIFYING : CODE_COMPLETE
+            VERIFYING --> IMPLEMENTED : TESTS_PASSED
+        }
+        state CHECKING #ffe5b4
+
+        JULES_ACTIVITY --> CHECKING : PR_CREATED
+    }
+
+    CHECKING --> READY : CHECKS_PASSED
+    PROCESSING --> FAILED_JULES : JULES_ERROR
+    CHECKING --> FAILED_PR : CHECKS_FAILED
+
+    READY --> FINISHED : ISSUE_CLOSED
+    READY --> FAILED_PR : NEW_COMMIT_FAILED
+
+    state FAILED {
+        state FAILED_JULES #ffeef0
+        state FAILED_PR #ffeef0
+    }
+
+    FAILED --> CREATED : RESTART
+    FAILED_JULES --> PROCESSING : RETRY
+
+    FINISHED --> [*]
+```
+
+### 7.2 XState Machine Definition (v5)
+
+```javascript
+import { createMachine } from 'xstate';
+
+/**
+ * Task State Machine
+ * Represents the unified lifecycle of a Jules Task.
+ */
+export const taskMachine = createMachine({
+  id: 'task',
+  initial: 'CREATED',
+  states: {
+    CREATED: {
+      on: {
+        JULES_STARTED: 'PROCESSING.ANALYZING',
+        JULES_ERROR: 'FAILED.FAILED_JULES',
+        ISSUE_CLOSED: 'FINISHED'
+      }
+    },
+    PROCESSING: {
+      initial: 'ANALYZING',
+      states: {
+        // Core Jules Processing Substates
+        ANALYZING: {
+          on: { RESEARCH_COMPLETE: 'PLANNING' }
+        },
+        PLANNING: {
+          on: { PLAN_APPROVED: 'EXECUTING' }
+        },
+        EXECUTING: {
+          on: { CODE_COMPLETE: 'VERIFYING' }
+        },
+        VERIFYING: {
+          on: { TESTS_PASSED: 'IMPLEMENTED' }
+        },
+        IMPLEMENTED: {
+          on: { PR_CREATED: 'CHECKING' }
+        },
+        // GitHub PR Check Substate
+        CHECKING: {
+          on: {
+            CHECKS_PASSED: { target: '#task.READY' },
+            CHECKS_FAILED: { target: '#task.FAILED.FAILED_PR' }
+          }
+        }
+      },
+      on: {
+        JULES_ERROR: 'FAILED.FAILED_JULES',
+        ISSUE_CLOSED: 'FINISHED'
+      }
+    },
+    READY: {
+      on: {
+        ISSUE_CLOSED: 'FINISHED',
+        NEW_COMMIT_FAILED: 'FAILED.FAILED_PR'
+      }
+    },
+    FAILED: {
+      initial: 'FAILED_JULES',
+      states: {
+        FAILED_JULES: {
+          on: {
+            RETRY: { target: '#task.PROCESSING.ANALYZING' }
+          }
+        },
+        FAILED_PR: {}
+      },
+      on: {
+        RESTART: { target: 'CREATED' },
+        ISSUE_CLOSED: 'FINISHED'
+      }
+    },
+    FINISHED: {
+      type: 'final'
+    }
+  }
+});
+```
+
+### 7.3 Mapping to Implementation
+
+The machine states map to the following constants in `App\Task`:
+
+- `CREATED`: `STATUS_CREATED`
+- `PROCESSING.ANALYZING`: `STATUS_ANALYZING`
+- `PROCESSING.PLANNING`: `STATUS_PLANNING`
+- `PROCESSING.EXECUTING`: `STATUS_EXECUTING`
+- `PROCESSING.VERIFYING`: `STATUS_VERIFYING`
+- `PROCESSING.IMPLEMENTED`: `STATUS_IMPLEMENTED`
+- `PROCESSING.CHECKING`: `STATUS_CHECKING`
+- `READY`: `STATUS_READY`
+- `FINISHED`: `STATUS_FINISHED`
+- `FAILED.FAILED_JULES`: `STATUS_FAILED_JULES`
+- `FAILED.FAILED_PR`: `STATUS_FAILED_PR`
