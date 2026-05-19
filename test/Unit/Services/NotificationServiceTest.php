@@ -37,11 +37,18 @@ class NotificationServiceTest extends TestCase
         $this->pdo->exec("DROP TABLE IF EXISTS project_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS user_event_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS task_notification_settings");
+        $this->pdo->exec("DROP TABLE IF EXISTS projects");
         $this->pdo->exec("DROP TABLE IF EXISTS users");
 
         $pk = $driver === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
 
         $this->pdo->exec("CREATE TABLE users (user_id $pk, google_id VARCHAR(255) UNIQUE, name VARCHAR(255), email VARCHAR(255))");
+
+        $this->pdo->exec("CREATE TABLE projects (
+            project_id $pk,
+            user_id INT,
+            github_repo VARCHAR(255)
+        )");
 
         $this->pdo->exec("CREATE TABLE notifications (
             notification_id $pk,
