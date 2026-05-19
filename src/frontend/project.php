@@ -282,7 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_roadmap']
             $body = "If none is available, alternativly break down bigger steps to modest ones without implementing anything, just changing the $roadmapName.";
 
             $githubService = new GitHubService(null, $githubToken);
-            $githubService->createIssue($project['github_repo'], $title, $body, []);
+            $githubService->createIssue($project['github_repo'], $title, $body, ['Jules']);
 
             header("Location: project.php?id=$projectId&success=issue_created");
             exit;
