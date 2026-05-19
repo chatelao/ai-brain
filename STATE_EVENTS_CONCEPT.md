@@ -175,18 +175,18 @@ This section describes the task lifecycle using the [XState](https://xstate.js.o
 The diagram visually groups the core **Jules Processing** activities to distinguish them from GitHub-managed states like `CHECKING`.
 
 ```mermaid
-stateDiagram-v2
+stateDiagram
     [*] --> CREATED
 
     CREATED --> PROCESSING : JULES_STARTED
 
     state PROCESSING {
-        state "Jules Processing" as JULES_ACTIVITY #f0f6ff {
-            state ANALYZING #d1e9ff
-            state PLANNING #d1e9ff
-            state EXECUTING #fff4d1
-            state VERIFYING #fff4d1
-            state IMPLEMENTED #fff4d1
+        state "Jules Processing" as JULES_ACTIVITY {
+            state ANALYZING
+            state PLANNING
+            state EXECUTING
+            state VERIFYING
+            state IMPLEMENTED
 
             [*] --> ANALYZING
             ANALYZING --> PLANNING : RESEARCH_COMPLETE
@@ -194,7 +194,7 @@ stateDiagram-v2
             EXECUTING --> VERIFYING : CODE_COMPLETE
             VERIFYING --> IMPLEMENTED : TESTS_PASSED
         }
-        state CHECKING #ffe5b4
+        state CHECKING
 
         JULES_ACTIVITY --> CHECKING : PR_CREATED
     }
@@ -207,8 +207,8 @@ stateDiagram-v2
     READY --> FAILED_PR : NEW_COMMIT_FAILED
 
     state FAILED {
-        state FAILED_JULES #ffeef0
-        state FAILED_PR #ffeef0
+        state FAILED_JULES
+        state FAILED_PR
     }
 
     FAILED --> CREATED : RESTART
