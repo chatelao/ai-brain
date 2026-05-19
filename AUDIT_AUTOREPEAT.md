@@ -69,3 +69,29 @@ There is a lack of uniformity in how the auto-repeat label is handled across the
 
 ## Conclusion
 The failure of the automatic merge was due to **missing feature implementation**. The failure of the issue duplication was due to a **strict, case-sensitive label check** in the webhook handler that did not match the "Auto-Repeat" label used on GitHub.
+
+## Resolution Status
+
+As of May 2024, the issues identified in this audit have been resolved:
+
+### 1. "Merge & Close" Implementation
+The "Merge & Close" feature is now fully implemented.
+- **Frontend**: `src/frontend/task.php` contains a POST handler that merges the Pull Request and closes the issue using the `GitHubService`.
+- **Backend**: `App\GitHubService::mergePullRequest` and `App\GitHubService::closeIssue` handle the respective API calls to GitHub.
+
+### 2. Case-Insensitive Label Handling
+Label checks have been updated to be case-insensitive and support both `autorepeat` and `auto-repeat`.
+- **Centralization**: `App\Task::hasAutorepeatLabel` provides a unified, case-insensitive check.
+- **Webhook Handler**: `App\WebhookHandler::maybeDuplicateTask` now correctly identifies the label regardless of case and handles the renaming/removal correctly.
+
+### 3. Pull Request Merge Integration
+The auto-repeat mechanism is no longer bypassed when closing via a Pull Request merge.
+- **PR Event Handling**: `App\WebhookHandler::handlePullRequest` now detects merged PRs and triggers `maybeDuplicateTask` by constructing a pseudo-event from the associated task's GitHub data.
+
+### 4. Correct `state_reason` Usage
+To ensure GitHub's auto-repeat triggers are recognizable:
+- **Application Closure**: `App\GitHubService::closeIssue` supports the `state_reason` parameter.
+- **Feature Integration**: The "Merge & Close" UI explicitly passes `'completed'` as the `state_reason`, ensuring that manually triggered completions also result in duplication.
+
+### 5. Codebase Harmonization
+Inconsistencies in label detection across `WebhookHandler.php`, `Task.php`, and the frontend dashboards have been resolved by standardizing on the case-insensitive logic defined in the `Task` model.
