@@ -82,6 +82,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['merge_close'])) {
         // 2. Close the issue (pass 'completed' to trigger auto-repeat)
         $githubService->closeIssue($project['github_repo'], $task['issue_number'], 'completed');
 
+        // 3. Mark as merged in database
+        $taskModel->markAsMerged($taskId);
+
         header("Location: task.php?id=$taskId&success=merged_closed");
         exit;
     } catch (Exception $e) {
