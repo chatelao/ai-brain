@@ -31,6 +31,7 @@ class WebhookHandler
         $issue = $event['issue'] ?? null;
         $pullRequest = $event['pull_request'] ?? null;
         $checkSuite = $event['check_suite'] ?? null;
+        $comment = $event['comment'] ?? null;
 
         // Skip events without an action, except for check_suite which might have different triggers
         if (empty($action) && !$checkSuite) {
@@ -41,6 +42,10 @@ class WebhookHandler
 
         // Don't trigger any notification directly from user triggered actions
         $effectiveNotifService = $this->isUserTriggered($event) ? null : $notificationService;
+
+        if ($comment && $issue) {
+            return $this->handleIssueComment($project, $event, $taskModel, $githubService, $julesService, $effectiveNotifService);
+        }
 
         if ($pullRequest) {
             return $this->handlePullRequest($project, $event, $effectiveNotifService, $githubService);
@@ -227,6 +232,38 @@ class WebhookHandler
                     // Force state_reason to 'completed' because it was merged
                     $pseudoEvent['issue']['state_reason'] = 'completed';
                     $this->maybeDuplicateTask($project, $pseudoEvent, $githubService);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private function handleIssueComment(array $project, array $event, Task $taskModel, ?GitHubService $githubService, ?JulesService $julesService, ?NotificationService $notificationService): bool
+    {
+        $issue = $event['issue'] ?? null;
+        $comment = $event['comment'] ?? null;
+
+        if (!$issue || !$comment) {
+            return true;
+        }
+
+        $login = strtolower($comment['user']['login'] ?? '');
+        $isJulesComment = ($login === 'google-labs-jules[bot]' || $login === 'jules');
+        $body = $comment['body'] ?? '';
+
+        if ($isJulesComment && stripos($body, 'on it') !== false) {
+            $sessionId = $taskModel->extractSessionId($body);
+            if ($sessionId) {
+                $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
+                if ($task) {
+                    $connection = $this->db->getConnection();
+                    $stmt = $connection->prepare("UPDATE tasks SET jules_session_id = ? WHERE task_id = ?");
+                    $stmt->execute([$sessionId, $task['task_id']]);
+
+                    if ($githubService && $julesService) {
+                        $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $notificationService, (int)$task['task_id']);
+                    }
                 }
             }
         }
