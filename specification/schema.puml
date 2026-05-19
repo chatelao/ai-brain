@@ -4,11 +4,11 @@ hide circle
 skinparam linetype ortho
 
 entity "users" {
-  * <color:grey><i>user_id</i></color> : INT <<PK>>
+  * <color:gray><i>user_id</i></color> : INT <<PK>>
   --
-  * <color:grey>google_id</color> : VARCHAR(255) <<UNIQUE>>
+  * <color:gray>google_id</color> : VARCHAR(255) <<UNIQUE>>
   * name : VARCHAR(255)
-  * <color:grey>email</color> : VARCHAR(255) <<UNIQUE>>
+  * <color:gray>email</color> : VARCHAR(255) <<UNIQUE>>
   avatar : VARCHAR(255)
   role : VARCHAR(20)
   jules_api_key : VARCHAR(255)
@@ -23,20 +23,20 @@ entity "users" {
 }
 
 entity "user_github_accounts" {
-  * <color:grey><i>github_account_id</i></color> : INT <<PK>>
+  * <color:gray><i>github_account_id</i></color> : INT <<PK>>
   --
-  * <color:grey><i>user_id</i></color> : INT <<FK>>
-  * <color:grey>github_username</color> : VARCHAR(255)
+  * <color:gray><i>user_id</i></color> : INT <<FK>>
+  * <color:gray>github_username</color> : VARCHAR(255)
   * github_token : VARCHAR(255)
   created_at : TIMESTAMP
 }
 
 entity "projects" {
-  * <color:grey><i>project_id</i></color> : INT <<PK>>
+  * <color:gray><i>project_id</i></color> : INT <<PK>>
   --
-  * <color:grey><i>user_id</i></color> : INT <<FK>>
-  * <color:grey><i>github_account_id</i></color> : INT <<FK>>
-  * <color:grey>github_repo</color> : VARCHAR(255)
+  * <color:gray><i>user_id</i></color> : INT <<FK>>
+  * <color:gray><i>github_account_id</i></color> : INT <<FK>>
+  * <color:gray>github_repo</color> : VARCHAR(255)
   webhook_secret : VARCHAR(255)
   roadmap_data : TEXT
   roadmap_updated_at : TIMESTAMP
@@ -44,11 +44,11 @@ entity "projects" {
 }
 
 entity "tasks" {
-  * <color:grey><i>task_id</i></color> : INT <<PK>>
+  * <color:gray><i>task_id</i></color> : INT <<PK>>
   --
-  * <color:grey><i>user_id</i></color> : INT <<FK>>
-  * <color:grey><i>project_id</i></color> : INT <<FK>>
-  * <color:grey>issue_number</color> : INT
+  * <color:gray><i>user_id</i></color> : INT <<FK>>
+  * <color:gray><i>project_id</i></color> : INT <<FK>>
+  * <color:gray>issue_number</color> : INT
   * title : VARCHAR(255)
   body : TEXT
   status : VARCHAR(50)
@@ -68,35 +68,35 @@ entity "tasks" {
 }
 
 entity "task_logs" {
-  * <color:grey><i>task_log_id</i></color> : INT <<PK>>
+  * <color:gray><i>task_log_id</i></color> : INT <<PK>>
   --
-  * <color:grey><i>user_id</i></color> : INT <<FK>>
-  * <color:grey><i>task_id</i></color> : INT <<FK>>
+  * <color:gray><i>user_id</i></color> : INT <<FK>>
+  * <color:gray><i>task_id</i></color> : INT <<FK>>
   level : VARCHAR(20)
   * message : TEXT
   created_at : TIMESTAMP
 }
 
 entity "rate_limits" {
-  * <color:grey>rate_key</color> : VARCHAR(255) <<PK>>
+  * <color:gray>rate_key</color> : VARCHAR(255) <<PK>>
   --
   request_count : INT
   * reset_at : TIMESTAMP
 }
 
 entity "user_telegram_accounts" {
-  * <color:grey><i>telegram_account_id</i></color> : INT <<PK>>
+  * <color:gray><i>telegram_account_id</i></color> : INT <<PK>>
   --
-  * <color:grey><i>user_id</i></color> : INT <<FK>>
-  * <color:grey>telegram_chat_id</color> : BIGINT <<UNIQUE>>
+  * <color:gray><i>user_id</i></color> : INT <<FK>>
+  * <color:gray>telegram_chat_id</color> : BIGINT <<UNIQUE>>
   created_at : TIMESTAMP
 }
 
 entity "issue_templates" {
-  * <color:grey><i>issue_template_id</i></color> : INT <<PK>>
+  * <color:gray><i>issue_template_id</i></color> : INT <<PK>>
   --
-  * <color:grey><i>user_id</i></color> : INT <<FK>>
-  * <color:grey>name</color> : VARCHAR(255)
+  * <color:gray><i>user_id</i></color> : INT <<FK>>
+  * <color:gray>name</color> : VARCHAR(255)
   * title_template : VARCHAR(255)
   body_template : TEXT
   parameter_config : TEXT
@@ -104,10 +104,10 @@ entity "issue_templates" {
 }
 
 entity "notifications" {
-  * <color:grey><i>notification_id</i></color> : INT <<PK>>
+  * <color:gray><i>notification_id</i></color> : INT <<PK>>
   --
-  * <color:grey><i>user_id</i></color> : INT <<FK>>
-  * <color:grey><i>project_id</i></color> : INT <<FK>>
+  * <color:gray><i>user_id</i></color> : INT <<FK>>
+  * <color:gray><i>project_id</i></color> : INT <<FK>>
   type : VARCHAR(50)
   title : VARCHAR(255)
   message : TEXT
@@ -117,43 +117,43 @@ entity "notifications" {
 }
 
 entity "user_notification_settings" {
-  * <color:grey><i>user_id</i></color> : INT <<PK>> <<FK>>
-  * <color:grey>channel</color> : VARCHAR(20) <<PK>>
+  * <color:gray><i>user_id</i></color> : INT <<PK>> <<FK>>
+  * <color:gray>channel</color> : VARCHAR(20) <<PK>>
   --
   is_enabled : BOOLEAN
 }
 
 entity "user_event_notification_settings" {
-  * <color:grey><i>user_id</i></color> : INT <<PK>> <<FK>>
-  * <color:grey>notification_type</color> : VARCHAR(50) <<PK>>
+  * <color:gray><i>user_id</i></color> : INT <<PK>> <<FK>>
+  * <color:gray>notification_type</color> : VARCHAR(50) <<PK>>
   --
   is_enabled : BOOLEAN
 }
 
 entity "project_notification_settings" {
-  * <color:grey><i>project_id</i></color> : INT <<PK>> <<FK>>
-  * <color:grey>notification_type</color> : VARCHAR(50) <<PK>>
+  * <color:gray><i>project_id</i></color> : INT <<PK>> <<FK>>
+  * <color:gray>notification_type</color> : VARCHAR(50) <<PK>>
   --
   is_enabled : BOOLEAN
 }
 
 entity "task_notification_settings" {
-  * <color:grey><i>task_id</i></color> : INT <<PK>> <<FK>>
+  * <color:gray><i>task_id</i></color> : INT <<PK>> <<FK>>
   --
   is_muted : BOOLEAN
 }
 
 entity "project_status_notification_settings" {
-  * <color:grey><i>project_id</i></color> : INT <<PK>> <<FK>>
-  * <color:grey>status</color> : VARCHAR(50) <<PK>>
+  * <color:gray><i>project_id</i></color> : INT <<PK>> <<FK>>
+  * <color:gray>status</color> : VARCHAR(50) <<PK>>
   --
   is_enabled : BOOLEAN
 }
 
 entity "webhook_logs" {
-  * <color:grey><i>log_id</i></color> : INT <<PK>>
+  * <color:gray><i>log_id</i></color> : INT <<PK>>
   --
-  * <color:grey><i>user_id</i></color> : INT <<FK>>
+  * <color:gray><i>user_id</i></color> : INT <<FK>>
   endpoint : VARCHAR(50)
   payload : TEXT
   headers : TEXT
@@ -163,9 +163,9 @@ entity "webhook_logs" {
 }
 
 entity "performance_logs" {
-  * <color:grey><i>performance_log_id</i></color> : INT <<PK>>
+  * <color:gray><i>performance_log_id</i></color> : INT <<PK>>
   --
-  * <color:grey><i>user_id</i></color> : INT <<FK>>
+  * <color:gray><i>user_id</i></color> : INT <<FK>>
   type : VARCHAR(50)
   target : TEXT
   duration : FLOAT

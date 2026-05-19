@@ -114,7 +114,7 @@ $errorMessage = $errorMessage ?? null;
         .status-square.red { background-color: #f85149; }
         .status-square.orange { background-color: #f0883e; }
         .status-square.purple { background-color: #8957e5; }
-        .status-square.grey { background-color: #8b949e; }
+        .status-square.gray { background-color: #8b949e; }
         .auto-repeat-tag {
             border: 2px solid #e82dce !important;
             box-sizing: border-box;

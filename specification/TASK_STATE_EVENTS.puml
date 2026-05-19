@@ -62,7 +62,7 @@ state "Unified Task State" as Unified {
     CHECKING --> FAILED_PR : PR checks fail
     READY --> FAILED_PR : New commit / checks fail
 
-    state CREATED #lightgrey
+    state CREATED #lightgray
     state READY #green
     state FINISHED #green
 }

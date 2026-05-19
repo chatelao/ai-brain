@@ -10,7 +10,7 @@ A shared set of visual indicators is used across all platforms to represent the 
 ### 1.1 Color & Emoji Mapping
 | Unified State | Color (Web) | Emoji (Telegram/Tooltip) | Meaning |
 | :--- | :--- | :--- | :--- |
-| **`CREATED`** | Grey | ⏳ | Waiting for agent |
+| **`CREATED`** | Gray | ⏳ | Waiting for agent |
 | **`PROCESSING`** | Blue / Yellow | 🚧 | Agent is working |
 | **`CHECKING`** | Orange | 🔍 | Awaiting CI results |
 | **`READY`** | Green | ✅ | Validated and ready to merge |
