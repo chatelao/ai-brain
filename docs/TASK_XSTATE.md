@@ -5,7 +5,7 @@ This document describes the task lifecycle defined in [STATE_EVENTS_CONCEPT.md](
 ## 1. Visual Representation (Mermaid)
 
 ```mermaid
-stateDiagram-v2
+stateDiagram
     [*] --> CREATED
 
     CREATED --> PROCESSING_ANALYZING : JULES_STARTED
