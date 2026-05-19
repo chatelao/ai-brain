@@ -154,14 +154,14 @@ Only system-triggered events with a need for human follow-up are typically broad
 
 | Event | Trigger Source | Follow-up Needed | Broadcast |
 | :--- | :--- | :---: | :---: |
-| **Issue Opened** | User (GitHub) | No | No |
-| **Issue Closed** | User (GitHub) / System (Merge) | No | No |
-| **Issue Reopened** | User (GitHub) | No | No |
-| **Issue Deleted** | User (GitHub) | No | No |
-| **PR Created** | System (Jules) | No | No |
-| **PR Merged** | User (UI) / System (Auto) | No | No |
-| **Agent Started** | User (UI) / System (Label) | No | No |
-| **Agent Completed**| System (Jules) | No | No |
-| **Check Suite Fail**| System (GitHub CI) | **Yes** | **Yes** |
-| **Check Suite Pass**| System (GitHub CI) | **Yes** | **Yes** |
+| **Issue opened** | User (GitHub) | No | No |
+| **Issue closed** | User (GitHub) / System (Merge) | No | No |
+| **Issue reopened** | User (GitHub) | No | No |
+| **Issue deleted** | User (GitHub) | No | No |
+| **PR created** | System (Jules) | No | No |
+| **PR merged** | User (UI) / System (Auto) | No | No |
+| **Agent started** | User (UI) / System (Label) | No | No |
+| **Agent completed**| System (Jules) | No | No |
+| **Check Suite fail**| System (GitHub CI) | **Yes** | **Yes** |
+| **Check Suite pass**| System (GitHub CI) | **Yes** | **Yes** |
 | **Auto-Repeat** | System | **Yes** | **Yes** |
