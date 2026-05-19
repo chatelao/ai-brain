@@ -143,4 +143,62 @@ class GitHubServiceTest extends TestCase
 
         $this->assertTrue($result['merged']);
     }
+
+    public function testCloseIssueAlreadyClosed(): void
+    {
+        $mockClient = $this->createMock(Client::class);
+        $mockIssue = $this->createMock(\Github\Api\Issue::class);
+
+        $mockClient->method('api')->with('issue')->willReturn($mockIssue);
+
+        $repo = 'chatelao/ai-brain';
+        $issueNumber = 123;
+
+        // Expect update() to be called and throw 422
+        $mockIssue->expects($this->once())
+            ->method('update')
+            ->willThrowException(new \Exception('Validation Failed', 422));
+
+        // Expect show() to be called to check the current state
+        $mockIssue->expects($this->once())
+            ->method('show')
+            ->with('chatelao', 'ai-brain', $issueNumber)
+            ->willReturn(['number' => $issueNumber, 'state' => 'closed']);
+
+        $service = new GitHubService($mockClient);
+        $result = $service->closeIssue($repo, $issueNumber);
+
+        $this->assertEquals('closed', $result['state']);
+    }
+
+    public function testMergePullRequestAlreadyMerged(): void
+    {
+        $mockClient = $this->createMock(Client::class);
+        $mockPR = $this->createMock(\Github\Api\PullRequest::class);
+
+        $mockClient->method('api')->withAnyParameters()->willReturn($mockPR);
+
+        $prNumber = 456;
+        $repo = 'chatelao/ai-brain';
+        $headSha = 'abcdef1234567890';
+
+        // 1. First getPullRequest call inside mergePullRequest
+        $mockPR->expects($this->exactly(2))
+            ->method('show')
+            ->with('chatelao', 'ai-brain', $prNumber)
+            ->willReturnOnConsecutiveCalls(
+                ['head' => ['sha' => $headSha], 'merged' => false],
+                ['head' => ['sha' => $headSha], 'merged' => true]
+            );
+
+        // 2. merge() call throws 405
+        $mockPR->expects($this->once())
+            ->method('merge')
+            ->willThrowException(new \Exception('Method Not Allowed', 405));
+
+        $service = new GitHubService($mockClient);
+        $result = $service->mergePullRequest($repo, $prNumber, 'Merge it');
+
+        $this->assertTrue($result['merged']);
+    }
 }

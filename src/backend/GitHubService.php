@@ -22,6 +22,25 @@ class GitHubService
     /**
      * @throws Exception
      */
+    public function getIssue(string $repo, int $issueNumber): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        return $this->apiCall(
+            'GitHub API',
+            "GET issue $repo/issues/$issueNumber",
+            fn() => $this->client->api('issue')->show($username, $repository, $issueNumber)
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
     public function getCheckSuites(string $repo, string $ref): array
     {
         $parts = explode('/', $repo);
@@ -72,11 +91,22 @@ class GitHubService
         $pr = $this->getPullRequest($repo, $prNumber);
         $sha = $pr['head']['sha'] ?? null;
 
-        return $this->apiCall(
-            'GitHub API',
-            "PUT merge $repo/pull/$prNumber",
-            fn() => $this->client->api('pull_request')->merge($username, $repository, $prNumber, $message, $sha, $mergeMethod)
-        );
+        try {
+            return $this->apiCall(
+                'GitHub API',
+                "PUT merge $repo/pull/$prNumber",
+                fn() => $this->client->api('pull_request')->merge($username, $repository, $prNumber, $message, $sha, $mergeMethod)
+            );
+        } catch (Exception $e) {
+            // Handle case where PR is already merged (405 or 422 depending on implementation/state)
+            if ($e->getCode() === 405 || $e->getCode() === 422 || str_contains($e->getMessage(), 'Validation Failed') || str_contains($e->getMessage(), 'Method Not Allowed')) {
+                $currentPr = $this->getPullRequest($repo, $prNumber);
+                if ($currentPr['merged'] ?? false) {
+                    return $currentPr;
+                }
+            }
+            throw $e;
+        }
     }
 
     /**
@@ -96,11 +126,22 @@ class GitHubService
             $params['state_reason'] = $stateReason;
         }
 
-        return $this->apiCall(
-            'GitHub API',
-            "PATCH issue $repo/issues/$issueNumber",
-            fn() => $this->client->api('issue')->update($username, $repository, $issueNumber, $params)
-        );
+        try {
+            return $this->apiCall(
+                'GitHub API',
+                "PATCH issue $repo/issues/$issueNumber",
+                fn() => $this->client->api('issue')->update($username, $repository, $issueNumber, $params)
+            );
+        } catch (Exception $e) {
+            // Handle case where issue is already closed
+            if ($e->getCode() === 422 || str_contains($e->getMessage(), 'Validation Failed')) {
+                $issue = $this->getIssue($repo, $issueNumber);
+                if (($issue['state'] ?? '') === 'closed') {
+                    return $issue;
+                }
+            }
+            throw $e;
+        }
     }
 
     /**
