@@ -161,12 +161,13 @@ if ($isAdmin) {
                                                     <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Endpoint</th>
                                                     <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Status</th>
                                                     <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Error</th>
+                                                    <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Details</th>
                                                     <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Time</th>
                                                 </tr>
                                             </thead>
                                             <tbody class="bg-white divide-y divide-gray-200">
                                                 <?php foreach ($webhookLogs as $log) : ?>
-                                                    <tr class="hover:bg-gray-50">
+                                                    <tr class="hover:bg-gray-50" x-data="{ open: false }">
                                                         <?php if ($isAdmin) : ?>
                                                             <td class="p-4 text-sm font-normal text-gray-900 whitespace-nowrap"><?= htmlspecialchars($log['user_email'] ?? 'Unknown') ?></td>
                                                         <?php endif; ?>
@@ -177,11 +178,28 @@ if ($isAdmin) {
                                                             </span>
                                                         </td>
                                                         <td class="p-4 text-sm font-normal text-red-500 max-w-xs truncate" title="<?= htmlspecialchars($log['error_message'] ?? '') ?>"><?= htmlspecialchars($log['error_message'] ?? '-') ?></td>
+                                                        <td class="p-4">
+                                                            <button @click="open = !open" class="text-blue-600 hover:underline text-sm">View Payload</button>
+                                                            <div x-show="open" class="mt-2 p-2 bg-gray-900 text-green-400 rounded text-xs overflow-auto max-w-lg max-h-64 absolute z-50 shadow-xl" @click.away="open = false" x-cloak>
+                                                                <div class="mb-2 border-b border-gray-700 pb-1 text-gray-400">Headers:</div>
+                                                                <?php
+                                                                $headers = json_decode($log['headers'] ?? '{}', true);
+                                                                $headersJson = $headers ? json_encode($headers, JSON_PRETTY_PRINT) : ($log['headers'] ?? '');
+                                                                ?>
+                                                                <pre><?= htmlspecialchars($headersJson ?? '') ?></pre>
+                                                                <div class="mt-4 mb-2 border-b border-gray-700 pb-1 text-gray-400">Payload:</div>
+                                                                <?php
+                                                                $payload = json_decode($log['payload'] ?? '{}', true);
+                                                                $payloadJson = $payload ? json_encode($payload, JSON_PRETTY_PRINT) : ($log['payload'] ?? '');
+                                                                ?>
+                                                                <pre><?= htmlspecialchars($payloadJson ?? '') ?></pre>
+                                                            </div>
+                                                        </td>
                                                         <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap"><?= date('Y-m-d H:i:s', strtotime($log['created_at'])) ?></td>
                                                     </tr>
                                                 <?php endforeach; ?>
                                                 <?php if (empty($webhookLogs)) : ?>
-                                                    <tr><td colspan="<?= $isAdmin ? 5 : 4 ?>" class="p-4 text-center text-gray-500 italic">No webhook logs found.</td></tr>
+                                                    <tr><td colspan="<?= $isAdmin ? 6 : 5 ?>" class="p-4 text-center text-gray-500 italic">No webhook logs found.</td></tr>
                                                 <?php endif; ?>
                                             </tbody>
                                         </table>
