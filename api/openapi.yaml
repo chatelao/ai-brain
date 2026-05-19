@@ -355,7 +355,7 @@ paths:
         '401':
           description: Unauthorized
 
-  /api/projects/{id}/tasks.php:
+  /api/tasks.php:
     get:
       summary: List project tasks (JSON)
       description: Returns a list of tasks for a specific project.
@@ -363,10 +363,11 @@ paths:
         - BearerAuth: []
       parameters:
         - name: id
-          in: path
+          in: query
           required: true
           schema:
             type: integer
+          description: Project ID
       responses:
         '200':
           description: A JSON list of tasks
@@ -462,8 +463,8 @@ components:
           example: "Steps to reproduce..."
         status:
           type: string
-          enum: [pending, in_progress, completed, failed]
-          example: "pending"
+          enum: [created, analyzing, planning, executing, verifying, checking, ready, finished, implemented, failed_jules, failed_pr]
+          example: "created"
         agent_response:
           type: string
           nullable: true
