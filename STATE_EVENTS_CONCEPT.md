@@ -166,11 +166,36 @@ Only system-triggered events with a need for human follow-up are typically broad
 | **Check Suite pass**| System (GitHub CI) | **Yes** | **Yes** |
 | **Auto-Repeat** | System | **Yes** | **Yes** |
 
-## 7. Task State Machine (XState)
+## 7. Distinguishing Manual vs. Automated Actions
+
+To minimize notification noise and ensure clear accountability, the system distinguishes between actions performed by a human user and those performed automatically by the system or external agents (Jules, GitHub CI).
+
+### 7.1 The `is_system` Flag
+All internal notifications carry an `is_system` boolean flag in their metadata. This flag serves as the primary mechanism for determining whether a notification should be broadcast to external channels (Telegram, Browser).
+
+- **`is_system: true`**: The event was triggered by the system, an external webhook (e.g., GitHub Check Suite), or the Jules agent completion. These events are eligible for broadcasting if they require human follow-up.
+- **`is_system: false`**: The event was directly initiated by a user via the web interface or by a human interaction on GitHub. These events are recorded in the in-app inbox but are **never broadcast** to external channels, as the user is already aware of their own action.
+
+### 7.2 Detection Mechanisms
+
+#### GitHub Webhooks
+The `App\WebhookHandler` identifies user-triggered events by inspecting the `sender.type` field in the GitHub payload.
+- If `sender.type === 'User'`, the action is considered manual (`is_system => false`).
+- Events like `check_suite` completions or Jules bot comments are always treated as system-driven (`is_system => true`).
+
+#### UI Interactions
+Actions performed directly in the web dashboard (e.g., clicking "Run Agent", "Merge & Close", or creating an issue from a template) explicitly set the `is_system` flag to `false` when calling `NotificationService::notify()`.
+
+### 7.3 Broadcasting Rules
+The `App\NotificationService` enforces the following logic for external broadcasts:
+1. **Manual Actions**: If `is_system` is `false`, the broadcast is suppressed.
+2. **System Actions**: If `is_system` is `true`, the system further checks if the event is **actionable**. Only system events that require human follow-up (e.g., a task becoming `READY` for merge, or a session failing with `FAILED_JULES`) are dispatched to Telegram or Browser notifications.
+
+## 8. Task State Machine (XState)
 
 This section describes the task lifecycle using the [XState](https://xstate.js.org/) v5 specification and Mermaid diagrams, derived from the unified state mapping.
 
-### 7.1 Visual Representation (Mermaid)
+### 8.1 Visual Representation (Mermaid)
 
 The diagram visually groups the core **Jules Processing** activities to distinguish them from GitHub-managed states like `CHECKING`.
 
@@ -217,7 +242,7 @@ stateDiagram-v2
     FINISHED --> [*]
 ```
 
-### 7.2 XState Machine Definition (v5)
+### 8.2 XState Machine Definition (v5)
 
 ```javascript
 import { createMachine } from 'xstate';
@@ -297,7 +322,7 @@ export const taskMachine = createMachine({
 });
 ```
 
-### 7.3 Mapping to Implementation
+### 8.3 Mapping to Implementation
 
 The machine states map to the following constants in `App\Task`:
 
