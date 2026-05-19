@@ -112,6 +112,7 @@ $errorMessage = $errorMessage ?? null;
         .status-square.yellow { background-color: #d29922; }
         .status-square.blue { background-color: #0366d6; }
         .status-square.red { background-color: #f85149; }
+        .status-square.orange { background-color: #f0883e; }
         .status-square.purple { background-color: #8957e5; }
         .status-square.grey { background-color: #8b949e; }
         .auto-repeat-tag {
@@ -186,8 +187,40 @@ $errorMessage = $errorMessage ?? null;
                                                     </a>
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap bg-green-100 text-green-800">
-                                                        🚧 Active
+                                                    <?php
+                                                    $statusColor = $taskModel->getStatusColor($task);
+                                                    $bgClass = 'bg-gray-100 text-gray-800';
+                                                    if ($statusColor === 'green') {
+                                                        $bgClass = 'bg-green-100 text-green-800';
+                                                    } elseif ($statusColor === 'yellow') {
+                                                        $bgClass = 'bg-yellow-100 text-yellow-800';
+                                                    } elseif ($statusColor === 'blue') {
+                                                        $bgClass = 'bg-blue-100 text-blue-800';
+                                                    } elseif ($statusColor === 'red') {
+                                                        $bgClass = 'bg-red-100 text-red-800';
+                                                    } elseif ($statusColor === 'purple') {
+                                                        $bgClass = 'bg-purple-100 text-purple-800';
+                                                    } elseif ($statusColor === 'orange') {
+                                                        $bgClass = 'bg-orange-100 text-orange-800';
+                                                    }
+
+                                                    $emoji = '⏳';
+                                                    $statusLabel = ucwords(str_replace('_', ' ', $task['status'] ?? ''));
+                                                    if ($task['status'] === App\Task::STATUS_CREATED) {
+                                                        $emoji = '⏳';
+                                                        $statusLabel = 'Waiting for Agent';
+                                                    } elseif ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY) {
+                                                        $emoji = '✅';
+                                                    } elseif ($task['status'] === App\Task::STATUS_CHECKING) {
+                                                        $emoji = '🔍';
+                                                    } elseif ($task['status'] === App\Task::STATUS_FAILED_JULES || $task['status'] === App\Task::STATUS_FAILED_PR) {
+                                                        $emoji = '❌';
+                                                    } elseif (in_array($task['status'], [App\Task::STATUS_ANALYZING, App\Task::STATUS_PLANNING, App\Task::STATUS_EXECUTING, App\Task::STATUS_VERIFYING, App\Task::STATUS_IMPLEMENTED])) {
+                                                        $emoji = '🚧';
+                                                    }
+                                                    ?>
+                                                    <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
+                                                        <?= $emoji ?> <?= htmlspecialchars($statusLabel) ?>
                                                     </span>
                                                 </td>
                                             </tr>
@@ -232,15 +265,17 @@ $errorMessage = $errorMessage ?? null;
 
                                                         $emoji = '⏳';
                                                         $statusLabel = ucwords(str_replace('_', ' ', $task['status'] ?? ''));
-                                                        if ($task['status'] === App\Task::STATUS_FINISHED) {
+
+                                                        if ($task['status'] === App\Task::STATUS_CREATED) {
+                                                            $emoji = '⏳';
+                                                            $statusLabel = 'Waiting for Agent';
+                                                        } elseif ($task['status'] === App\Task::STATUS_FINISHED) {
                                                             $emoji = '✅';
                                                         } elseif ($task['status'] === App\Task::STATUS_READY) {
                                                             $emoji = '✅';
                                                         } elseif ($task['status'] === App\Task::STATUS_CHECKING) {
                                                             $emoji = '🔍';
-                                                        } elseif ($task['status'] === App\Task::STATUS_FAILED_JULES) {
-                                                            $emoji = '❌';
-                                                        } elseif ($task['status'] === App\Task::STATUS_FAILED_PR) {
+                                                        } elseif ($task['status'] === App\Task::STATUS_FAILED_JULES || $task['status'] === App\Task::STATUS_FAILED_PR) {
                                                             $emoji = '❌';
                                                         } elseif (in_array($task['status'], [App\Task::STATUS_ANALYZING, App\Task::STATUS_PLANNING, App\Task::STATUS_EXECUTING, App\Task::STATUS_VERIFYING, App\Task::STATUS_IMPLEMENTED])) {
                                                             $emoji = '🚧';
