@@ -493,6 +493,40 @@ class Task
         return 'gray';
     }
 
+    public function getStatusEmoji(string $status): string
+    {
+        if ($status === self::STATUS_CREATED) {
+            return '⏳';
+        }
+
+        if ($status === self::STATUS_FINISHED || $status === self::STATUS_READY || $status === 'completed') {
+            return '✅';
+        }
+
+        if ($status === self::STATUS_CHECKING) {
+            return '🔍';
+        }
+
+        if ($status === self::STATUS_FAILED_JULES || $status === self::STATUS_FAILED_PR || $status === 'failed') {
+            return '❌';
+        }
+
+        if (in_array($status, [self::STATUS_ANALYZING, self::STATUS_PLANNING, self::STATUS_EXECUTING, self::STATUS_VERIFYING, self::STATUS_IMPLEMENTED])) {
+            return '🚧';
+        }
+
+        return '⏳';
+    }
+
+    public function getStatusLabel(string $status): string
+    {
+        if ($status === self::STATUS_CREATED) {
+            return 'Waiting for Agent';
+        }
+
+        return ucwords(str_replace('_', ' ', $status));
+    }
+
     public function hasAutorepeatLabel(array $task): bool
     {
         $githubData = json_decode($task['github_data'] ?? '{}', true);
@@ -822,7 +856,7 @@ class Task
 
                 if ($notificationService && $mappedStatus !== $task['status']) {
                     $title = "Task Update: #" . $task['issue_number'];
-                    $message = "Task \"" . $task['title'] . "\" status changed to " . ucwords(str_replace('_', ' ', $mappedStatus)) . ".";
+                    $message = "Task \"" . $task['title'] . "\" status: " . $this->getStatusEmoji($task['status']) . " ➡️ " . $this->getStatusEmoji($mappedStatus) . " " . $this->getStatusLabel($mappedStatus);
                     if ($mappedStatus === self::STATUS_FINISHED) {
                         $title = "✅ Task Completed: #" . $task['issue_number'];
                     } elseif ($mappedStatus === self::STATUS_READY) {
