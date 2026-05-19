@@ -44,6 +44,8 @@ class Task
                     $suites = $checkSuitesData['check_suites'];
                 } elseif (isset($checkSuitesData['check_suite'])) {
                     $suites = [$checkSuitesData['check_suite']];
+                } elseif (isset($checkSuitesData['conclusion']) || isset($checkSuitesData['status'])) {
+                    $suites = [$checkSuitesData];
                 }
             }
 

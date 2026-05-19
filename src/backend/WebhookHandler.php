@@ -166,7 +166,7 @@ class WebhookHandler
                 );
             }
 
-            $githubService->createIssue($repo, $issue['title'], $issue['body'], array_values($labelNames));
+            $githubService->createIssue($repo, $issue['title'], $issue['body'] ?? null, array_values($labelNames));
             $githubService->removeLabel($repo, $issue['number'], $autorepeatLabelName);
         }
     }
@@ -176,11 +176,11 @@ class WebhookHandler
         $action = $event['action'] ?? '';
         $pr = $event['pull_request'] ?? null;
 
-        if (!$pr || !$notificationService) {
+        if (!$pr) {
             return true;
         }
 
-        if (in_array($action, ['opened', 'closed', 'reopened', 'synchronize'])) {
+        if ($notificationService && in_array($action, ['opened', 'closed', 'reopened', 'synchronize'])) {
             $emoji = '🔗';
             $actionText = 'Updated';
 
@@ -230,7 +230,7 @@ class WebhookHandler
         $action = $event['action'] ?? '';
         $checkSuite = $event['check_suite'] ?? null;
 
-        if ($action !== 'completed' || !$checkSuite) {
+        if (!in_array($action, ['requested', 'rerequested', 'completed']) || !$checkSuite) {
             return true;
         }
 
