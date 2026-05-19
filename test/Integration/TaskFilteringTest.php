@@ -62,16 +62,16 @@ class TaskFilteringTest extends TestCase
         // Project 1
         $this->createTask(1, 1, 'open', 'pending', '2023-01-01 10:00:00');
         $this->createTask(1, 2, 'open', 'executing', '2023-01-01 11:00:00');
-        $this->createTask(1, 3, 'closed', 'completed', '2023-01-01 12:00:00'); // 5th completed globally
-        $this->createTask(1, 4, 'closed', 'completed', '2023-01-01 13:00:00'); // 4th completed globally
-        $this->createTask(1, 5, 'closed', 'completed', '2023-01-01 14:00:00'); // 3rd completed globally
-        $this->createTask(1, 6, 'closed', 'completed', '2023-01-01 15:00:00'); // 2nd completed globally
+        $this->createTask(1, 3, 'closed', Task::STATUS_FINISHED, '2023-01-01 12:00:00'); // 5th completed globally
+        $this->createTask(1, 4, 'closed', 'completed', '2023-01-01 13:00:00');          // 4th completed globally (legacy)
+        $this->createTask(1, 5, 'closed', Task::STATUS_FINISHED, '2023-01-01 14:00:00'); // 3rd completed globally
+        $this->createTask(1, 6, 'closed', 'completed', '2023-01-01 15:00:00');          // 2nd completed globally (legacy)
         $this->createTask(1, 7, 'closed', 'failed', '2023-01-01 16:00:00');    // failed, should be hidden
 
         // Project 2 (just to test findByUserProjects)
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'repo1'), (2, 1, 'repo2')");
         $this->createTask(2, 10, 'open', 'pending', '2023-01-01 10:00:00');
-        $this->createTask(2, 11, 'closed', 'completed', '2023-01-01 17:00:00'); // 1st completed globally
+        $this->createTask(2, 11, 'closed', Task::STATUS_FINISHED, '2023-01-01 17:00:00'); // 1st completed globally
 
         // Orphan and invalid tasks
         $this->createTask(1, 0, 'open', 'pending', '2023-01-01 18:00:00'); // issue_number 0

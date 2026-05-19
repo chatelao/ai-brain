@@ -105,6 +105,7 @@ class TaskStateTest extends TestCase
         $stmt = $this->createMock(\PDOStatement::class);
 
         $db->method('getConnection')->willReturn($pdo);
+        $stmt->method('fetchAll')->willReturn([]);
 
         $capturedSql = '';
         $pdo->method('prepare')->willReturnCallback(function ($sql) use (&$capturedSql, $stmt) {
@@ -115,8 +116,7 @@ class TaskStateTest extends TestCase
         $taskModel = new Task($db);
         $taskModel->findByProjectId(1, false);
 
-        $this->assertStringContainsString("t1.status = 'finished'", $capturedSql);
-        $this->assertStringNotContainsString("t1.status = 'completed'", $capturedSql);
+        $this->assertStringContainsString("t1.status IN ('finished', 'completed')", $capturedSql);
     }
 
     public function testFindByUserProjectsGeneratesCorrectSql()
@@ -126,6 +126,7 @@ class TaskStateTest extends TestCase
         $stmt = $this->createMock(\PDOStatement::class);
 
         $db->method('getConnection')->willReturn($pdo);
+        $stmt->method('fetchAll')->willReturn([]);
 
         $capturedSql = '';
         $pdo->method('prepare')->willReturnCallback(function ($sql) use (&$capturedSql, $stmt) {
@@ -136,7 +137,6 @@ class TaskStateTest extends TestCase
         $taskModel = new Task($db);
         $taskModel->findByUserProjects(1, false);
 
-        $this->assertStringContainsString("t.status = 'finished'", $capturedSql);
-        $this->assertStringNotContainsString("t.status = 'completed'", $capturedSql);
+        $this->assertStringContainsString("t.status IN ('finished', 'completed')", $capturedSql);
     }
 }

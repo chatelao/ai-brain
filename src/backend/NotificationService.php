@@ -237,7 +237,7 @@ class NotificationService
         }
 
         // Default settings if not present
-        $statuses = ['researching', 'planning', 'coding', 'testing', 'in_progress', 'implemented', 'completed', 'failed_jules', 'failed_pr'];
+        $statuses = ['researching', 'planning', 'coding', 'testing', 'in_progress', 'implemented', Task::STATUS_FINISHED, 'completed', 'failed_jules', 'failed_pr'];
         foreach ($statuses as $status) {
             if (!isset($settings[$status])) {
                 $settings[$status] = true;
