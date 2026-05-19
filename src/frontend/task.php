@@ -272,7 +272,7 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                             <div class="flex items-center space-x-2">
                                 <span class="px-4 py-1.5 text-sm font-semibold rounded-full bg-<?= $statusColor ?>-100 text-<?= $statusColor ?>-800 flex items-center shadow-sm">
                                     <?php
-                                    if ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY) {
+                                    if ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY || $task['status'] === 'completed') {
                                         echo '✅ ';
                                     } elseif (in_array($task['status'], [App\Task::STATUS_EXECUTING, App\Task::STATUS_VERIFYING, App\Task::STATUS_IMPLEMENTED])) {
                                         echo '🚧 ';

@@ -497,7 +497,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                     <?php
                                                     $statusColor = $taskModel->getStatusColor($task);
                                                     $bgClass = 'bg-gray-100 text-gray-800';
-                                                    if ($statusColor === 'green') {
+                                                    if ($statusColor === 'gray') {
+                                                        $bgClass = 'bg-gray-100 text-gray-800';
+                                                    } elseif ($statusColor === 'green') {
                                                         $bgClass = 'bg-green-100 text-green-800';
                                                     } elseif ($statusColor === 'yellow') {
                                                         $bgClass = 'bg-yellow-100 text-yellow-800';
@@ -517,7 +519,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                         if ($task['status'] === App\Task::STATUS_CREATED) {
                                                             echo '⏳ ';
                                                             $label = 'Waiting for Agent';
-                                                        } elseif ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY) {
+                                                        } elseif ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY || $task['status'] === 'completed') {
                                                             echo '✅ ';
                                                         } elseif ($task['status'] === App\Task::STATUS_CHECKING) {
                                                             echo '🔍 ';

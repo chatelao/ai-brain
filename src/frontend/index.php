@@ -190,7 +190,9 @@ $errorMessage = $errorMessage ?? null;
                                                     <?php
                                                     $statusColor = $taskModel->getStatusColor($task);
                                                     $bgClass = 'bg-gray-100 text-gray-800';
-                                                    if ($statusColor === 'green') {
+                                                    if ($statusColor === 'gray') {
+                                                        $bgClass = 'bg-gray-100 text-gray-800';
+                                                    } elseif ($statusColor === 'green') {
                                                         $bgClass = 'bg-green-100 text-green-800';
                                                     } elseif ($statusColor === 'yellow') {
                                                         $bgClass = 'bg-yellow-100 text-yellow-800';
@@ -209,7 +211,7 @@ $errorMessage = $errorMessage ?? null;
                                                     if ($task['status'] === App\Task::STATUS_CREATED) {
                                                         $emoji = '⏳';
                                                         $statusLabel = 'Waiting for Agent';
-                                                    } elseif ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY) {
+                                                    } elseif ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY || $task['status'] === 'completed') {
                                                         $emoji = '✅';
                                                     } elseif ($task['status'] === App\Task::STATUS_CHECKING) {
                                                         $emoji = '🔍';
