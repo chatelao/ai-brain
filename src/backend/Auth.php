@@ -4,11 +4,14 @@ namespace App;
 
 use Google\Client as GoogleClient;
 use Google\Service\Oauth2 as GoogleServiceOauth2;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Exception;
 
 class Auth
 {
     private GoogleClient $client;
+    private string $jwtSecret;
 
     public function __construct()
     {
@@ -22,6 +25,8 @@ class Auth
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+
+        $this->jwtSecret = getenv('JWT_SECRET') ?: 'default_secret_change_me_in_production';
     }
 
     public function getAuthUrl(): string
@@ -86,5 +91,28 @@ class Auth
     public function validateCsrfToken(?string $token): bool
     {
         return !empty($token) && hash_equals($_SESSION['csrf_token'] ?? '', $token);
+    }
+
+    public function generateToken(int $userId): string
+    {
+        $payload = [
+            'iss' => 'agent-control',
+            'sub' => $userId,
+            'iat' => time(),
+            'exp' => time() + (60 * 60 * 24) // 24 hours
+        ];
+
+        return JWT::encode($payload, $this->jwtSecret, 'HS256');
+    }
+
+    public function validateToken(string $token): ?int
+    {
+        try {
+            $decoded = JWT::decode($token, new Key($this->jwtSecret, 'HS256'));
+            return (int)$decoded->sub;
+        } catch (Exception $e) {
+            error_log("JWT Validation failed: " . $e->getMessage());
+            return null;
+        }
     }
 }
