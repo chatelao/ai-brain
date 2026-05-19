@@ -238,7 +238,8 @@ class NotificationTriggerTest extends TestCase
         $telegramChannel = new \App\TelegramChannelHandler($userModel, $telegramService);
         $this->notificationService->registerChannel('telegram', $telegramChannel);
 
-        $this->notificationService->notify($userId, 'test_event', 'Test Title', 'Test Message');
+        // We must use an actionable type and mark as system event for broadcast to trigger
+        $this->notificationService->notify($userId, 'github_issue', 'Test Title', 'Test Message', ['is_system' => true]);
     }
 
     public function testNotificationRespectsProjectDisabledType()
@@ -314,12 +315,14 @@ class NotificationTriggerTest extends TestCase
         $this->notificationService->registerChannel('mock_channel', $mockChannel);
 
         // EXPECTATION: Broadcast SHOULD NOT happen because 'in-progress' is normalized to 'in_progress'
+        // AND 'in_progress' is not an actionable status for broadcast.
         $mockChannel->expects($this->never())->method('send');
 
         // Trigger notification with status 'in-progress' (with hyphen)
         $this->notificationService->notify($userId, 'task_status', 'Title', 'Message', [
             'project_id' => $projectId,
-            'status' => 'in-progress'
+            'status' => 'in-progress',
+            'is_system' => true
         ]);
     }
 }

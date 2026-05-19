@@ -1,5 +1,8 @@
 # Concept: Notifications System
 
+### Related Concepts
+- **[On-Event and On-State Behaviors (STATE_EVENTS_CONCEPT.md)](STATE_EVENTS_CONCEPT.md)**: The primary concept defining the states and events that trigger notifications. This document must be adjusted if `STATE_EVENTS_CONCEPT.md` is updated.
+
 ## Overview
 The notification system aims to keep users informed about critical events across their projects and tasks. It provides a multi-channel approach to ensure timely updates whether the user is actively using the dashboard or is on the move.
 
@@ -27,6 +30,11 @@ Notifications are generated consistently across multiple event sources (Event So
 -   **Real-time Webhooks**: Immediate triggers from incoming GitHub or CI/CD webhooks.
 -   **Backend Polling (`cronjob.php`)**: Periodic synchronization that detects changes missed by webhooks.
 -   **Manual Refreshes (`project.php`)**: User-initiated synchronizations that refresh project and task states.
+
+### Broadcasting Logic
+To minimize notification noise, the system distinguishes between **In-App Inbox** notifications (all events) and **External Broadcasts** (Telegram/Browser).
+- Only **System-triggered** events with a need for **human follow-up** (e.g., Fails, Ready-to-merge PRs) are broadcasted.
+- Human-initiated actions do not trigger broadcasts to avoid redundant alerts for the active user.
 
 ## Use Cases
 -   **<a name="UC-N1"></a>Jump to Source (Deep Linking) (UC-N1)**: A user clicks on a "PR Available" notification and is immediately taken to the corresponding GitHub Pull Request page.

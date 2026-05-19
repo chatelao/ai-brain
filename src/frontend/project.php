@@ -79,7 +79,8 @@ $triggerAgent = function ($taskId) use ($taskModel, $logger, $user, $project, $j
             $notificationService->notify($user['user_id'], 'agent_event', "🤖 Agent Started: #" . $task['issue_number'], "Agent started processing \"" . $task['title'] . "\" in " . $project['github_repo'], [
                 'task_id' => $taskId,
                 'project_id' => $project['project_id'],
-                'source_url' => $taskModel->getTargetUrl($task)
+                'source_url' => $taskModel->getTargetUrl($task),
+                'is_system' => false // Human action
             ]);
 
             $logger->log($user['user_id'], $taskId, "Calling Jules API...");
@@ -97,7 +98,8 @@ $triggerAgent = function ($taskId) use ($taskModel, $logger, $user, $project, $j
             $notificationService->notify($user['user_id'], 'agent_event', "✅ Agent Completed: #" . $task['issue_number'], "Agent completed analysis for \"" . $task['title'] . "\" in " . $project['github_repo'], [
                 'task_id' => $taskId,
                 'project_id' => $project['project_id'],
-                'source_url' => $taskModel->getTargetUrl($task)
+                'source_url' => $taskModel->getTargetUrl($task),
+                'is_system' => true // The completion itself is system-driven
             ]);
 
             // Refresh tasks
@@ -118,7 +120,8 @@ $triggerAgent = function ($taskId) use ($taskModel, $logger, $user, $project, $j
             $notificationService->notify($user['user_id'], 'agent_event', "❌ Agent Failed: #" . $task['issue_number'], "Agent failed processing \"" . $task['title'] . "\": " . $e->getMessage(), [
                 'task_id' => $taskId,
                 'project_id' => $project['project_id'],
-                'source_url' => $taskModel->getTargetUrl($task)
+                'source_url' => $taskModel->getTargetUrl($task),
+                'is_system' => true // The failure itself is system-driven
             ]);
         }
     }
