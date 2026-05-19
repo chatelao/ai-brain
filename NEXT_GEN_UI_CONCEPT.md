@@ -6,7 +6,7 @@ The "Next Gen UI" initiative aims to evolve the Agent Control application from a
 ## 1. Vision & Strategy
 The core strategy is **"API-First, Platform-Agnostic"**.
 - **Headless Architecture**: The server transitions into a pure API provider, responsible only for business logic, data persistence, and external service orchestration (GitHub, Jules, Telegram).
-- **Contract-Driven Development**: The `openapi.yaml` (Agent Control API) serves as the single source of truth for all client-server interactions.
+- **Contract-Driven Development**: The `api/openapi.yaml` (Agent Control API) serves as the single source of truth for all client-server interactions. This is the relevant API between Browser and Server to use and update if necessary.
 - **Native Experience**: Delivering native mobile apps to provide better notification handling and on-the-go agent control beyond the Telegram bot.
 
 ## 2. Proposed Tech Stack
@@ -28,7 +28,7 @@ The core strategy is **"API-First, Platform-Agnostic"**.
 Transitioning from the current PHP/Alpine.js stack will be performed in four distinct phases to ensure continuous availability.
 
 ### Phase 1: API Foundation (BFF Layer)
-- Refactor existing PHP logic into a RESTful API following the `openapi.yaml` specification.
+- Refactor existing PHP logic into a RESTful API following the `api/openapi.yaml` specification.
 - Implement JWT-based authentication alongside the existing session-based auth.
 - Result: The existing UI remains functional, but now consumes an internal JSON API.
 

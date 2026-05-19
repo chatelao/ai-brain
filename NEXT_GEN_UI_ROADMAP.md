@@ -38,7 +38,7 @@ The goal of Phase 1 is to create the necessary backend infrastructure to support
 
 - 🚧 **Milestone 1.1: OpenAPI Compliance**
     - 🚧 Refactor existing PHP endpoints to serve JSON exclusively for `/api/*` routes.
-    - 🚧 Validate all API responses against the `openapi.yaml` specification.
+    - 🚧 Validate all API responses against the `api/openapi.yaml` specification. This is the relevant API between Browser and Server to use and update if necessary.
 - ⏳ **Milestone 1.2: Modern Auth Implementation**
     - ⏳ Implement JWT token issuance and validation.
     - ⏳ Support Refresh Tokens for persistent mobile sessions.

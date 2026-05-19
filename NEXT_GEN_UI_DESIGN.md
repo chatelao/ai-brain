@@ -4,7 +4,7 @@
 The Next Gen UI follows a strict **Client-Server Separation** model.
 
 ### 1.1 Communication Layer
-- **RESTful API**: Standard interactions (listing projects, updating settings) use JSON over HTTP, as defined in `openapi.yaml`.
+- **RESTful API**: Standard interactions (listing projects, updating settings) use JSON over HTTP, as defined in `api/openapi.yaml`. This is the relevant API between Browser and Server to use and update if necessary.
 - **Event Streaming**: Real-time updates for task statuses (moving from `EXECUTING` to `READY`) utilize background synchronization.
 - **Client Generation**: API clients for both Web (TypeScript) and Mobile (TypeScript) are automatically generated from the OpenAPI specification to ensure type safety across the stack.
 
