@@ -4,20 +4,21 @@ This document describes the reactive behaviors of the Agent Control application,
 
 ## 1. Unified Task State Mapping
 
-The application defines a set of unified task states to provide a consistent view of progress across different external tools (GitHub, Jules). These states represent the "Source of Truth" for the task's lifecycle.
+The application defines a set of unified task states to provide a consistent view of progress across different external tools (GitHub, Jules). These states represent the "Source of Truth" for the task's lifecycle and include a shared set of visual indicators (Colors and Emojis) used across the web dashboard and Telegram.
 
-| Unified State | Substate | Description | Mapping Logic (Source States) |
-| :--- | :--- | :--- | :--- |
-| **`CREATED`** | - | Task is waiting to be processed by the agent. | `GH.Issue:open` AND `Jules.Session:none` |
-| **`PROCESSING`** | **`ANALYZING`** | The agent is researching or analyzing the task. | `Jules.Session:researching` |
-| | **`PLANNING`** | A plan is being created or is awaiting human approval. | `Jules.Session:planning` OR `Jules.Session:awaiting_plan_approval` |
-| | **`EXECUTING`** | The agent is actively implementing the solution (coding). | `Jules.Session:in-progress` OR `Jules.Session:coding` |
-| | **`VERIFYING`** | The agent is testing the solution locally. | `Jules.Session:testing` |
-| | **`CHECKING`** | Awaiting PR check results from GitHub. | `Jules.Session:finished` AND `GH.PR:open` AND `GH.PR:checks_running` |
-| **`READY`** | - | All checks passed, task is ready for merge. | `Jules.Session:finished` AND `GH.PR:open` AND `GH.PR:checks_passed` |
-| **`FINISHED`** | - | The task has been successfully completed and/or merged. | `GH.Issue:closed` |
-| **`FAILED`** | **`FAILED_JULES`** | An error occurred during agent execution. | `Jules.Session:failed` OR `Jules.Session:error` |
-| | **`FAILED_PR`** | PR verification (checks) failed on GitHub. | `GH.PR:checks_failed` |
+| Unified State | Substate | Color (Web) | Emoji | Description | Mapping Logic (Source States) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`CREATED`** | - | Gray | ⏳ | Task is waiting to be processed by the agent. | `GH.Issue:open` AND `Jules.Session:none` |
+| **`PROCESSING`** | **`ANALYZING`** | Blue | 🚧 | The agent is researching or analyzing the task. | `Jules.Session:researching` |
+| | **`PLANNING`** | Blue | 🚧 | A plan is being created or is awaiting approval. | `Jules.Session:planning` OR `Jules.Session:awaiting_plan_approval` |
+| | **`EXECUTING`** | Yellow | 🚧 | The agent is actively coding the solution. | `Jules.Session:in-progress` OR `Jules.Session:coding` |
+| | **`VERIFYING`** | Yellow | 🚧 | The agent is testing the solution locally. | `Jules.Session:testing` |
+| | **`IMPLEMENTED`**| Yellow | 🚧 | The agent completed implementation (no PR yet).| `Jules.Session:finished` AND `GH.PR:none` |
+| | **`CHECKING`** | Orange | 🔍 | Awaiting PR check results from GitHub. | `Jules.Session:finished` AND `GH.PR:open` AND `GH.PR:checks_running` |
+| **`READY`** | - | Green | ✅ | All checks passed, task is ready for merge. | `Jules.Session:finished` AND `GH.PR:open` AND `GH.PR:checks_passed` |
+| **`FINISHED`** | - | Purple | ✅ | The task has been successfully completed/merged.| `GH.Issue:closed` |
+| **`FAILED`** | **`FAILED_JULES`** | Red | ❌ | An error occurred during agent execution. | `Jules.Session:failed` OR `Jules.Session:error` |
+| | **`FAILED_PR`** | Red | ❌ | PR verification (checks) failed on GitHub. | `GH.PR:checks_failed` |
 
 ### 1.1 Source State Key
 - **`GH.Issue:*`**: State of the GitHub Issue (open/closed).
@@ -117,28 +118,9 @@ To support recurring tasks, the system implements an "Auto-Repeat" mechanism.
 - The new issue **includes** the "Jules" label to trigger the agent.
 - The new issue **excludes** the "Auto-Repeat" label.
 
-## 5. On-State Behaviors
+## 5. Feature Availability
 
-The system exhibits different behaviors and UI representations depending on the unified state of a task.
-
-### 5.1 Task State Visuals (Dashboard/Project List)
-
-A shared set of visual indicators (Colors and Emojis) is used across the web dashboard and Telegram to represent the unified task state.
-
-| Unified State | Substate | Color (Web) | Emoji | Meaning |
-| :--- | :--- | :--- | :--- | :--- |
-| **`CREATED`** | - | Grey | ⏳ | Waiting for agent |
-| **`PROCESSING`** | **`ANALYZING`** | Yellow | 🚧 | Agent is researching |
-| | **`PLANNING`** | LightBlue | 🚧 | Agent is planning |
-| | **`EXECUTING`** | Yellow | 🚧 | Agent is coding |
-| | **`VERIFYING`** | Yellow | 🚧 | Agent is testing locally |
-| | **`CHECKING`** | Orange | 🔍 | Awaiting PR check results |
-| **`READY`** | - | Green | ✅ | Validated and ready to merge |
-| **`FINISHED`** | - | Purple | ✅ | Task completed and closed |
-| **`FAILED`** | **`FAILED_JULES`** | Red | ❌ | Agent execution error |
-| | **`FAILED_PR`** | Red | ❌ | PR verification (CI) failed |
-
-### 5.2 Feature Availability
+The system exhibits different behaviors and interactive options depending on the unified state of a task.
 
 - **Merge & Close**: Only available if state is `READY`, PR is mergeable and checks passed.
 - **Retry / Restart**: Only available when state is `FAILED`.

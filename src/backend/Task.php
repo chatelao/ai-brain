@@ -477,10 +477,10 @@ class Task
         }
 
         if ($status === self::STATUS_CREATED) {
-            return 'grey';
+            return 'gray';
         }
 
-        return 'grey';
+        return 'gray';
     }
 
     public function hasAutorepeatLabel(array $task): bool

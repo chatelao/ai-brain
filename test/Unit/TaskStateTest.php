@@ -81,4 +81,20 @@ class TaskStateTest extends TestCase
         $task['jules_status'] = 'testing';
         $this->assertEquals(Task::STATUS_VERIFYING, $this->taskModel->resolveStatus($task));
     }
+
+    public function testGetStatusColor()
+    {
+        $this->assertEquals('gray', $this->taskModel->getStatusColor(['status' => Task::STATUS_CREATED]));
+        $this->assertEquals('blue', $this->taskModel->getStatusColor(['status' => Task::STATUS_ANALYZING]));
+        $this->assertEquals('blue', $this->taskModel->getStatusColor(['status' => Task::STATUS_PLANNING]));
+        $this->assertEquals('yellow', $this->taskModel->getStatusColor(['status' => Task::STATUS_EXECUTING]));
+        $this->assertEquals('yellow', $this->taskModel->getStatusColor(['status' => Task::STATUS_VERIFYING]));
+        $this->assertEquals('yellow', $this->taskModel->getStatusColor(['status' => Task::STATUS_IMPLEMENTED]));
+        $this->assertEquals('orange', $this->taskModel->getStatusColor(['status' => Task::STATUS_CHECKING]));
+        $this->assertEquals('green', $this->taskModel->getStatusColor(['status' => Task::STATUS_READY]));
+        $this->assertEquals('red', $this->taskModel->getStatusColor(['status' => Task::STATUS_FAILED_JULES]));
+        $this->assertEquals('red', $this->taskModel->getStatusColor(['status' => Task::STATUS_FAILED_PR]));
+        $this->assertEquals('purple', $this->taskModel->getStatusColor(['status' => Task::STATUS_FINISHED, 'github_state' => 'closed']));
+        $this->assertEquals('green', $this->taskModel->getStatusColor(['status' => Task::STATUS_FINISHED, 'github_state' => 'open']));
+    }
 }

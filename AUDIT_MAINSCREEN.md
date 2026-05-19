@@ -62,4 +62,4 @@ Hovering over a square displays a tooltip in the format: `#<Issue Number>: <Emoj
 ## 4. Identified Inconsistencies & Technical Details
 - **Autorepeat Label Inconsistency**: The "Running Autorepeat Tasks" section only recognizes the label `autorepeat`, whereas the status square border logic recognizes both `autorepeat` and `auto-repeat`.
 - **Closed Task Visibility**: Tasks that are closed on GitHub but did not reach the `completed` status (e.g., `failed_jules`) are not displayed in the project grid once closed, as the "3 most recent" filter specifically looks for `status = 'completed'`.
-- **Pending Status**: In the tooltip, `pending` tasks show a `🚧` (Work in Progress) emoji, but the status square is `grey` (Neutral/Inactive).
+- **Pending Status**: In the tooltip, `pending` tasks show a `🚧` (Work in Progress) emoji, but the status square is `gray` (Neutral/Inactive).
