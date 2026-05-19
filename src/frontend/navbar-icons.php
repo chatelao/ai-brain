@@ -9,7 +9,8 @@ if ($user) {
     $totalTasks = $counts['total'] ?? 0;
     $openIssues = $counts['open_issues'] ?? 0;
     $completedTasks = $counts['completed_tasks'] ?? 0;
-    $julesRunning = $counts['jules_running'] ?? 0;
+    $julesAnalyzing = $counts['jules_analyzing'] ?? 0;
+    $julesExecuting = $counts['jules_executing'] ?? 0;
     $julesFailed = $counts['jules_failed'] ?? 0;
     $githubRunning = $counts['github_running'] ?? 0;
     $githubPassed = $counts['github_passed'] ?? 0;
@@ -23,7 +24,8 @@ if ($user) {
     $totalTasks = 0;
     $openIssues = 0;
     $completedTasks = 0;
-    $julesRunning = 0;
+    $julesAnalyzing = 0;
+    $julesExecuting = 0;
     $julesFailed = 0;
     $githubRunning = 0;
     $githubPassed = 0;
@@ -57,7 +59,8 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     openIssues: <?= (int)$openIssues ?>,
     totalTasks: <?= (int)$totalTasks ?>,
     completedTasks: <?= (int)$completedTasks ?>,
-    julesRunning: <?= (int)$julesRunning ?>,
+    julesAnalyzing: <?= (int)$julesAnalyzing ?>,
+    julesExecuting: <?= (int)$julesExecuting ?>,
     julesFailed: <?= (int)$julesFailed ?>,
     githubRunning: <?= (int)$githubRunning ?>,
     githubPassed: <?= (int)$githubPassed ?>,
@@ -138,7 +141,8 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
                         this.openIssues = data.open_issues;
                         this.totalTasks = data.total_tasks;
                         this.completedTasks = data.completed_tasks;
-                        this.julesRunning = data.jules_running;
+                        this.julesAnalyzing = data.jules_analyzing;
+                        this.julesExecuting = data.jules_executing;
                         this.julesFailed = data.jules_failed;
                         this.githubRunning = data.github_running;
                         this.githubPassed = data.github_passed;
@@ -216,11 +220,12 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
 
     <!-- Jules Status -->
     <div class="flex items-center <?= $totalTasks > 0 ? 'text-black' : 'text-gray-300' ?>"
-         title="Jules Sessions: Remaining (Green), Running (Yellow), Failed (Red)">
+         title="Jules Sessions: Remaining (Green), Analyzing (Blue), Executing (Yellow), Failed (Red)">
         <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 5.586 3.004 3.004 0 0 0 5.193 2.019A4 4 0 0 1 12 18c.35 0 .692.045 1.02.13a3.004 3.004 0 0 0 5.193-2.019 4 4 0 0 0 .52-5.586 4 4 0 0 0-2.526-5.77A3 3 0 1 0 12 5M9 14.5a2.5 2.5 0 0 0 2.46-2.019M15 14.5a2.5 2.5 0 0 1-2.46-2.019"/></svg>
         <span class="text-xs font-bold space-x-1">
             <a :href="basePath + 'tasks.php?filter=open_issues'" class="text-green-600 hover:underline" x-text="quotaLimit > 0 ? (quotaLimit - quotaUsage) : 0"><?= max(0, $quotaLimit - $quotaUsage) ?></a>
-            <a :href="basePath + 'tasks.php?filter=jules_running'" class="text-yellow-600 hover:underline" x-text="julesRunning"><?= $julesRunning ?></a>
+            <a :href="basePath + 'tasks.php?filter=jules_analyzing'" class="text-blue-600 hover:underline" x-text="julesAnalyzing"><?= $julesAnalyzing ?></a>
+            <a :href="basePath + 'tasks.php?filter=jules_executing'" class="text-yellow-600 hover:underline" x-text="julesExecuting"><?= $julesExecuting ?></a>
             <a :href="basePath + 'tasks.php?filter=jules_failed'" class="text-red-600 hover:underline" x-text="julesFailed"><?= $julesFailed ?></a>
         </span>
     </div>
