@@ -37,7 +37,16 @@ class TaskStateTest extends TestCase
     public function testResolveStatusJulesImplementedWithPrNoChecks()
     {
         $task = ['github_state' => 'open', 'jules_status' => 'finished', 'pr_url' => 'https://github.com/owner/repo/pull/1'];
-        $this->assertEquals(Task::STATUS_CHECKING, $this->taskModel->resolveStatus($task));
+        // null means no check suite data fetched yet
+        $this->assertEquals(Task::STATUS_CHECKING, $this->taskModel->resolveStatus($task, null, null));
+    }
+
+    public function testResolveStatusJulesImplementedWithPrEmptyChecks()
+    {
+        $task = ['github_state' => 'open', 'jules_status' => 'finished', 'pr_url' => 'https://github.com/owner/repo/pull/1'];
+        // empty array means data was fetched and there are no check suites
+        $checkSuitesData = ['total_count' => 0, 'check_suites' => []];
+        $this->assertEquals(Task::STATUS_READY, $this->taskModel->resolveStatus($task, null, $checkSuitesData));
     }
 
     public function testResolveStatusWithWebhookCheckSuiteSuccess()
