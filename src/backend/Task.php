@@ -66,7 +66,7 @@ class Task
                     } elseif (in_array($conclusion, ['failure', 'timed_out', 'cancelled', 'action_required'])) {
                         $failed = true;
                         $success = false;
-                    } elseif ($conclusion !== 'success' && $conclusion !== 'neutral' && $conclusion !== 'skipped') {
+                    } elseif ($conclusion !== 'success' && $conclusion !== 'neutral' && $conclusion !== 'skipped' && $conclusion !== 'stale') {
                         $success = false;
                     }
                 }
