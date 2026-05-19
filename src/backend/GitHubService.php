@@ -53,7 +53,7 @@ class GitHubService
         return $this->apiCall(
             'GitHub API',
             "GET check_suites $repo/commits/$ref",
-            fn() => $this->client->api('repo')->checkSuites()->all($username, $repository, $ref)
+            fn() => $this->client->api('repo')->checkSuites()->allForReference($username, $repository, $ref)
         );
     }
 
