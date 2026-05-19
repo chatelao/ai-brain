@@ -40,11 +40,7 @@ try {
         $latestUnread = [];
         if ($unreadCount > 0) {
             // Get latest 5 unread notifications
-            $stmt = $db->getConnection()->prepare(
-                "SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC, notification_id DESC LIMIT 5"
-            );
-            $stmt->execute([$userId]);
-            $latestUnread = $stmt->fetchAll();
+            $latestUnread = $notificationService->getLatestUnread($userId, 5);
             foreach ($latestUnread as &$n) {
                 if (isset($n['data']) && is_string($n['data'])) {
                     $n['data'] = json_decode($n['data'], true);
@@ -52,7 +48,7 @@ try {
                 // We keep titles/messages raw for browser notifications (browser handles escaping)
                 // but we process GitHub images if they are embedded.
                 $n['title_plain'] = strip_tags($n['title']);
-                $n['message_plain'] = strip_tags($n['message']);
+                $n['message_plain'] = ($n['github_repo'] ? ($n['github_repo'] . "\n") : "") . strip_tags($n['message']);
             }
         }
 

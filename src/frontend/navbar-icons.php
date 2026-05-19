@@ -276,6 +276,9 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
                             <div class="text-xs font-bold text-gray-900 markdown-body" x-html="n.title"></div>
                             <span class="text-[10px] text-gray-400 shrink-0 ml-2" x-text="new Date(n.created_at).toLocaleDateString()"></span>
                         </div>
+                        <template x-if="n.github_repo">
+                            <div class="text-[10px] text-gray-500 italic mt-0.5" x-text="n.github_repo"></div>
+                        </template>
                         <div class="text-xs text-gray-600 mt-1 markdown-body" x-html="n.message"></div>
                         <template x-if="!n.is_read">
                             <div class="absolute top-3 right-3 w-2 h-2 bg-blue-600 rounded-full"></div>

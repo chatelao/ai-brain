@@ -31,12 +31,16 @@ class TelegramChannelHandler implements NotificationChannelInterface
 
         $taskModel = new Task($this->userModel->getDb());
         $title = htmlspecialchars($notification['title']);
+        $repo = $notification['data']['github_repo'] ?? '';
         // convertImagesToLinks already performs htmlspecialchars on non-link text
         $message = $taskModel->convertImagesToLinks($notification['message']);
         $sourceUrl = $notification['data']['source_url'] ?? null;
 
-        $text = "<b>" . $title . "</b>\n\n";
-        $text .= $message;
+        $text = "<b>" . $title . "</b>\n";
+        if ($repo) {
+            $text .= "<i>" . htmlspecialchars($repo) . "</i>\n";
+        }
+        $text .= "\n" . $message;
 
         if ($sourceUrl) {
             $text .= "\n\n<a href=\"" . htmlspecialchars($sourceUrl) . "\">View Source</a>";

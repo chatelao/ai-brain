@@ -139,6 +139,9 @@ $totalPages = ceil($totalNotifications / $limit);
                                                         <span class="ml-2 w-2 h-2 bg-blue-600 rounded-full"></span>
                                                     <?php endif; ?>
                                                 </div>
+                                                <?php if (!empty($n['github_repo'])) : ?>
+                                                    <div class="text-xs text-gray-500 italic mt-0.5"><?= htmlspecialchars($n['github_repo']) ?></div>
+                                                <?php endif; ?>
                                                 <div class="text-sm text-gray-600 mt-1 markdown-body">
                                                     <?= $parsedown->text($taskModel->processGitHubImages($n['message'])) ?>
                                                 </div>

@@ -45,3 +45,13 @@ A user receives a Telegram notification that a Jules session has failed. Instead
 
 ### <a name="UC-UX4"></a>Template-Driven Workflow (UC-UX4)
 To start a recurring task, a user selects a pre-defined "Feature Request" template on the project page. They fill in 1-2 parameters (e.g., Feature Name) and tap "Create". The system handles GitHub issue creation and agent triggering automatically.
+
+## UX/Formatting
+
+### 1. Multi-Line Notifications
+To provide clear context and maintain continuity across channels, all notifications follow a standardized three-line structure:
+1.  **Line 1: Title & Emoji**: A brief, emoji-prefixed summary of the event (e.g., `✅ Task Completed: #123`).
+2.  **Line 2: Context (Repository)**: The name of the GitHub repository where the event occurred (italicized or secondary text).
+3.  **Line 3: Detail Message**: A descriptive sentence explaining the specific change or action required.
+
+A blank line is inserted between the Context and the Detail Message in Telegram and long-form views to improve readability.

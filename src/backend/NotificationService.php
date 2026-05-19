@@ -19,6 +19,16 @@ class NotificationService
 
     public function notify(int $userId, string $type, string $title, string $message, array $data = [], array $actions = []): bool
     {
+        // 0. Auto-populate github_repo if project_id is present
+        if (isset($data['project_id']) && !isset($data['github_repo'])) {
+            $stmt = $this->db->getConnection()->prepare("SELECT github_repo FROM projects WHERE project_id = ?");
+            $stmt->execute([$data['project_id']]);
+            $repo = $stmt->fetchColumn();
+            if ($repo) {
+                $data['github_repo'] = $repo;
+            }
+        }
+
         // 1. Check task-level mute (if task_id is provided)
         if (isset($data['task_id']) && $this->isTaskMuted($data['task_id'])) {
             return false;
@@ -385,9 +395,28 @@ class NotificationService
     public function getNotifications(int $userId, int $limit = 50, int $offset = 0): array
     {
         $stmt = $this->db->getConnection()->prepare(
-            "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC, notification_id DESC LIMIT ? OFFSET ?"
+            "SELECT n.*, p.github_repo
+             FROM notifications n
+             LEFT JOIN projects p ON n.project_id = p.project_id
+             WHERE n.user_id = ?
+             ORDER BY n.created_at DESC, n.notification_id DESC
+             LIMIT ? OFFSET ?"
         );
         $stmt->execute([$userId, $limit, $offset]);
+        return $stmt->fetchAll();
+    }
+
+    public function getLatestUnread(int $userId, int $limit = 5): array
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT n.*, p.github_repo
+             FROM notifications n
+             LEFT JOIN projects p ON n.project_id = p.project_id
+             WHERE n.user_id = ? AND n.is_read = 0
+             ORDER BY n.created_at DESC, n.notification_id DESC
+             LIMIT ?"
+        );
+        $stmt->execute([$userId, $limit]);
         return $stmt->fetchAll();
     }
 
