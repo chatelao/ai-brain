@@ -43,7 +43,7 @@ These behaviors are triggered by specific events originating from GitHub (webhoo
 | Event | Action |
 | :--- | :--- |
 | **Issue Labeled (`Jules`)** | Triggers `App\Task::triggerAgent()`. Task moves to `PROCESSING/ANALYZING` (via Jules). |
-| **Issue Closed** | Updates `github_state` to `closed`. Task moves to `FINISHED`. May trigger "Auto-Repeat". |
+| **Issue Closed** | Updates `github_state` to `closed`. Task moves to `FINISHED`; may trigger "Auto-Repeat". |
 | **Issue Reopened** | Updates `github_state` to `open`. Task moves back to `CREATED` or active state. |
 | **Issue Deleted** | Triggers a notification and removes the task from the local database. |
 | **Pull Request Created** | Links the PR to the task. Task moves to `PROCESSING/CHECKING`. |
@@ -55,7 +55,7 @@ These behaviors are triggered by specific events originating from GitHub (webhoo
 | Action | Effect |
 | :--- | :--- |
 | **Manual Sync (Refresh Icon)** | Forces a synchronization of GitHub issues and Jules statuses for the project. |
-| **Trigger Agent (Button)** | Manually starts a Jules session for a task. |
+| **Trigger Agent (Button)** | starts a Jules session manually for a task. |
 | **Merge & Close (Button)** | Merges the associated PR and closes the GitHub issue via API (moves task to `FINISHED`). |
 | **Retry (Button)** | Sends a "retry" command to a failed Jules session. |
 | **Restart (Button)** | Aborts the current Jules session and restarts it by toggling the `Jules` label. |
@@ -122,5 +122,5 @@ To support recurring tasks, the system implements an "Auto-Repeat" mechanism.
 
 The system exhibits different behaviors and interactive options depending on the unified state of a task.
 
-- **Merge & Close**: Only available if state is `READY`, PR is mergeable and checks passed.
-- **Retry / Restart**: Only available when state is `FAILED`.
+- **Merge & Close**: available only if state is `READY`, PR is mergeable and checks passed.
+- **Retry / Restart**: available only when state is `FAILED`.

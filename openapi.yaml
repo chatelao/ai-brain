@@ -174,7 +174,7 @@ paths:
                   value: "<html>...google/jules...</html>"
     post:
       summary: Trigger agent
-      description: Manually triggers the Jules agent for a specific task.
+      description: Triggers the Jules agent for a specific task manually.
       requestBody:
         content:
           application/x-www-form-urlencoded:

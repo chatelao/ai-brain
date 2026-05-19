@@ -134,7 +134,7 @@ class MigrationService
             $stmt->execute([$patchName]);
 
             $connection->commit();
-            $logs[] = "Successfully applied patch: $patchName";
+            $logs[] = "Patch applied successfully: $patchName";
         } catch (Exception $e) {
             if ($connection->inTransaction()) {
                 $connection->rollBack();

@@ -279,7 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_roadmap']
             }
 
             $title = "Implement one or more of the next, modest, unsolved, feasible and reasonable steps of \"$roadmapName\"";
-            $body = "If none is available, alternativly break down bigger steps to modest ones without implementing anything, just changing the $roadmapName.";
+            $body = "If none is available, alternatively break down bigger steps to modest ones without implementing anything, just changing the $roadmapName.";
 
             $githubService = new GitHubService(null, $githubToken);
             $githubService->createIssue($project['github_repo'], $title, $body, ['Jules']);

@@ -93,7 +93,7 @@ class MigrationServiceTest extends TestCase
         $logs = $migrationService->applyPatch('001_test.sql');
 
         $this->assertContains("Applying patch: 001_test.sql", $logs);
-        $this->assertContains("Successfully applied patch: 001_test.sql", $logs);
+        $this->assertContains("Patch applied successfully: 001_test.sql", $logs);
 
         $conn = $this->db->getConnection();
         $stmt = $conn->query("SELECT name FROM sqlite_master WHERE type='table' AND name='test_table'");

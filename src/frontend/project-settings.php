@@ -389,7 +389,7 @@ if (isset($_GET['success'])) {
                                 <?php if ($webhookStatus === 'missing' || $webhookStatus === 'error') : ?>
                                     <form method="POST">
                                         <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                        <button type="submit" name="setup_webhook" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Setup Webhook Automatically</button>
+                                        <button type="submit" name="setup_webhook" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Setup Webhook automatically</button>
                                     </form>
                                 <?php endif; ?>
 
