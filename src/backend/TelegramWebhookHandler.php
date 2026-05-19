@@ -76,12 +76,13 @@ class TelegramWebhookHandler
         }
 
         // 2. Parse action and taskId
-        // Expected format: "action:taskId"
+        // Expected format: "action:taskId" or "action:taskId:notificationId"
         $parts = explode(':', $data);
         $action = $parts[0] ?? '';
         $taskId = isset($parts[1]) ? (int)$parts[1] : null;
+        $notificationId = isset($parts[2]) ? (int)$parts[2] : null;
 
-        if (!$taskId || !in_array($action, ['retry', 'restart', 'merge'])) {
+        if (!$taskId || !in_array($action, ['retry', 'restart', 'merge', 'acknowledge'])) {
             $this->telegramService->answerCallbackQuery($callbackId, [
                 'text' => "Invalid action.",
                 'show_alert' => true
@@ -105,6 +106,11 @@ class TelegramWebhookHandler
         $this->telegramService->answerCallbackQuery($callbackId, [
             'text' => "Processing " . ucfirst($action) . "..."
         ]);
+
+        if ($notificationId) {
+            $notificationService = new NotificationService($this->userModel->getDb());
+            $notificationService->markAsRead($notificationId);
+        }
 
         try {
             $projectModel = new Project($this->userModel->getDb());
@@ -139,12 +145,16 @@ class TelegramWebhookHandler
                 $ghs->postComment($repo, $issueNumber, "retry");
 
                 $statusText = "🚀 Retry signal sent to Issue #$issueNumber.";
+            } elseif ($action === 'acknowledge') {
+                $statusText = "✅ Acknowledged.";
             } else {
                 $statusText = "Infrastructure for <b>$action</b> is ready. Actual execution will be implemented soon.";
             }
 
             if ($messageId) {
-                $this->telegramService->editMessageText($chatId, $messageId, $originalText . "\n\n" . $statusText);
+                $this->telegramService->editMessageText($chatId, $messageId, $originalText . "\n\n" . $statusText, [
+                    'reply_markup' => ['inline_keyboard' => []]
+                ]);
             } else {
                 $this->telegramService->sendMessage($chatId, $statusText);
             }

@@ -114,6 +114,25 @@ class UserActionNotificationTest extends TestCase
             PRIMARY KEY (project_id, status)
         )");
 
+        // Task-level notification settings (required by NotificationService)
+        $this->pdo->exec("CREATE TABLE task_notification_settings (
+            task_id INTEGER PRIMARY KEY,
+            is_muted BOOLEAN DEFAULT FALSE
+        )");
+
+        // Performance logs (required by Logger)
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS performance_logs (
+            log_id $pk,
+            user_id INT,
+            category VARCHAR(50),
+            target VARCHAR(255),
+            duration FLOAT,
+            memory INT,
+            status_code INT,
+            error_message TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+
         $this->pdo->exec("INSERT INTO users (user_id, google_id, name, email) VALUES (1, 'google-1', 'User 1', 'user1@example.com')");
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'owner/repo')");
     }

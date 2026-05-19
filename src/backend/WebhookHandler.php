@@ -62,33 +62,26 @@ class WebhookHandler
         }
 
         $result = $taskModel->upsert($project['user_id'], $project['project_id'], $issue);
+        $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
 
-        if ($result && $julesService && $githubService) {
-            $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
-            if ($task) {
-                $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $effectiveNotifService, (int)$task['task_id']);
-            }
+        if ($result && $task && $julesService && $githubService) {
+            $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $effectiveNotifService, (int)$task['task_id']);
         }
 
-        if ($result && $effectiveNotifService) {
+        if ($result && $task && $effectiveNotifService) {
+            $notificationData = [
+                'task_id' => $task['task_id'],
+                'project_id' => $project['project_id'],
+                'issue_number' => $issue['number'],
+                'source_url' => $issue['html_url']
+            ];
+
             if ($action === 'opened') {
-                $effectiveNotifService->notify($project['user_id'], 'github_issue', "🆕 Issue Opened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was opened in " . $project['github_repo'], [
-                    'project_id' => $project['project_id'],
-                    'issue_number' => $issue['number'],
-                    'source_url' => $issue['html_url']
-                ]);
+                $effectiveNotifService->notify($project['user_id'], 'github_issue', "🆕 Issue Opened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was opened in " . $project['github_repo'], $notificationData, ['acknowledge']);
             } elseif ($action === 'closed') {
-                $effectiveNotifService->notify($project['user_id'], 'github_issue', "🔒 Issue Closed: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was closed in " . $project['github_repo'], [
-                    'project_id' => $project['project_id'],
-                    'issue_number' => $issue['number'],
-                    'source_url' => $issue['html_url']
-                ]);
+                $effectiveNotifService->notify($project['user_id'], 'github_issue', "🔒 Issue Closed: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was closed in " . $project['github_repo'], $notificationData);
             } elseif ($action === 'reopened') {
-                $effectiveNotifService->notify($project['user_id'], 'github_issue', "🔓 Issue Reopened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was reopened in " . $project['github_repo'], [
-                    'project_id' => $project['project_id'],
-                    'issue_number' => $issue['number'],
-                    'source_url' => $issue['html_url']
-                ]);
+                $effectiveNotifService->notify($project['user_id'], 'github_issue', "🔓 Issue Reopened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was reopened in " . $project['github_repo'], $notificationData, ['acknowledge']);
             }
         }
 
@@ -269,12 +262,21 @@ class WebhookHandler
                     $title = $newStatus === Task::STATUS_FAILED_PR ? "❌ PR Failed: #" . $task['issue_number'] : "✅ PR Fixed: #" . $task['issue_number'];
                     $message = $newStatus === Task::STATUS_FAILED_PR ? "PR checks for \"" . $task['title'] . "\" failed." : "PR checks for \"" . $task['title'] . "\" are now passing.";
 
+                    $actions = [];
+                    if ($newStatus === Task::STATUS_READY) {
+                        $actions = ['merge'];
+                    } elseif ($newStatus === Task::STATUS_FAILED_PR) {
+                        $actions = ['retry', 'restart'];
+                    } else {
+                        $actions = ['acknowledge'];
+                    }
+
                     $notificationService->notify($project['user_id'], 'task_status', $title, $message, [
                         'task_id' => $task['task_id'],
                         'project_id' => $task['project_id'],
                         'status' => $newStatus,
                         'source_url' => $taskModel->getTargetUrl(array_merge($task, ['status' => $newStatus]))
-                    ]);
+                    ], $actions);
                 }
             }
         }

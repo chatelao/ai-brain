@@ -45,6 +45,7 @@ class TelegramChannelHandler implements NotificationChannelInterface
         $extraParams = [];
         if (!empty($actions) && isset($notification['data']['task_id'])) {
             $taskId = $notification['data']['task_id'];
+            $notificationId = $notification['notification_id'] ?? '';
             $buttons = [];
             foreach ($actions as $action) {
                 $label = ucfirst($action);
@@ -53,7 +54,7 @@ class TelegramChannelHandler implements NotificationChannelInterface
                 }
                 $buttons[] = [
                     'text' => $label,
-                    'callback_data' => "$action:$taskId"
+                    'callback_data' => "$action:$taskId" . ($notificationId ? ":$notificationId" : "")
                 ];
             }
             $extraParams['reply_markup'] = [
