@@ -42,8 +42,6 @@ The goal of Phase 1 is to create the necessary backend infrastructure to support
 - ⏳ **Milestone 1.2: Modern Auth Implementation**
     - ⏳ Implement JWT token issuance and validation.
     - ⏳ Support Refresh Tokens for persistent mobile sessions.
-- ⏳ **Milestone 1.3: Real-time Event Stream**
-    - ⏳ Implement the AG-UI Protocol (SSE) for task status updates.
 
 ## Phase 2: Core Web Dashboard (Alpha)
 The goal of Phase 2 is to achieve feature parity with the existing "Project Card" view in a new React application.
