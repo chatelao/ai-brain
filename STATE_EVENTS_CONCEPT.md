@@ -125,20 +125,35 @@ The system exhibits different behaviors and UI representations depending on the 
 
 A shared set of visual indicators (Colors and Emojis) is used across the web dashboard and Telegram to represent the unified task state.
 
-| Unified State | Substate | Color (Web) | Emoji | Meaning |
-| :--- | :--- | :--- | :--- | :--- |
-| **`CREATED`** | - | Grey | ⏳ | Waiting for agent |
-| **`PROCESSING`** | **`ANALYZING`** | Blue | 🚧 | Agent is researching |
-| | **`PLANNING`** | Blue | 🚧 | Agent is planning |
-| | **`EXECUTING`** | Yellow | 🚧 | Agent is coding |
-| | **`VERIFYING`** | Yellow | 🚧 | Agent is testing locally |
-| | **`CHECKING`** | Orange | 🔍 | Awaiting PR check results |
-| **`READY`** | - | Green | ✅ | Validated and ready to merge |
-| **`FINISHED`** | - | Purple / Green | ✅ | Task completed and closed |
-| **`FAILED`** | **`FAILED_JULES`** | Red | ❌ | Agent execution error |
-| | **`FAILED_PR`** | Red | ❌ | PR verification (CI) failed |
+| Unified State | Substate | Color (Web) | Hex Code | Tailwind Class | Emoji | Meaning |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **`CREATED`** | - | Grey | `#8b949e` | `bg-gray-100` | ⏳ | Waiting for agent |
+| **`PROCESSING`** | **`ANALYZING`** | Blue | `#0366d6` | `bg-blue-100` | 🚧 | Agent is researching |
+| | **`PLANNING`** | Blue | `#0366d6` | `bg-blue-100` | 🚧 | Agent is planning |
+| | **`EXECUTING`** | Yellow | `#d29922` | `bg-yellow-100` | 🚧 | Agent is coding |
+| | **`VERIFYING`** | Yellow | `#d29922` | `bg-yellow-100` | 🚧 | Agent is testing locally |
+| | **`CHECKING`** | Orange | `#f0883e` | `bg-orange-100` | 🔍 | Awaiting PR check results |
+| **`READY`** | - | Green | `#238636` | `bg-green-100` | ✅ | Validated and ready to merge |
+| **`FINISHED`** | - | Purple / Green | `#8957e5` / `#238636` | `bg-purple-100` / `bg-green-100` | ✅ | Task completed and closed |
+| **`FAILED`** | **`FAILED_JULES`** | Red | `#f85149` | `bg-red-100` | ❌ | Agent execution error |
+| | **`FAILED_PR`** | Red | `#f85149` | `bg-red-100` | ❌ | PR verification (CI) failed |
 
-### 5.2 Feature Availability
+### 5.2 Official Color Palette
+
+This palette defines the core colors used for status squares and badges to ensure visual consistency.
+
+| Name | Hex Code | RGB | Tailwind Base | Usage |
+| :--- | :--- | :--- | :--- | :--- |
+| **Success Green** | `#238636` | `35, 134, 54` | `green` | Ready state, passed checks, open PRs |
+| **Executing Yellow** | `#d29922` | `210, 153, 34` | `yellow` | Coding, testing, and implementation |
+| **Research Blue** | `#0366d6` | `3, 102, 214` | `blue` | Analyzing and planning |
+| **Failure Red** | `#f85149` | `248, 81, 73` | `red` | Failed sessions and failed PR checks |
+| **Checking Orange**| `#f0883e` | `240, 136, 62` | `orange` | CI checks in progress |
+| **Finished Purple**| `#8957e5` | `137, 87, 229` | `purple` | Closed issues/tasks |
+| **Neutral Grey**   | `#8b949e` | `139, 148, 158` | `gray` | Created state, pending |
+| **Auto-Repeat**    | `#e82dce` | `232, 45, 206` | - | Special border for recurring tasks |
+
+### 5.3 Feature Availability
 
 - **Merge & Close**: Only available if state is `READY`, PR is mergeable and checks passed.
 - **Retry / Restart**: Only available when state is `FAILED`.

@@ -36,11 +36,11 @@ state "Unified Task State" as Unified {
     [*] --> CREATED
 
     state PROCESSING {
-        state ANALYZING #lightblue
-        state PLANNING #lightblue
-        state EXECUTING #yellow
-        state VERIFYING #yellow
-        state CHECKING #orange
+        state ANALYZING #0366d6
+        state PLANNING #0366d6
+        state EXECUTING #d29922
+        state VERIFYING #d29922
+        state CHECKING #f0883e
 
         ANALYZING --> PLANNING
         PLANNING --> EXECUTING
@@ -53,8 +53,8 @@ state "Unified Task State" as Unified {
     READY --> FINISHED : Issue closed / PR merged
 
     state FAILED {
-        state FAILED_JULES #red
-        state FAILED_PR #red
+        state FAILED_JULES #f85149
+        state FAILED_PR #f85149
     }
 
     CREATED --> FAILED_JULES : Jules error
@@ -62,9 +62,9 @@ state "Unified Task State" as Unified {
     CHECKING --> FAILED_PR : PR checks fail
     READY --> FAILED_PR : New commit / checks fail
 
-    state CREATED #lightgrey
-    state READY #green
-    state FINISHED #green
+    state CREATED #8b949e
+    state READY #238636
+    state FINISHED #8957e5
 }
 
 GitHubIssue -[dashed]-> Unified : influences

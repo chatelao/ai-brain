@@ -8,14 +8,14 @@ The UX design translates the principles of **Glanceability**, **Actionability**,
 A shared set of visual indicators is used across all platforms to represent the **Unified Task State**.
 
 ### 1.1 Color & Emoji Mapping
-| Unified State | Color (Web) | Emoji (Telegram/Tooltip) | Meaning |
-| :--- | :--- | :--- | :--- |
-| **`CREATED`** | Grey | ⏳ | Waiting for agent |
-| **`PROCESSING`** | Blue / Yellow | 🚧 | Agent is working |
-| **`CHECKING`** | Orange | 🔍 | Awaiting CI results |
-| **`READY`** | Green | ✅ | Validated and ready to merge |
-| **`FINISHED`** | Purple / Green | ✅ | Task completed and closed |
-| **`FAILED`** | Red | ❌ | Human intervention required |
+| Unified State | Color (Web) | Hex Code | Emoji (Telegram/Tooltip) | Meaning |
+| :--- | :--- | :--- | :--- | :--- |
+| **`CREATED`** | Grey | `#8b949e` | ⏳ | Waiting for agent |
+| **`PROCESSING`** | Blue / Yellow | `#0366d6` / `#d29922` | 🚧 | Agent is working |
+| **`CHECKING`** | Orange | `#f0883e` | 🔍 | Awaiting CI results |
+| **`READY`** | Green | `#238636` | ✅ | Validated and ready to merge |
+| **`FINISHED`** | Purple / Green | `#8957e5` / `#238636` | ✅ | Task completed and closed |
+| **`FAILED`** | Red | `#f85149` | ❌ | Human intervention required |
 
 ### 1.2 Layout Consistency
 - **Issue Identification**: Issues are always referenced as `[#IssueNumber] - Title`.
