@@ -393,7 +393,7 @@ class GitHubService
                 'secret' => $secret,
                 'insecure_ssl' => '0'
             ],
-            'events' => ['issues', 'check_suite'],
+            'events' => ['issues', 'check_suite', 'issue_comment'],
             'active' => true,
         ]);
     }

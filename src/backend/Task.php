@@ -586,7 +586,7 @@ class Task
     public function extractSessionId(string $text): ?string
     {
         // 1. Markdown links like [Jules Task](.../sessions/ID) or .../task/ID
-        if (preg_match('/jules\.google\.com\/(?:sessions|task)\/([a-zA-Z0-9_-]+)/', $text, $matches)) {
+        if (preg_match('/jules\.(?:google|googleapis)\.com\/(?:v1alpha\/)?(?:sessions|task)\/([a-zA-Z0-9_-]+)/', $text, $matches)) {
             return $matches[1];
         }
 
