@@ -260,6 +260,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['merge_close'])) {
     }
 }
 
+// Handle Create Issue from Roadmap
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_from_roadmap'])) {
+    if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+        die("CSRF token validation failed.");
+    }
+
+    $roadmapName = $_POST['roadmap_name'] ?? '';
+
+    if (!empty($roadmapName)) {
+        try {
+            $githubToken = $project['github_token'] ?? null;
+            if (!$githubToken) {
+                throw new Exception("GitHub token not found for this project.");
+            }
+
+            $title = "Implement one or more of the next, modest, unsolved, feasible and reasonable steps of \"$roadmapName\"";
+            $body = "If none is available, alternativly break down bigger steps to modest ones without implementing anything, just changing the $roadmapName.";
+
+            $githubService = new GitHubService(null, $githubToken);
+            $githubService->createIssue($project['github_repo'], $title, $body, []);
+
+            header("Location: project.php?id=$projectId&success=issue_created");
+            exit;
+        } catch (Exception $e) {
+            $errorMessage = "Error creating issue from roadmap: " . $e->getMessage();
+        }
+    }
+}
+
 // Handle Sync Issues
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
     if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
@@ -404,10 +433,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                     <ul class="space-y-2">
                                         <?php foreach ($roadmapFiles as $file) : ?>
                                             <li class="flex flex-col">
-                                                <a href="<?= htmlspecialchars($file['html_url'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-600 hover:underline flex items-center">
-                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                                    <?= htmlspecialchars($file['name'] ?? '') ?>
-                                                </a>
+                                                <div class="flex items-center justify-between">
+                                                    <a href="<?= htmlspecialchars($file['html_url'] ?? '') ?>" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-600 hover:underline flex items-center">
+                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                                        <?= htmlspecialchars($file['name'] ?? '') ?>
+                                                    </a>
+                                                    <?php if (!empty($file['next_task'])) : ?>
+                                                        <form method="POST" class="inline">
+                                                            <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                                            <input type="hidden" name="roadmap_name" value="<?= htmlspecialchars($file['name'] ?? '') ?>">
+                                                            <button type="submit" name="create_from_roadmap" class="text-green-600 hover:text-green-800 focus:outline-none" title="Implement next step">
+                                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4.5 2.691l11 6.309-11 6.309V2.691z"/></svg>
+                                                            </button>
+                                                        </form>
+                                                    <?php endif; ?>
+                                                </div>
                                                 <?php if (!empty($file['next_task'])) : ?>
                                                     <span class="text-[10px] text-gray-500 ml-6 italic whitespace-nowrap">
                                                         🚧 <?= htmlspecialchars($file['next_task'] ?? '') ?>
