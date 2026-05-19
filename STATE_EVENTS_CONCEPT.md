@@ -123,14 +123,20 @@ The system exhibits different behaviors and UI representations depending on the 
 
 ### 5.1 Task State Visuals (Dashboard/Project List)
 
-- **`CREATED`**: Grey indicator. Displayed as "Waiting for Agent".
-- **`PROCESSING`**: Blue/Yellow indicator depending on substate.
-  - `ANALYZING`, `PLANNING`: Blue.
-  - `EXECUTING`, `VERIFYING`: Yellow.
-  - `CHECKING`: Orange indicator. Waiting for PR checks.
-- **`READY`**: Green indicator. Ready to merge.
-- **`FINISHED`**: Green checkmark (or Purple if closed). Task is complete.
-- **`FAILED`**: Red error indicator. Human intervention is needed.
+A shared set of visual indicators (Colors and Emojis) is used across the web dashboard and Telegram to represent the unified task state.
+
+| Unified State | Substate | Color (Web) | Emoji | Meaning |
+| :--- | :--- | :--- | :--- | :--- |
+| **`CREATED`** | - | Grey | ⏳ | Waiting for agent |
+| **`PROCESSING`** | **`ANALYZING`** | Blue | 🚧 | Agent is researching |
+| | **`PLANNING`** | Blue | 🚧 | Agent is planning |
+| | **`EXECUTING`** | Yellow | 🚧 | Agent is coding |
+| | **`VERIFYING`** | Yellow | 🚧 | Agent is testing locally |
+| | **`CHECKING`** | Orange | 🔍 | Awaiting PR check results |
+| **`READY`** | - | Green | ✅ | Validated and ready to merge |
+| **`FINISHED`** | - | Purple / Green | ✅ | Task completed and closed |
+| **`FAILED`** | **`FAILED_JULES`** | Red | ❌ | Agent execution error |
+| | **`FAILED_PR`** | Red | ❌ | PR verification (CI) failed |
 
 ### 5.2 Feature Availability
 
