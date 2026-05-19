@@ -31,12 +31,13 @@ Each task is represented by a 24x24px square.
 #### Color Logic (`App\Task::getStatusColor`)
 | Color | Condition |
 | :--- | :--- |
-| **Purple** | `github_state` is `closed` |
-| **Red** | `status` is `failed` or starts with `failed_` (e.g., `failed_jules`, `failed_pr`) |
-| **Yellow** | `status` is `in_progress`, `implemented`, `coding`, or `testing` |
-| **Blue** | `status` is `analyzed`, `researching`, `planning`, `awaiting-plan-approval`, or `awaiting-user-feedback` |
-| **Green** | `status` is `completed` |
-| **Grey** | Any other status (usually `pending`) |
+| **Purple** | `github_state` is `closed` (Task is `FINISHED`) |
+| **Red** | `status` is `failed_jules` or `failed_pr` (Task is `FAILED`) |
+| **Yellow** | `status` is `executing`, `verifying`, or `implemented` |
+| **Blue** | `status` is `analyzing` or `planning` |
+| **Orange** | `status` is `checking` |
+| **Green** | `status` is `ready` |
+| **Grey** | `status` is `created` |
 
 #### Border Logic
 - **Pink Border**: Applied if the task has a GitHub label named `autorepeat` or `auto-repeat` (case-insensitive).

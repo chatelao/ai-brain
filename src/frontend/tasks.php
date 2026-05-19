@@ -27,7 +27,8 @@ $filterLabels = [
     'github_running' => 'GitHub: Running Checks',
     'github_passed' => 'GitHub: Checks Passed',
     'github_failed' => 'GitHub: Checks Failed',
-    'jules_running' => 'Jules: Sessions Running',
+    'jules_analyzing' => 'Jules: Sessions Analyzing',
+    'jules_executing' => 'Jules: Sessions Executing',
     'jules_failed' => 'Jules: Sessions Failed',
     'open_issues' => 'All Open Issues'
 ];

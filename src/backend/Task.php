@@ -174,7 +174,8 @@ class Task
                     COUNT(*) as total,
                     SUM(CASE WHEN github_state = 'open' THEN 1 ELSE 0 END) as open_issues,
                     SUM(CASE WHEN status = '" . self::STATUS_FINISHED . "' THEN 1 ELSE 0 END) as completed_tasks,
-                    SUM(CASE WHEN github_state = 'open' AND status IN ('" . self::STATUS_ANALYZING . "', '" . self::STATUS_PLANNING . "', '" . self::STATUS_EXECUTING . "', '" . self::STATUS_VERIFYING . "', '" . self::STATUS_IMPLEMENTED . "') THEN 1 ELSE 0 END) as jules_running,
+                    SUM(CASE WHEN github_state = 'open' AND status IN ('" . self::STATUS_ANALYZING . "', '" . self::STATUS_PLANNING . "') THEN 1 ELSE 0 END) as jules_analyzing,
+                    SUM(CASE WHEN github_state = 'open' AND status IN ('" . self::STATUS_EXECUTING . "', '" . self::STATUS_VERIFYING . "', '" . self::STATUS_IMPLEMENTED . "') THEN 1 ELSE 0 END) as jules_executing,
                     SUM(CASE WHEN github_state = 'open' AND status = '" . self::STATUS_FAILED_JULES . "' THEN 1 ELSE 0 END) as jules_failed,
                     SUM(CASE WHEN github_state = 'open' AND status = '" . self::STATUS_CHECKING . "' THEN 1 ELSE 0 END) as github_running,
                     SUM(CASE WHEN github_state = 'open' AND status = '" . self::STATUS_READY . "' THEN 1 ELSE 0 END) as github_passed,
@@ -190,7 +191,8 @@ class Task
             'total' => (int)($counts['total'] ?? 0),
             'open_issues' => (int)($counts['open_issues'] ?? 0),
             'completed_tasks' => (int)($counts['completed_tasks'] ?? 0),
-            'jules_running' => (int)($counts['jules_running'] ?? 0),
+            'jules_analyzing' => (int)($counts['jules_analyzing'] ?? 0),
+            'jules_executing' => (int)($counts['jules_executing'] ?? 0),
             'jules_failed' => (int)($counts['jules_failed'] ?? 0),
             'github_running' => (int)($counts['github_running'] ?? 0),
             'github_passed' => (int)($counts['github_passed'] ?? 0),
@@ -216,8 +218,11 @@ class Task
             case 'github_failed':
                 $sql .= " AND t.github_state = 'open' AND t.status = '" . self::STATUS_FAILED_PR . "'";
                 break;
-            case 'jules_running':
-                $sql .= " AND t.github_state = 'open' AND t.status IN ('" . self::STATUS_ANALYZING . "', '" . self::STATUS_PLANNING . "', '" . self::STATUS_EXECUTING . "', '" . self::STATUS_VERIFYING . "', '" . self::STATUS_IMPLEMENTED . "')";
+            case 'jules_analyzing':
+                $sql .= " AND t.github_state = 'open' AND t.status IN ('" . self::STATUS_ANALYZING . "', '" . self::STATUS_PLANNING . "')";
+                break;
+            case 'jules_executing':
+                $sql .= " AND t.github_state = 'open' AND t.status IN ('" . self::STATUS_EXECUTING . "', '" . self::STATUS_VERIFYING . "', '" . self::STATUS_IMPLEMENTED . "')";
                 break;
             case 'jules_failed':
                 $sql .= " AND t.github_state = 'open' AND t.status = '" . self::STATUS_FAILED_JULES . "'";
