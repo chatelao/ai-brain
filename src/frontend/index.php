@@ -206,20 +206,8 @@ $errorMessage = $errorMessage ?? null;
                                                         $bgClass = 'bg-orange-100 text-orange-800';
                                                     }
 
-                                                    $emoji = '⏳';
-                                                    $statusLabel = ucwords(str_replace('_', ' ', $task['status'] ?? ''));
-                                                    if ($task['status'] === App\Task::STATUS_CREATED) {
-                                                        $emoji = '⏳';
-                                                        $statusLabel = 'Waiting for Agent';
-                                                    } elseif ($task['status'] === App\Task::STATUS_FINISHED || $task['status'] === App\Task::STATUS_READY || $task['status'] === 'completed') {
-                                                        $emoji = '✅';
-                                                    } elseif ($task['status'] === App\Task::STATUS_CHECKING) {
-                                                        $emoji = '🔍';
-                                                    } elseif ($task['status'] === App\Task::STATUS_FAILED_JULES || $task['status'] === App\Task::STATUS_FAILED_PR) {
-                                                        $emoji = '❌';
-                                                    } elseif (in_array($task['status'], [App\Task::STATUS_ANALYZING, App\Task::STATUS_PLANNING, App\Task::STATUS_EXECUTING, App\Task::STATUS_VERIFYING, App\Task::STATUS_IMPLEMENTED])) {
-                                                        $emoji = '🚧';
-                                                    }
+                                                    $emoji = $taskModel->getStatusEmoji($task['status'] ?? '');
+                                                    $statusLabel = $taskModel->getStatusLabel($task['status'] ?? '');
                                                     ?>
                                                     <span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap <?= $bgClass ?>">
                                                         <?= $emoji ?> <?= htmlspecialchars($statusLabel) ?>
@@ -265,23 +253,8 @@ $errorMessage = $errorMessage ?? null;
                                                         $isAutorepeat = $taskModel->hasAutorepeatLabel($task);
                                                         $state = $task['github_state'] ?? 'open';
 
-                                                        $emoji = '⏳';
-                                                        $statusLabel = ucwords(str_replace('_', ' ', $task['status'] ?? ''));
-
-                                                        if ($task['status'] === App\Task::STATUS_CREATED) {
-                                                            $emoji = '⏳';
-                                                            $statusLabel = 'Waiting for Agent';
-                                                        } elseif ($task['status'] === App\Task::STATUS_FINISHED) {
-                                                            $emoji = '✅';
-                                                        } elseif ($task['status'] === App\Task::STATUS_READY) {
-                                                            $emoji = '✅';
-                                                        } elseif ($task['status'] === App\Task::STATUS_CHECKING) {
-                                                            $emoji = '🔍';
-                                                        } elseif ($task['status'] === App\Task::STATUS_FAILED_JULES || $task['status'] === App\Task::STATUS_FAILED_PR) {
-                                                            $emoji = '❌';
-                                                        } elseif (in_array($task['status'], [App\Task::STATUS_ANALYZING, App\Task::STATUS_PLANNING, App\Task::STATUS_EXECUTING, App\Task::STATUS_VERIFYING, App\Task::STATUS_IMPLEMENTED])) {
-                                                            $emoji = '🚧';
-                                                        }
+                                                        $emoji = $taskModel->getStatusEmoji($task['status'] ?? '');
+                                                        $statusLabel = $taskModel->getStatusLabel($task['status'] ?? '');
                                                         ?>
                                                         <div class="relative group">
                                                             <a href="task.php?id=<?= $task['task_id'] ?>"
