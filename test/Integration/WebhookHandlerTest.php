@@ -106,4 +106,76 @@ class WebhookHandlerTest extends TestCase
         $result = $this->handler->handle($project, $event, $githubService);
         $this->assertTrue($result);
     }
+
+    public function testHandleAutorepeatWithoutNotificationService()
+    {
+        // Simulate human-triggered merge (sender.type === 'User')
+        $project = ['user_id' => 1, 'project_id' => 1];
+        $prUrl = 'https://github.com/owner/repo/pull/123';
+
+        // Pre-seed task
+        $githubData = [
+            'number' => 123,
+            'title' => 'Issue to autorepeat',
+            'labels' => [['name' => 'autorepeat']]
+        ];
+
+        $stmt = $this->pdo->prepare("INSERT INTO tasks (user_id, project_id, issue_number, title, github_data, pr_url, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([1, 1, 123, 'Issue to autorepeat', json_encode($githubData), $prUrl, 'checking']);
+
+        $event = [
+            'action' => 'closed',
+            'pull_request' => [
+                'number' => 124,
+                'title' => 'PR Title',
+                'html_url' => $prUrl,
+                'merged' => true
+            ],
+            'sender' => [
+                'type' => 'User'
+            ],
+            'repository' => [
+                'full_name' => 'owner/repo'
+            ]
+        ];
+
+        $githubService = $this->createMock(\App\GitHubService::class);
+        $githubService->expects($this->once())
+            ->method('createIssue')
+            ->with('owner/repo', 'Issue to autorepeat', null, ['Jules']);
+
+        // notificationService should be null because it's User triggered
+        $result = $this->handler->handle($project, $event, $githubService, null);
+        $this->assertTrue($result);
+    }
+
+    public function testHandleCheckSuiteInProgress()
+    {
+        $project = ['user_id' => 1, 'project_id' => 1];
+        $prUrl = 'https://github.com/owner/repo/pull/123';
+
+        // Pre-seed task
+        $stmt = $this->pdo->prepare("INSERT INTO tasks (user_id, project_id, issue_number, title, pr_url, status) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([1, 1, 123, 'Issue title', $prUrl, 'implemented']);
+
+        $event = [
+            'action' => 'requested',
+            'check_suite' => [
+                'status' => 'in_progress',
+                'conclusion' => null,
+                'pull_requests' => [
+                    ['url' => 'https://api.github.com/repos/owner/repo/pulls/123']
+                ]
+            ]
+        ];
+
+        $result = $this->handler->handle($project, $event);
+        $this->assertTrue($result);
+
+        $stmt = $this->pdo->prepare("SELECT status FROM tasks WHERE pr_url = ?");
+        $stmt->execute([$prUrl]);
+        $status = $stmt->fetchColumn();
+
+        $this->assertEquals('checking', $status);
+    }
 }
