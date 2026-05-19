@@ -1,0 +1,1 @@
+<?php session_start(); $_SESSION['user_id'] = 1; header('Location: project.php?id=1'); ?>

@@ -328,6 +328,14 @@ class Task
         return $stmt->execute([$status, $id]);
     }
 
+    public function markAsMerged(int $id): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE tasks SET status = ?, github_state = ? WHERE task_id = ?"
+        );
+        return $stmt->execute([self::STATUS_FINISHED, 'closed', $id]);
+    }
+
     public function updateAgentResponse(int $id, string $response, string $status = self::STATUS_FINISHED): bool
     {
         $stmt = $this->db->getConnection()->prepare(

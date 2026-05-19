@@ -134,6 +134,7 @@ class TelegramWebhookHandler
 
                 $ghs->mergePullRequest($repo, $prNumber, "Merged via Telegram: " . $task['title']);
                 $ghs->closeIssue($repo, $issueNumber);
+                $taskModel->markAsMerged($taskId);
 
                 $statusText = "✅ PR #$prNumber merged and Issue #$issueNumber closed.";
             } elseif ($action === 'restart') {
