@@ -111,12 +111,12 @@ class Task
 
         if (!$showAll) {
             $sql .= " AND (t1.github_state = 'open' OR (
-                t1.github_state = 'closed' AND t1.status = 'completed'
+                t1.github_state = 'closed' AND t1.status IN ('" . self::STATUS_FINISHED . "', 'completed')
                 AND (
                     SELECT COUNT(*) FROM tasks t2
                     WHERE t2.project_id = t1.project_id
                     AND t2.github_state = 'closed'
-                    AND t2.status = 'completed'
+                    AND t2.status IN ('" . self::STATUS_FINISHED . "', 'completed')
                     AND (t2.created_at > t1.created_at OR (t2.created_at = t1.created_at AND t2.task_id > t1.task_id))
                 ) < 3
             ))";
@@ -146,12 +146,12 @@ class Task
 
         if (!$showAll) {
             $sql .= " AND (t.github_state = 'open' OR (
-                t.github_state = 'closed' AND t.status = 'completed'
+                t.github_state = 'closed' AND t.status IN ('" . self::STATUS_FINISHED . "', 'completed')
                 AND (
                     SELECT COUNT(*) FROM tasks t3
                     WHERE t3.user_id = ?
                     AND t3.github_state = 'closed'
-                    AND t3.status = 'completed'
+                    AND t3.status IN ('" . self::STATUS_FINISHED . "', 'completed')
                     AND (t3.created_at > t.created_at OR (t3.created_at = t.created_at AND t3.task_id > t.task_id))
                 ) < 3
             ))";
@@ -326,7 +326,7 @@ class Task
         return $stmt->execute([$status, $id]);
     }
 
-    public function updateAgentResponse(int $id, string $response, string $status = 'completed'): bool
+    public function updateAgentResponse(int $id, string $response, string $status = self::STATUS_FINISHED): bool
     {
         $stmt = $this->db->getConnection()->prepare(
             "UPDATE tasks SET agent_response = ?, status = ? WHERE task_id = ?"
@@ -616,7 +616,7 @@ class Task
         $issueUrl = "https://github.com/" . ($repo ?? $task['github_repo']) . "/issues/" . $task['issue_number'];
         $status = $task['status'] ?? 'pending';
 
-        if ($status === 'completed' || $status === 'failed_pr') {
+        if ($status === self::STATUS_FINISHED || $status === 'completed' || $status === 'failed_pr') {
             return $task['pr_url'] ?: $issueUrl;
         }
 
@@ -651,12 +651,12 @@ class Task
             $params[] = $projectId;
             $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
             $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ?)
-                      AND (t.status NOT IN ('completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))";
+                      AND (t.status NOT IN ('" . self::STATUS_FINISHED . "', 'completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))";
             $params[] = $fiveMinutesAgo;
         } else {
             $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
             $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ?)
-                      AND (t.status NOT IN ('completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))";
+                      AND (t.status NOT IN ('" . self::STATUS_FINISHED . "', 'completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))";
             $params[] = $fiveMinutesAgo;
         }
 

@@ -97,4 +97,46 @@ class TaskStateTest extends TestCase
         $this->assertEquals('purple', $this->taskModel->getStatusColor(['status' => Task::STATUS_FINISHED, 'github_state' => 'closed']));
         $this->assertEquals('green', $this->taskModel->getStatusColor(['status' => Task::STATUS_FINISHED, 'github_state' => 'open']));
     }
+
+    public function testFindByProjectIdGeneratesCorrectSql()
+    {
+        $db = $this->createMock(Database::class);
+        $pdo = $this->createMock(\PDO::class);
+        $stmt = $this->createMock(\PDOStatement::class);
+
+        $db->method('getConnection')->willReturn($pdo);
+        $stmt->method('fetchAll')->willReturn([]);
+
+        $capturedSql = '';
+        $pdo->method('prepare')->willReturnCallback(function ($sql) use (&$capturedSql, $stmt) {
+            $capturedSql = $sql;
+            return $stmt;
+        });
+
+        $taskModel = new Task($db);
+        $taskModel->findByProjectId(1, false);
+
+        $this->assertStringContainsString("t1.status IN ('finished', 'completed')", $capturedSql);
+    }
+
+    public function testFindByUserProjectsGeneratesCorrectSql()
+    {
+        $db = $this->createMock(Database::class);
+        $pdo = $this->createMock(\PDO::class);
+        $stmt = $this->createMock(\PDOStatement::class);
+
+        $db->method('getConnection')->willReturn($pdo);
+        $stmt->method('fetchAll')->willReturn([]);
+
+        $capturedSql = '';
+        $pdo->method('prepare')->willReturnCallback(function ($sql) use (&$capturedSql, $stmt) {
+            $capturedSql = $sql;
+            return $stmt;
+        });
+
+        $taskModel = new Task($db);
+        $taskModel->findByUserProjects(1, false);
+
+        $this->assertStringContainsString("t.status IN ('finished', 'completed')", $capturedSql);
+    }
 }
