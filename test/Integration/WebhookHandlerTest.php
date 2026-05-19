@@ -60,6 +60,9 @@ class WebhookHandlerTest extends TestCase
                 'number' => 123,
                 'title' => 'Test Issue',
                 'body' => 'Issue description'
+            ],
+            'repository' => [
+                'full_name' => 'owner/repo'
             ]
         ];
 
@@ -166,6 +169,9 @@ class WebhookHandlerTest extends TestCase
                 'pull_requests' => [
                     ['url' => 'https://api.github.com/repos/owner/repo/pulls/123']
                 ]
+            ],
+            'repository' => [
+                'full_name' => 'owner/repo'
             ]
         ];
 

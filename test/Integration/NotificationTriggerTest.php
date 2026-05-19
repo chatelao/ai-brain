@@ -150,6 +150,7 @@ class NotificationTriggerTest extends TestCase
         $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
         $event = [
             'action' => 'opened',
+            'repository' => ['full_name' => 'owner/repo'],
             'issue' => [
                 'number' => 101,
                 'title' => 'New Issue',
@@ -173,6 +174,7 @@ class NotificationTriggerTest extends TestCase
         $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
         $event = [
             'action' => 'opened',
+            'repository' => ['full_name' => 'owner/repo'],
             'pull_request' => [
                 'number' => 202,
                 'title' => 'New PR',

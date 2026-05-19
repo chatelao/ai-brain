@@ -163,6 +163,7 @@ class UserActionNotificationTest extends TestCase
         $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
         $event = [
             'action' => 'opened',
+            'repository' => ['full_name' => 'owner/repo'],
             'sender' => ['type' => 'Bot'],
             'issue' => [
                 'number' => 102,
@@ -184,6 +185,7 @@ class UserActionNotificationTest extends TestCase
         $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
         $event = [
             'action' => 'opened',
+            'repository' => ['full_name' => 'owner/repo'],
             'issue' => [
                 'number' => 103,
                 'title' => 'Unknown Sender Issue',

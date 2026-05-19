@@ -37,6 +37,7 @@ class WebhookHandlerTest extends TestCase
         $project = ['user_id' => 1, 'project_id' => 1];
         $event = [
             'action' => 'opened',
+            'repository' => ['full_name' => 'owner/repo'],
             'issue' => [
                 'number' => 123,
                 'title' => 'Test Issue',
@@ -100,6 +101,7 @@ class WebhookHandlerTest extends TestCase
         $project = ['user_id' => 1, 'project_id' => 1];
         $event = [
             'action' => 'closed',
+            'repository' => ['full_name' => 'owner/repo'],
             'issue' => [
                 'number' => 123,
                 'title' => 'Test Issue',
@@ -133,6 +135,7 @@ class WebhookHandlerTest extends TestCase
         ];
         $event = [
             'action' => 'deleted',
+            'repository' => ['full_name' => 'owner/repo'],
             'issue' => [
                 'number' => 123,
                 'title' => 'Deleted Issue'
@@ -165,6 +168,7 @@ class WebhookHandlerTest extends TestCase
         $project = ['user_id' => 1, 'project_id' => 1];
         $event = [
             'action' => 'unknown_action',
+            'repository' => ['full_name' => 'owner/repo'],
             'issue' => ['number' => 123]
         ];
 
@@ -176,6 +180,7 @@ class WebhookHandlerTest extends TestCase
         $project = ['user_id' => 1, 'project_id' => 1];
         $event = [
             'action' => 'opened',
+            'repository' => ['full_name' => 'owner/repo'],
             'issue' => [
                 'number' => 123,
                 'title' => 'Test Issue',
