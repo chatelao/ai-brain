@@ -21,9 +21,9 @@ This section tracks the migration progress of legacy PHP views to the new React-
 | Project View | `project.php` | ⏳ | 0.0% |
 | Task Detail | `task.php` | 🚧 | 20.0% |
 | User Settings | `settings.php` | ⏳ | 0.0% |
-| Webhook Logs | `logs.php` | 🚧 | 20.0% |
+| Webhook Logs | `logs.php` | 🚧 | 40.0% |
 | Admin Dashboard | `admin/index.php` | ⏳ | 0.0% |
-| **Total** | | | **8.3%** |
+| **Total** | | | **11.7%** |
 
 ## Goals
 - ✅ Achieve 100% OpenAPI compliance for all core backend endpoints.
@@ -36,14 +36,15 @@ This section tracks the migration progress of legacy PHP views to the new React-
 ## Phase 1: API Foundation & Authentication
 The goal of Phase 1 is to create the necessary backend infrastructure to support modern client applications.
 
-- 🚧 **Milestone 1.1: OpenAPI Compliance**
-    - 🚧 Refactor existing PHP endpoints to serve JSON exclusively for `/api/*` routes.
+- ✅ **Milestone 1.1: OpenAPI Compliance**
+    - ✅ Refactor existing PHP endpoints to serve JSON exclusively for `/api/*` routes.
         - ✅ Implemented `/api/projects.php` as a RESTful endpoint.
         - ✅ Implemented `/api/tasks.php` as a RESTful endpoint.
-        - ✅ Implemented `/api/task.php` as a RESTful endpoint.
+        - ✅ Implemented `/api/task.php` as a RESTful endpoint (GET & POST).
         - ✅ Implemented `/api/task-logs.php` as a RESTful endpoint.
         - ✅ Implemented `/api/webhook-logs.php` as a RESTful endpoint.
-    - 🚧 Validate all API responses against the `api/openapi.yaml` specification. This is the relevant API between Browser and Server to use and update if necessary.
+        - ✅ Implemented `/api/performance-logs.php` as a RESTful endpoint.
+    - ✅ Validate all API responses against the `api/openapi.yaml` specification. This is the relevant API between Browser and Server to use and update if necessary.
 - ✅ **Milestone 1.2: Modern Auth Implementation**
     - ✅ Implement JWT token issuance and validation in `App\Auth`.
     - ✅ Implement `/api/token.php` for JWT token issuance.
@@ -52,15 +53,16 @@ The goal of Phase 1 is to create the necessary backend infrastructure to support
 ## Phase 2: Core Web Dashboard (Alpha)
 The goal of Phase 2 is to achieve feature parity with the existing "Project Card" view in a new React application.
 
-- ⏳ **Milestone 2.1: Project Setup & Overview**
+- 🚧 **Milestone 2.1: Project Setup & Overview**
     - ⏳ **Milestone 2.1.1: Project Initialization**
         - ⏳ Initialize Next.js project with Tailwind CSS and TypeScript.
         - ⏳ Configure Axios/Fetch client with JWT and Refresh Token support.
         - ⏳ Setup TanStack Query for state management and data fetching.
     - ⏳ **Milestone 2.1.2: Core Components**
-        - ⏳ Component: Project List Card (Port from `index.php`).
-        - ⏳ Component: Task Status Square Grid (Port from `project.php`).
-        - ⏳ Component: Task Filter Bar (By status/repository).
+        - ⏳ Component: `ProjectCard` - Displays project summary and repository links.
+        - ⏳ Component: `TaskStatusGrid` - Replaces the project status square grid.
+        - ⏳ Component: `StatusBadge` - Unified status display with emojis and color mapping.
+        - ⏳ Component: `TaskFilterBar` - Client-side filtering by status/repository.
     - ⏳ **Milestone 2.1.3: Data Synchronization**
         - ⏳ Implement background polling and cache invalidation.
 - ⏳ **Milestone 2.2: Task Detail View**
