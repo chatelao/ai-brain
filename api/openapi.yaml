@@ -435,6 +435,53 @@ paths:
           description: Unauthorized
         '404':
           description: Task not found
+    post:
+      summary: Perform task action
+      description: Triggers actions like agent execution or PR merging for a task.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Task ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [trigger_agent, merge_close]
+              required:
+                - action
+      responses:
+        '200':
+          description: Action performed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  agent_response:
+                    type: string
+        '400':
+          description: Invalid action or missing parameters
+        '401':
+          description: Unauthorized
+        '403':
+          description: Access denied
+        '404':
+          description: Task not found
+        '500':
+          description: Action failed
 
   /api/task-logs.php:
     get:
@@ -478,6 +525,24 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/WebhookLog'
+        '401':
+          description: Unauthorized
+
+  /api/performance-logs.php:
+    get:
+      summary: List performance logs (JSON)
+      description: Returns a list of performance and API logs for the authenticated user or all logs if admin.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: A JSON list of performance logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PerformanceLog'
         '401':
           description: Unauthorized
 
@@ -646,6 +711,46 @@ components:
           type: string
           format: date-time
           example: "2023-10-27T10:20:00Z"
+
+    PerformanceLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 2000
+        user_id:
+          type: integer
+          nullable: true
+          example: 1
+        user_email:
+          type: string
+          nullable: true
+          example: "john@example.com"
+        type:
+          type: string
+          example: "api"
+        target:
+          type: string
+          example: "GET /api/projects"
+        duration:
+          type: number
+          format: float
+          example: 0.123
+        context:
+          type: object
+          nullable: true
+        status_code:
+          type: integer
+          nullable: true
+          example: 200
+        error_message:
+          type: string
+          nullable: true
+          example: "Not Found"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-10-27T10:30:00Z"
 
     GitHubIssueEvent:
       type: object
