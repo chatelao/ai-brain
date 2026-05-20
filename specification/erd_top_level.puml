@@ -1,0 +1,93 @@
+@startuml
+!theme plain
+hide circle
+skinparam linetype ortho
+
+entity "users" {
+  * user_id : INT <<PK>>
+}
+
+entity "user_github_accounts" {
+  * github_account_id : INT <<PK>>
+}
+
+entity "projects" {
+  * project_id : INT <<PK>>
+}
+
+entity "tasks" {
+  * task_id : INT <<PK>>
+}
+
+entity "task_logs" {
+  * task_log_id : INT <<PK>>
+}
+
+entity "rate_limits" {
+  * rate_key : VARCHAR(255) <<PK>>
+}
+
+entity "user_telegram_accounts" {
+  * telegram_account_id : INT <<PK>>
+}
+
+entity "issue_templates" {
+  * issue_template_id : INT <<PK>>
+}
+
+entity "notifications" {
+  * notification_id : INT <<PK>>
+}
+
+entity "user_notification_settings" {
+  * user_id : INT <<PK>>
+  * channel : VARCHAR(20) <<PK>>
+}
+
+entity "user_event_notification_settings" {
+  * user_id : INT <<PK>>
+  * notification_type : VARCHAR(50) <<PK>>
+}
+
+entity "project_notification_settings" {
+  * project_id : INT <<PK>>
+  * notification_type : VARCHAR(50) <<PK>>
+}
+
+entity "task_notification_settings" {
+  * task_id : INT <<PK>>
+}
+
+entity "project_status_notification_settings" {
+  * project_id : INT <<PK>>
+  * status : VARCHAR(50) <<PK>>
+}
+
+entity "webhook_logs" {
+  * log_id : INT <<PK>>
+}
+
+entity "performance_logs" {
+  * performance_log_id : INT <<PK>>
+}
+
+users ||--o{ user_github_accounts : "user_id"
+users ||--o{ projects : "user_id"
+users ||--o{ tasks : "user_id"
+users ||--o{ task_logs : "user_id"
+users ||--o{ user_telegram_accounts : "user_id"
+users ||--o{ issue_templates : "user_id"
+users ||--o{ notifications : "user_id"
+users ||--o{ user_notification_settings : "user_id"
+users ||--o{ user_event_notification_settings : "user_id"
+users ||--o{ webhook_logs : "user_id"
+users ||--o{ performance_logs : "user_id"
+user_github_accounts ||--o{ projects : "github_account_id"
+projects ||--o{ tasks : "project_id"
+projects ||--o{ notifications : "project_id"
+projects ||--o{ project_notification_settings : "project_id"
+projects ||--o{ project_status_notification_settings : "project_id"
+tasks ||--o{ task_logs : "task_id"
+tasks ||--o| task_notification_settings : "task_id"
+
+@enduml
