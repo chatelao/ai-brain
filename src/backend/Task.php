@@ -68,6 +68,10 @@ class Task
                         $success = false;
                     } elseif ($conclusion === 'success' || $conclusion === 'neutral' || $conclusion === 'skipped' || $conclusion === 'stale') {
                         // Keep success = true (or whatever it is)
+                    } elseif (empty($conclusion)) {
+                        // Completed but no conclusion yet? Treat as still running/checking to avoid false failure
+                        $running = true;
+                        $success = false;
                     } else {
                         // Any other completed conclusion (including unknown ones) is considered a failure for safety
                         $failed = true;
