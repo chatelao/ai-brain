@@ -55,13 +55,13 @@ The goal of Phase 1 is to create the necessary backend infrastructure to support
 The goal of Phase 2 is to achieve feature parity with the existing "Project Card" view in a new React application.
 
 - 🚧 **Milestone 2.1: Project Setup & Overview**
-    - 🚧 **Milestone 2.1.1: Project Initialization**
-        - ⏳ Define standard directory structure (src/components, src/hooks, src/api).
-        - ⏳ Configure ESLint, Prettier, and TypeScript for project consistency.
-        - ⏳ Initialize Next.js project with Tailwind CSS.
-        - ⏳ Implement base API client utility (Axios/Fetch with JWT interceptors).
-        - ⏳ Setup shared types generated from `api/openapi.yaml`.
-        - ⏳ Setup TanStack Query for state management and data fetching.
+    - ✅ **Milestone 2.1.1: Project Initialization**
+        - ✅ Define standard directory structure (src/components, src/hooks, src/api).
+        - ✅ Configure ESLint, Prettier, and TypeScript for project consistency.
+        - ✅ Initialize Next.js project with Tailwind CSS.
+        - ✅ Implement base API client utility (Axios/Fetch with JWT interceptors).
+        - ✅ Setup shared types generated from `api/openapi.yaml`.
+        - ✅ Setup TanStack Query for state management and data fetching.
     - ⏳ **Milestone 2.1.2: Core Components**
         - ⏳ Component: `ProjectCard` - Displays project summary and repository links.
         - ⏳ Component: `TaskStatusGrid` - Replaces the project status square grid.
