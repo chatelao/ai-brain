@@ -32,9 +32,10 @@ Notifications are generated consistently across multiple event sources (Event So
 -   **Manual Refreshes (`project.php`)**: User-initiated synchronizations that refresh project and task states.
 
 ### Broadcasting Logic
-To minimize notification noise, the system distinguishes between **In-App Inbox** notifications (all events) and **External Broadcasts** (Telegram/Browser).
-- Only **System-triggered** events with a need for **human follow-up** (e.g., Fails, Ready-to-merge PRs) are broadcasted.
+To minimize notification noise, the system distinguishes between **In-App Inbox** notifications and **External Broadcasts** (Telegram/Browser).
+- Only **System-triggered** events are eligible for broadcasting.
 - Human-initiated actions do not trigger broadcasts to avoid redundant alerts for the active user.
+- Users can granularly enable or disable notifications for specific task states via **Status Notification Preferences**.
 
 ## Use Cases
 -   **<a name="UC-N1"></a>Jump to Source (Deep Linking) (UC-N1)**: A user clicks on a "PR Available" notification and is immediately taken to the corresponding GitHub Pull Request page.

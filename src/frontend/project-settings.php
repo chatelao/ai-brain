@@ -325,8 +325,8 @@ if (isset($_GET['success'])) {
                                 </div>
 
                                 <div class="border-t border-gray-100 pt-4">
-                                    <h4 class="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wider">Status Broadcast Preferences</h4>
-                                    <p class="text-xs text-gray-500 mb-4">Choose which status changes trigger a broadcast (Telegram/Browser). All events still appear in the inbox.</p>
+                                    <h4 class="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wider">Status Notification Preferences</h4>
+                                    <p class="text-xs text-gray-500 mb-4">Choose which status changes trigger a notification. Disabling a status here will suppress both in-app inbox alerts and external broadcasts (Telegram/Browser).</p>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                         <?php
                                         $statuses = [

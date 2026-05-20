@@ -134,37 +134,39 @@ The application triggers notifications for state transitions and external events
 
 ### 6.1 State Transition Notifications
 
-| Unified State | Notification | Broadcast (Default) | Human Follow-up Required |
-| :--- | :---: | :---: | :--- |
-| `CREATED` | Yes | No | No |
-| `ANALYZING` | Yes | No | No |
-| `PLANNING` | Yes | No | No |
-| `EXECUTING` | Yes | No | No |
-| `VERIFYING` | Yes | No | No |
-| `IMPLEMENTED` | Yes | No | No |
-| `CHECKING` | Yes | No | No |
-| `READY` | Yes | **Yes** | **Yes** (Merge needed) |
-| `FINISHED` | Yes | No | No (FYI) |
-| `FAILED_JULES` | Yes | **Yes** | **Yes** (Retry/Restart needed) |
-| `FAILED_PR` | Yes | **Yes** | **Yes** (Fix needed) |
+The system honors **Status Notification Preferences** configured at the project level. If a state transition is disabled, it is suppressed for both the In-App Inbox and external broadcasts.
+
+| Unified State | Default Enabled | Broadcast (System-Triggered) |
+| :--- | :---: | :---: |
+| `CREATED` | No | No |
+| `ANALYZING` | No | No |
+| `PLANNING` | No | No |
+| `EXECUTING` | No | No |
+| `VERIFYING` | No | No |
+| `IMPLEMENTED` | No | No |
+| `CHECKING` | No | No |
+| `READY` | **Yes** | **Yes** |
+| `FINISHED` | No | No |
+| `FAILED_JULES` | **Yes** | **Yes** |
+| `FAILED_PR` | **Yes** | **Yes** |
 
 ### 6.2 Event Trigger Sources
 
-Only system-triggered events with a need for human follow-up are typically broadcast to external channels to minimize noise.
+The system distinguishes between human-initiated actions and system-triggered events.
 
-| Event | Trigger Source | Follow-up Needed | Broadcast |
-| :--- | :--- | :---: | :---: |
-| **Issue opened** | User (GitHub) | No | No |
-| **Issue closed** | User (GitHub) / System (Merge) | No | No |
-| **Issue reopened** | User (GitHub) | No | No |
-| **Issue deleted** | User (GitHub) | No | No |
-| **PR created** | System (Jules) | No | No |
-| **PR merged** | User (UI) / System (Auto) | No | No |
-| **Agent started** | User (UI) / System (Label) | No | No |
-| **Agent completed**| System (Jules) | No | No |
-| **Check Suite fail**| System (GitHub CI) | **Yes** | **Yes** |
-| **Check Suite pass**| System (GitHub CI) | **Yes** | **Yes** |
-| **Auto-Repeat** | System | **Yes** | **Yes** |
+| Event | Trigger Source | Broadcast |
+| :--- | :--- | :---: |
+| **Issue opened** | User (GitHub) | No |
+| **Issue closed** | User (GitHub) / System (Merge) | No |
+| **Issue reopened** | User (GitHub) | No |
+| **Issue deleted** | User (GitHub) | No |
+| **PR created** | System (Jules) | Yes (if enabled) |
+| **PR merged** | User (UI) / System (Auto) | No |
+| **Agent started** | User (UI) / System (Label) | No |
+| **Agent completed**| System (Jules) | Yes (if enabled) |
+| **Check Suite fail**| System (GitHub CI) | Yes (if enabled) |
+| **Check Suite pass**| System (GitHub CI) | Yes (if enabled) |
+| **Auto-Repeat** | System | Yes (if enabled) |
 
 ## 7. Distinguishing Manual vs. Automated Actions
 
@@ -189,7 +191,7 @@ Actions performed directly in the web dashboard (e.g., clicking "Run Agent", "Me
 ### 7.3 Broadcasting Rules
 The `App\NotificationService` enforces the following logic for external broadcasts:
 1. **Manual Actions**: If `is_system` is `false`, the broadcast is suppressed.
-2. **System Actions**: If `is_system` is `true`, the system further checks if the event is **actionable**. Only system events that require human follow-up (e.g., a task becoming `READY` for merge, or a session failing with `FAILED_JULES`) are dispatched to Telegram or Browser notifications.
+2. **System Actions**: If `is_system` is `true`, the event is eligible for broadcasting, provided it hasn't been disabled in the **Status Notification Preferences**.
 
 ## 8. Task State Machine (XState)
 
