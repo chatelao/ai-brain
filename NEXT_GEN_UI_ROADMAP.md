@@ -44,6 +44,7 @@ The goal of Phase 1 is to create the necessary backend infrastructure to support
         - ✅ Implemented `/api/task-logs.php` as a RESTful endpoint.
         - ✅ Implemented `/api/webhook-logs.php` as a RESTful endpoint.
         - ✅ Implemented `/api/performance-logs.php` as a RESTful endpoint.
+        - ✅ Implemented `/api/user.php` as a RESTful endpoint.
     - ✅ Validate all API responses against the `api/openapi.yaml` specification. This is the relevant API between Browser and Server to use and update if necessary.
 - ✅ **Milestone 1.2: Modern Auth Implementation**
     - ✅ Implement JWT token issuance and validation in `App\Auth`.
@@ -54,9 +55,12 @@ The goal of Phase 1 is to create the necessary backend infrastructure to support
 The goal of Phase 2 is to achieve feature parity with the existing "Project Card" view in a new React application.
 
 - 🚧 **Milestone 2.1: Project Setup & Overview**
-    - ⏳ **Milestone 2.1.1: Project Initialization**
-        - ⏳ Initialize Next.js project with Tailwind CSS and TypeScript.
-        - ⏳ Configure Axios/Fetch client with JWT and Refresh Token support.
+    - 🚧 **Milestone 2.1.1: Project Initialization**
+        - ⏳ Define standard directory structure (src/components, src/hooks, src/api).
+        - ⏳ Configure ESLint, Prettier, and TypeScript for project consistency.
+        - ⏳ Initialize Next.js project with Tailwind CSS.
+        - ⏳ Implement base API client utility (Axios/Fetch with JWT interceptors).
+        - ⏳ Setup shared types generated from `api/openapi.yaml`.
         - ⏳ Setup TanStack Query for state management and data fetching.
     - ⏳ **Milestone 2.1.2: Core Components**
         - ⏳ Component: `ProjectCard` - Displays project summary and repository links.

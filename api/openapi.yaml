@@ -546,6 +546,24 @@ paths:
         '401':
           description: Unauthorized
 
+  /api/user.php:
+    get:
+      summary: Get current user profile (JSON)
+      description: Returns the profile and configuration of the currently authenticated user.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+        '404':
+          description: User not found
+
 components:
   securitySchemes:
     BearerAuth:
@@ -580,6 +598,21 @@ components:
           type: string
           format: date-time
           example: "2023-10-27T10:00:00Z"
+        telegram_bot_name:
+          type: string
+          nullable: true
+          example: "MyAgentBot"
+        has_jules_key:
+          type: boolean
+          example: true
+        jules_quota_usage:
+          type: integer
+          nullable: true
+          example: 150
+        jules_quota_limit:
+          type: integer
+          nullable: true
+          example: 1000
 
     Project:
       type: object
