@@ -202,7 +202,7 @@ This section describes the task lifecycle using the [XState](https://xstate.js.o
 The diagram visually groups the core **Jules Processing** activities to distinguish them from GitHub-managed states like `CHECKING`.
 
 ```mermaid
-stateDiagram
+stateDiagram-v1
     [*] --> CREATED
 
     CREATED --> PROCESSING : JULES_STARTED
