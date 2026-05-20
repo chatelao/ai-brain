@@ -63,10 +63,14 @@ class Task
                     if ($status !== 'completed') {
                         $running = true;
                         $success = false;
-                    } elseif (in_array($conclusion, ['failure', 'timed_out', 'cancelled', 'action_required'])) {
+                    } elseif (in_array($conclusion, ['failure', 'timed_out', 'cancelled', 'action_required', 'startup_failure'])) {
                         $failed = true;
                         $success = false;
-                    } elseif ($conclusion !== 'success' && $conclusion !== 'neutral' && $conclusion !== 'skipped' && $conclusion !== 'stale') {
+                    } elseif ($conclusion === 'success' || $conclusion === 'neutral' || $conclusion === 'skipped' || $conclusion === 'stale') {
+                        // Keep success = true (or whatever it is)
+                    } else {
+                        // Any other completed conclusion (including unknown ones) is considered a failure for safety
+                        $failed = true;
                         $success = false;
                     }
                 }
