@@ -36,6 +36,7 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 | API / Interface | Description |
 | :--- | :--- |
 | [**PlantUML**](https://plantuml.com/) | Architecture diagram generation from text. |
+| [**Agent Control API**](https://chatelao.github.io/ai-brain/) | OpenAPI 3.0 specification rendered with Redocly. |
 
 ## Features
 
@@ -101,3 +102,4 @@ php -S localhost:8080 -t src/frontend
 - [Roadmap](ROADMAP.md)
 - [Notification Roadmap](NOTIF_ROADMAP.md)
 - [Telegram Chat Roadmap](CHAT_ROADMAP.md)
+- [**API Reference (Redocly)**](https://chatelao.github.io/ai-brain/) - Interactive API documentation.
