@@ -62,10 +62,10 @@ The goal of Phase 2 is to achieve feature parity with the existing "Project Card
         - ✅ Implement base API client utility (Axios/Fetch with JWT interceptors).
         - ✅ Setup shared types generated from `api/openapi.yaml`.
         - ✅ Setup TanStack Query for state management and data fetching.
-    - ⏳ **Milestone 2.1.2: Core Components**
-        - ⏳ Component: `ProjectCard` - Displays project summary and repository links.
-        - ⏳ Component: `TaskStatusGrid` - Replaces the project status square grid.
-        - ⏳ Component: `StatusBadge` - Unified status display with emojis and color mapping.
+    - 🚧 **Milestone 2.1.2: Core Components**
+        - ✅ Component: `ProjectCard` - Displays project summary and repository links.
+        - ✅ Component: `TaskStatusGrid` - Replaces the project status square grid.
+        - ✅ Component: `StatusBadge` - Unified status display with emojis and color mapping.
         - ⏳ Component: `TaskFilterBar` - Client-side filtering by status/repository.
     - ⏳ **Milestone 2.1.3: Data Synchronization**
         - ⏳ Implement background polling and cache invalidation.
