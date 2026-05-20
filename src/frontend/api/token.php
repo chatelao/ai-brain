@@ -15,10 +15,12 @@ if (!$auth->isLoggedIn()) {
 }
 
 $userId = $auth->getUserId();
-$token = $auth->generateToken($userId);
+$accessToken = $auth->generateToken($userId, 3600); // 1 hour
+$refreshToken = $auth->generateRefreshToken($userId);
 
 echo json_encode([
-    'access_token' => $token,
+    'access_token' => $accessToken,
+    'refresh_token' => $refreshToken,
     'token_type' => 'Bearer',
-    'expires_in' => 86400 // 24 hours as per Auth::generateToken implementation
+    'expires_in' => 3600
 ]);

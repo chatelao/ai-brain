@@ -12,9 +12,11 @@ class Auth
 {
     private GoogleClient $client;
     private string $jwtSecret;
+    private Database $db;
 
-    public function __construct()
+    public function __construct(?Database $db = null)
     {
+        $this->db = $db ?? new Database();
         $this->client = new GoogleClient();
         $this->client->setClientId(getenv('GOOGLE_CLIENT_ID'));
         $this->client->setClientSecret(getenv('GOOGLE_CLIENT_SECRET'));
@@ -93,13 +95,13 @@ class Auth
         return !empty($token) && hash_equals($_SESSION['csrf_token'] ?? '', $token);
     }
 
-    public function generateToken(int $userId): string
+    public function generateToken(int $userId, int $expiry = 3600): string
     {
         $payload = [
             'iss' => 'agent-control',
             'sub' => $userId,
             'iat' => time(),
-            'exp' => time() + (60 * 60 * 24) // 24 hours
+            'exp' => time() + $expiry
         ];
 
         return JWT::encode($payload, $this->jwtSecret, 'HS256');
@@ -114,5 +116,41 @@ class Auth
             error_log("JWT Validation failed: " . $e->getMessage());
             return null;
         }
+    }
+
+    public function generateRefreshToken(int $userId): string
+    {
+        $token = bin2hex(random_bytes(32));
+        $hash = hash('sha256', $token);
+        $expiresAt = date('Y-m-d H:i:s', time() + (60 * 60 * 24 * 30)); // 30 days
+
+        $stmt = $this->db->getConnection()->prepare(
+            "INSERT INTO user_refresh_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)"
+        );
+        $stmt->execute([$userId, $hash, $expiresAt]);
+
+        return $token;
+    }
+
+    public function validateRefreshToken(string $token): ?int
+    {
+        $hash = hash('sha256', $token);
+        $now = date('Y-m-d H:i:s');
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT user_id FROM user_refresh_tokens WHERE token_hash = ? AND expires_at > ?"
+        );
+        $stmt->execute([$hash, $now]);
+        $row = $stmt->fetch();
+
+        return $row ? (int)$row['user_id'] : null;
+    }
+
+    public function revokeRefreshToken(string $token): void
+    {
+        $hash = hash('sha256', $token);
+        $stmt = $this->db->getConnection()->prepare(
+            "DELETE FROM user_refresh_tokens WHERE token_hash = ?"
+        );
+        $stmt->execute([$hash]);
     }
 }

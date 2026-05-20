@@ -319,10 +319,10 @@ paths:
   /api/token.php:
     get:
       summary: Obtain JWT token
-      description: Issues a JWT token for the currently session-authenticated user.
+      description: Issues a JWT access token and a refresh token for the currently session-authenticated user.
       responses:
         '200':
-          description: A JWT token
+          description: A pair of JWT access token and refresh token
           content:
             application/json:
               schema:
@@ -330,12 +330,41 @@ paths:
                 properties:
                   access_token:
                     type: string
+                  refresh_token:
+                    type: string
                   token_type:
                     type: string
                   expires_in:
                     type: integer
         '401':
           description: Unauthorized
+
+  /api/refresh.php:
+    get:
+      summary: Refresh JWT token
+      description: Exchanges a valid refresh token for a new access token and refresh token.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: A new pair of JWT access token and refresh token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+                  token_type:
+                    type: string
+                  expires_in:
+                    type: integer
+        '400':
+          description: Missing refresh token
+        '401':
+          description: Invalid or expired refresh token
 
   /api/projects.php:
     get:
