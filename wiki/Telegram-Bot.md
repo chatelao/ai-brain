@@ -11,7 +11,7 @@ By default, the system can be configured to use a shared bot, but you can also u
 3. Enter your **Telegram Bot Token** and a **Webhook Secret** (any random string).
 4. Click **"Save"**.
 5. Set your bot's webhook URL to:
-   `https://your-domain.com/telegram-webhook.php?user_id=YOUR_USER_ID`
+   `https://your-domain.com/telegram/webhook.php?user_id=YOUR_USER_ID`
    (The exact URL is provided in your Settings page).
 
 ## Linking Your Account

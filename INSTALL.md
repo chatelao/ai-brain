@@ -23,14 +23,14 @@ This guide explains how to install the AI Brain application on a web server.
 5.  Go to **APIs & Services > Credentials**.
 6.  Click **Create Credentials > OAuth client ID**.
 7.  Select **Web application** as the application type.
-8.  Add your `GOOGLE_REDIRECT_URI` (e.g., `https://your-domain.com/callback.php`) to the **Authorized redirect URIs**.
+8.  Add your `GOOGLE_REDIRECT_URI` (e.g., `https://your-domain.com/google/callback.php`) to the **Authorized redirect URIs**.
 9.  Copy the **Client ID** and **Client Secret**.
 
 ### 2. GitHub OAuth App
 1.  Go to your GitHub **Settings > Developer settings > OAuth Apps**.
 2.  Click **New OAuth App**.
 3.  Set the **Homepage URL** to your domain.
-4.  Set the **Authorization callback URL** to your `GITHUB_REDIRECT_URI` (e.g., `https://your-domain.com/github-callback.php`).
+4.  Set the **Authorization callback URL** to your `GITHUB_REDIRECT_URI` (e.g., `https://your-domain.com/github/callback.php`).
 5.  Click **Register application**.
 6.  Copy the **Client ID** and click **Generate a new client secret** to get your secret.
 
@@ -159,14 +159,14 @@ Use this method if you want to deploy from your local machine via SSH.
    #
    SetEnv GOOGLE_CLIENT_ID        your_google_client_id
    SetEnv GOOGLE_CLIENT_SECRET    your_google_client_secret
-   SetEnv GOOGLE_REDIRECT_URI     https://your-domain.com/callback.php
+   SetEnv GOOGLE_REDIRECT_URI     https://your-domain.com/google/callback.php
 
    #
    # GitHub OAuth: https://github.com/settings/developers
    #
    SetEnv GITHUB_CLIENT_ID        your_github_client_id
    SetEnv GITHUB_CLIENT_SECRET    your_github_client_secret
-   SetEnv GITHUB_REDIRECT_URI     https://your-domain.com/github-callback.php
+   SetEnv GITHUB_REDIRECT_URI     https://your-domain.com/github/callback.php
 
    #
    # Telegram Bot: https://t.me/botfather
@@ -223,10 +223,10 @@ The application requires several environment variables to be set in your web ser
 | `DB_PASS` | Database password |
 | `GOOGLE_CLIENT_ID` | Google OAuth 2.0 Client ID |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth 2.0 Client Secret |
-| `GOOGLE_REDIRECT_URI` | `https://your-domain.com/callback.php` |
+| `GOOGLE_REDIRECT_URI` | `https://your-domain.com/google/callback.php` |
 | `GITHUB_CLIENT_ID` | GitHub OAuth App Client ID |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth App Client Secret |
-| `GITHUB_REDIRECT_URI` | `https://your-domain.com/github-callback.php` |
+| `GITHUB_REDIRECT_URI` | `https://your-domain.com/github/callback.php` |
 | `UPGRADE_ALLOWED_EMAIL` | (Required for upgrades) Email address of the admin user authorized to trigger database migrations on the Admin Dashboard. |
 | `ENABLE_UPGRADE_PAGE` | (Optional) Set to `true` to enable the interactive database upgrade page at `/upgrade.php`. Useful for initial setup or maintenance. **Disable after use for security.** |
 | `DB_UPGRADE_SECRET` | (Optional) A secret token that allows automated database upgrades via the "Apply DB Patch" workflow. Should be set in `.htaccess` or server configuration. |

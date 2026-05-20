@@ -39,7 +39,7 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_repo'
                 $ghService = new App\GitHubService(null, $githubAccount['github_token']);
                 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
                 $host = $_SERVER['HTTP_HOST'];
-                $webhookUrl = "$protocol://$host/webhook.php?project_id=" . $result['project_id'];
+                $webhookUrl = "$protocol://$host/github/webhook.php?project_id=" . $result['project_id'];
 
                 try {
                     $ghService->createWebhook($repo, $webhookUrl, $result['webhook_secret']);
@@ -144,7 +144,7 @@ $errorMessage = $errorMessage ?? null;
                             <a href="logout.php" class="ml-4 text-sm font-medium text-red-600 hover:underline">Logout</a>
                         </div>
                     <?php else : ?>
-                        <a href="login.php" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 focus:outline-none">Login with Google</a>
+                        <a href="google/login.php" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 focus:outline-none">Login with Google</a>
                     <?php endif; ?>
                 </div>
             </div>

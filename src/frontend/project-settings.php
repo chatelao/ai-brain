@@ -18,7 +18,7 @@ $taskModel = new Task($db);
 $notificationService = new NotificationService($db);
 
 if (!$auth->isLoggedIn()) {
-    header('Location: login.php');
+    header('Location: google/login.php');
     exit;
 }
 
@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notifications'
 }
 
 // Handle Setup Webhook (copied from project.php)
-$webhookUrl = ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https') . '://' . $_SERVER['HTTP_HOST'] . '/webhook.php?project_id=' . $projectId;
+$webhookUrl = ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https') . '://' . $_SERVER['HTTP_HOST'] . '/github/webhook.php?project_id=' . $projectId;
 $githubToken = $project['github_token'] ?? null;
 $webhookStatus = 'unknown';
 
@@ -105,8 +105,8 @@ if ($githubToken) {
         $webhooks = $githubService->listWebhooks($project['github_repo']);
         $webhookStatus = 'missing';
         foreach ($webhooks as $wh) {
-            if (isset($wh['config']['url']) && str_starts_with($wh['config']['url'], ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https') . '://' . $_SERVER['HTTP_HOST'] . '/webhook.php')) {
-                if ($wh['config']['url'] === $webhookUrl || $wh['config']['url'] === ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https') . '://' . $_SERVER['HTTP_HOST'] . '/webhook.php') {
+            if (isset($wh['config']['url']) && str_starts_with($wh['config']['url'], ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https') . '://' . $_SERVER['HTTP_HOST'] . '/github/webhook.php')) {
+                if ($wh['config']['url'] === $webhookUrl || $wh['config']['url'] === ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https') . '://' . $_SERVER['HTTP_HOST'] . '/github/webhook.php') {
                     $webhookStatus = $wh['active'] ? 'active' : 'inactive';
                     break;
                 }

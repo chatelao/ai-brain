@@ -24,7 +24,7 @@ $notificationService = new NotificationService($db);
 $logger = new Logger($db);
 
 if (!$auth->isLoggedIn()) {
-    header('Location: login.php');
+    header('Location: google/login.php');
     exit;
 }
 
