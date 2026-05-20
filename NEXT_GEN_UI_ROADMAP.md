@@ -19,11 +19,11 @@ This section tracks the migration progress of legacy PHP views to the new React-
 | :--- | :--- | :---: | :---: |
 | Dashboard | `index.php` | ⏳ | 0.0% |
 | Project View | `project.php` | ⏳ | 0.0% |
-| Task Detail | `task.php` | ⏳ | 0.0% |
+| Task Detail | `task.php` | 🚧 | 20.0% |
 | User Settings | `settings.php` | ⏳ | 0.0% |
-| Webhook Logs | `logs.php` | ⏳ | 0.0% |
+| Webhook Logs | `logs.php` | 🚧 | 20.0% |
 | Admin Dashboard | `admin/index.php` | ⏳ | 0.0% |
-| **Total** | | | **0.0%** |
+| **Total** | | | **6.7%** |
 
 ## Goals
 - 🚧 Achieve 100% OpenAPI compliance for all backend endpoints.
@@ -40,6 +40,9 @@ The goal of Phase 1 is to create the necessary backend infrastructure to support
     - 🚧 Refactor existing PHP endpoints to serve JSON exclusively for `/api/*` routes.
         - ✅ Implemented `/api/projects.php` as a RESTful endpoint.
         - ✅ Implemented `/api/tasks.php` as a RESTful endpoint.
+        - ✅ Implemented `/api/task.php` as a RESTful endpoint.
+        - ✅ Implemented `/api/task-logs.php` as a RESTful endpoint.
+        - ✅ Implemented `/api/webhook-logs.php` as a RESTful endpoint.
     - 🚧 Validate all API responses against the `api/openapi.yaml` specification. This is the relevant API between Browser and Server to use and update if necessary.
 - 🚧 **Milestone 1.2: Modern Auth Implementation**
     - ✅ Implement JWT token issuance and validation in `App\Auth`.
@@ -55,7 +58,10 @@ The goal of Phase 2 is to achieve feature parity with the existing "Project Card
     - ⏳ Component: Task Filter Bar (By status/repository).
     - ⏳ Data Sync: Implement background polling with TanStack Query.
 - ⏳ **Milestone 2.2: Task Detail View**
-    - ⏳ Port the log viewer and interactive controls (Retry, Restart, Merge).
+    - ⏳ Component: Task Header (Title, Status, Labels).
+    - ⏳ Component: Log Viewer (Fetch from `/api/task-logs.php`).
+    - ⏳ Component: Interaction Panel (Retry, Restart, Merge buttons).
+    - ⏳ Component: GitHub/Jules Metadata Sidebar.
 - ⏳ **Milestone 2.3: Integration Testing**
     - ⏳ Ensure the new React dashboard can coexist with the legacy UI (e.g., via subfolder or subdomain).
 
