@@ -432,7 +432,12 @@ class Task
                         title = excluded.title,
                         body = excluded.body,
                         github_data = excluded.github_data,
-                        github_state = excluded.github_state";
+                        github_state = excluded.github_state,
+                        status = CASE
+                            WHEN excluded.github_state = 'closed' THEN 'finished'
+                            WHEN status = 'pending' THEN 'created'
+                            ELSE status
+                        END";
         } else {
             $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -440,7 +445,12 @@ class Task
                         title = VALUES(title),
                         body = VALUES(body),
                         github_data = VALUES(github_data),
-                        github_state = VALUES(github_state)";
+                        github_state = VALUES(github_state),
+                        status = CASE
+                            WHEN VALUES(github_state) = 'closed' THEN 'finished'
+                            WHEN status = 'pending' THEN 'created'
+                            ELSE status
+                        END";
         }
 
         $stmt = $connection->prepare($sql);
@@ -673,7 +683,7 @@ class Task
     public function getTargetUrl(array $task, ?string $repo = null): string
     {
         $issueUrl = "https://github.com/" . ($repo ?? $task['github_repo']) . "/issues/" . $task['issue_number'];
-        $status = $task['status'] ?? 'pending';
+        $status = $task['status'] ?? self::STATUS_CREATED;
 
         if ($status === self::STATUS_FINISHED || $status === 'completed' || $status === 'failed_pr') {
             return $task['pr_url'] ?: $issueUrl;
@@ -709,12 +719,12 @@ class Task
             $sql .= " AND t.project_id = ?";
             $params[] = $projectId;
             $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
-            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ?)
+            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ? OR t.status = 'pending')
                       AND (t.status NOT IN ('" . self::STATUS_FINISHED . "', 'completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))";
             $params[] = $fiveMinutesAgo;
         } else {
             $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
-            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ?)
+            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ? OR t.status = 'pending')
                       AND (t.status NOT IN ('" . self::STATUS_FINISHED . "', 'completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))";
             $params[] = $fiveMinutesAgo;
         }
