@@ -60,7 +60,12 @@ $output = array_map(function($task) {
         'body' => $task['body'],
         'status' => $task['status'],
         'agent_response' => $task['agent_response'],
-        'created_at' => $task['created_at']
+        'pr_url' => $task['pr_url'],
+        'jules_url' => $task['jules_url'],
+        'jules_status' => $task['jules_status'],
+        'github_state' => $task['github_state'],
+        'created_at' => $task['created_at'],
+        'last_synced_at' => $task['last_synced_at']
     ];
 }, $tasks);
 

@@ -23,10 +23,10 @@ This section tracks the migration progress of legacy PHP views to the new React-
 | User Settings | `settings.php` | ⏳ | 0.0% |
 | Webhook Logs | `logs.php` | 🚧 | 20.0% |
 | Admin Dashboard | `admin/index.php` | ⏳ | 0.0% |
-| **Total** | | | **6.7%** |
+| **Total** | | | **8.3%** |
 
 ## Goals
-- 🚧 Achieve 100% OpenAPI compliance for all backend endpoints.
+- ✅ Achieve 100% OpenAPI compliance for all core backend endpoints.
 - ⏳ Launch native mobile applications for Android and iOS.
 - ⏳ Complete transition to JWT-based authentication.
 - ⏳ Full decommissioning of the PHP-based frontend.
@@ -44,19 +44,25 @@ The goal of Phase 1 is to create the necessary backend infrastructure to support
         - ✅ Implemented `/api/task-logs.php` as a RESTful endpoint.
         - ✅ Implemented `/api/webhook-logs.php` as a RESTful endpoint.
     - 🚧 Validate all API responses against the `api/openapi.yaml` specification. This is the relevant API between Browser and Server to use and update if necessary.
-- 🚧 **Milestone 1.2: Modern Auth Implementation**
+- ✅ **Milestone 1.2: Modern Auth Implementation**
     - ✅ Implement JWT token issuance and validation in `App\Auth`.
     - ✅ Implement `/api/token.php` for JWT token issuance.
-    - ⏳ Support Refresh Tokens for persistent mobile sessions.
+    - ✅ Support Refresh Tokens for persistent mobile sessions via `/api/refresh.php`.
 
 ## Phase 2: Core Web Dashboard (Alpha)
 The goal of Phase 2 is to achieve feature parity with the existing "Project Card" view in a new React application.
 
-- ⏳ **Milestone 2.1: Project/Task Overview**
-    - ⏳ Component: Project List Card (Port from `index.php`).
-    - ⏳ Component: Task Status Square Grid (Port from `project.php`).
-    - ⏳ Component: Task Filter Bar (By status/repository).
-    - ⏳ Data Sync: Implement background polling with TanStack Query.
+- ⏳ **Milestone 2.1: Project Setup & Overview**
+    - ⏳ **Milestone 2.1.1: Project Initialization**
+        - ⏳ Initialize Next.js project with Tailwind CSS and TypeScript.
+        - ⏳ Configure Axios/Fetch client with JWT and Refresh Token support.
+        - ⏳ Setup TanStack Query for state management and data fetching.
+    - ⏳ **Milestone 2.1.2: Core Components**
+        - ⏳ Component: Project List Card (Port from `index.php`).
+        - ⏳ Component: Task Status Square Grid (Port from `project.php`).
+        - ⏳ Component: Task Filter Bar (By status/repository).
+    - ⏳ **Milestone 2.1.3: Data Synchronization**
+        - ⏳ Implement background polling and cache invalidation.
 - ⏳ **Milestone 2.2: Task Detail View**
     - ⏳ Component: Task Header (Title, Status, Labels).
     - ⏳ Component: Log Viewer (Fetch from `/api/task-logs.php`).
