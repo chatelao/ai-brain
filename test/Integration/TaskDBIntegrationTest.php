@@ -33,7 +33,7 @@ class TaskDBIntegrationTest extends TestCase
             issue_number INT NOT NULL,
             title VARCHAR(255) NOT NULL,
             body TEXT,
-            status TEXT DEFAULT 'pending',
+            status TEXT DEFAULT 'created',
             github_state VARCHAR(20) DEFAULT 'open',
             github_data TEXT,
             created_at $timestamp,
@@ -55,7 +55,7 @@ class TaskDBIntegrationTest extends TestCase
             'issue_number' => 101,
             'title' => 'Test Issue',
             'body' => 'Test Body',
-            'status' => 'pending'
+            'status' => 'created'
         ];
 
         $this->assertTrue($this->taskModel->create($data));
