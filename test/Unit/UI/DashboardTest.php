@@ -77,7 +77,7 @@ class DashboardTest extends TestCase
                 <span><?= htmlspecialchars($user['name']) ?></span>
                 <a href="logout.php">Logout</a>
             <?php else: ?>
-                <a href="login.php">Login with Google</a>
+                <a href="google/login.php">Login with Google</a>
             <?php endif; ?>
         </nav>
         <main>

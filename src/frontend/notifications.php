@@ -15,7 +15,7 @@ $taskModel = new Task($db);
 $notificationService = new NotificationService($db);
 
 if (!$auth->isLoggedIn()) {
-    header('Location: login.php');
+    header('Location: google/login.php');
     exit;
 }
 

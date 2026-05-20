@@ -19,7 +19,7 @@ $isSecretValid = !empty($configuredSecret) && $providedSecret === $configuredSec
 
 if (!$isSecretValid) {
     if (!$auth->isLoggedIn()) {
-        header('Location: ../login.php');
+        header('Location: ../google/login.php');
         exit;
     }
 

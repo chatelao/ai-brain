@@ -9,7 +9,7 @@ servers:
     description: Local development server
 
 paths:
-  /login.php:
+  /google/login.php:
     get:
       summary: Initiate Google SSO login
       description: Redirects the user to Google for authentication.
@@ -17,7 +17,7 @@ paths:
         '302':
           description: Redirect to Google OAuth URL
 
-  /callback.php:
+  /google/callback.php:
     get:
       summary: Google SSO callback
       description: Handles the response from Google and logs the user in.
@@ -49,9 +49,9 @@ paths:
       description: Destroys the user session.
       responses:
         '302':
-          description: Redirect to login.php
+          description: Redirect to google/login.php
 
-  /github-login.php:
+  /github/login.php:
     get:
       summary: Initiate GitHub OAuth
       description: Redirects the user to GitHub for account linking.
@@ -59,7 +59,7 @@ paths:
         '302':
           description: Redirect to GitHub OAuth URL
 
-  /github-callback.php:
+  /github/callback.php:
     get:
       summary: GitHub OAuth callback
       description: Handles the response from GitHub and links the account.
@@ -202,7 +202,7 @@ paths:
                 TriggerAgent:
                   value: "<html>...Agent response...</html>"
 
-  /webhook.php:
+  /github/webhook.php:
     post:
       summary: GitHub Webhook
       description: Receives 'issues' events from GitHub.
@@ -256,7 +256,7 @@ paths:
         '500':
           description: Failed to process event
 
-  /telegram-webhook.php:
+  /telegram/webhook.php:
     post:
       summary: Telegram Webhook
       description: Receives updates from the Telegram Bot API.
@@ -312,7 +312,7 @@ paths:
                 AdminView:
                   value: "<html>...User Management...</html>"
         '302':
-          description: Redirect to login if not logged in
+          description: Redirect to google/login if not logged in
         '403':
           description: Access denied if not admin
 
@@ -727,7 +727,7 @@ components:
           example: "john@example.com"
         endpoint:
           type: string
-          example: "webhook.php"
+          example: "github/webhook.php"
         payload:
           type: string
           nullable: true

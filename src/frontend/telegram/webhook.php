@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../../../vendor/autoload.php';
 
 use App\Database;
 use App\User;
@@ -41,7 +41,7 @@ $providedSecret = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '';
 
 if (!$handler->verifySecret($providedSecret)) {
     if ($userId) {
-        $logger->log($userId, 'telegram', $input, $headersStr, 401, "Unauthorized");
+        $logger->log($userId, 'telegram/webhook.php', $input, $headersStr, 401, "Unauthorized");
     }
     http_response_code(401);
     echo "Unauthorized";
@@ -52,7 +52,7 @@ $update = json_decode($input, true);
 
 if (!$update) {
     if ($userId) {
-        $logger->log($userId, 'telegram', $input, $headersStr, 400, "Invalid Request");
+        $logger->log($userId, 'telegram/webhook.php', $input, $headersStr, 400, "Invalid Request");
     }
     http_response_code(400);
     echo "Invalid Request";
@@ -60,7 +60,7 @@ if (!$update) {
 }
 
 if ($userId) {
-    $logger->log($userId, 'telegram', $input, $headersStr, 200);
+    $logger->log($userId, 'telegram/webhook.php', $input, $headersStr, 200);
 }
 
 // Acknowledge Telegram immediately

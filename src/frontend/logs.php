@@ -16,7 +16,7 @@ $logger = new Logger($db);
 $webhookLogger = new WebhookLogger($db);
 
 if (!$auth->isLoggedIn()) {
-    header('Location: login.php');
+    header('Location: google/login.php');
     exit;
 }
 

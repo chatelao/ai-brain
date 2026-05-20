@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../../../vendor/autoload.php';
 use App\Auth;
 use App\GitHubAuth;
 use App\Database;
@@ -21,7 +21,7 @@ if (!$rateLimiter->check("github_callback_$ip", 20, 60)) {
 
 $auth = new Auth();
 if (!$auth->isLoggedIn()) {
-    header('Location: index.php');
+    header('Location: ../index.php');
     exit;
 }
 
@@ -50,13 +50,13 @@ if (isset($_GET['code']) && isset($_GET['state'])) {
             }
         }
 
-        header('Location: settings.php?github=success');
+        header('Location: ../settings.php?github=success');
         exit;
     } catch (Exception $e) {
-        header('Location: settings.php?github=error&message=' . urlencode($e->getMessage()));
+        header('Location: ../settings.php?github=error&message=' . urlencode($e->getMessage()));
         exit;
     }
 } else {
-    header('Location: index.php');
+    header('Location: ../index.php');
     exit;
 }

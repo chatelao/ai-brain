@@ -85,7 +85,7 @@ php -S localhost:8080 -t src/frontend
 ```
 
 ## Project Structure
-- `src/frontend/`: Web entry points (index.php, login.php, etc.) and frontend assets.
+- `src/frontend/`: Web entry points (index.php, google/login.php, etc.) and frontend assets.
 - `src/backend/`: Core PHP logic and classes.
 - `src/sql/`: Database schema and migrations.
 - `test/`: PHPUnit tests and testing tools.

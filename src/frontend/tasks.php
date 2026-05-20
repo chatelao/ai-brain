@@ -14,7 +14,7 @@ $userModel = new User($db);
 $taskModel = new Task($db);
 
 if (!$auth->isLoggedIn()) {
-    header('Location: login.php');
+    header('Location: google/login.php');
     exit;
 }
 
