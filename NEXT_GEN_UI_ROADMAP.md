@@ -39,6 +39,7 @@ The goal of Phase 1 is to create the necessary backend infrastructure to support
 - 🚧 **Milestone 1.1: OpenAPI Compliance**
     - 🚧 Refactor existing PHP endpoints to serve JSON exclusively for `/api/*` routes.
         - ✅ Implemented `/api/projects.php` as a RESTful endpoint.
+        - ✅ Implemented `/api/tasks.php` as a RESTful endpoint.
     - 🚧 Validate all API responses against the `api/openapi.yaml` specification. This is the relevant API between Browser and Server to use and update if necessary.
 - 🚧 **Milestone 1.2: Modern Auth Implementation**
     - ✅ Implement JWT token issuance and validation in `App\Auth`.
@@ -49,8 +50,10 @@ The goal of Phase 1 is to create the necessary backend infrastructure to support
 The goal of Phase 2 is to achieve feature parity with the existing "Project Card" view in a new React application.
 
 - ⏳ **Milestone 2.1: Project/Task Overview**
-    - ⏳ Port the Status Square Grid to React components.
-    - ⏳ Implement TanStack Query for data fetching and synchronization.
+    - ⏳ Component: Project List Card (Port from `index.php`).
+    - ⏳ Component: Task Status Square Grid (Port from `project.php`).
+    - ⏳ Component: Task Filter Bar (By status/repository).
+    - ⏳ Data Sync: Implement background polling with TanStack Query.
 - ⏳ **Milestone 2.2: Task Detail View**
     - ⏳ Port the log viewer and interactive controls (Retry, Restart, Merge).
 - ⏳ **Milestone 2.3: Integration Testing**
