@@ -6,8 +6,8 @@ This roadmap outlines the evolution of the Agent Control interface from a PHP-ce
 
 | Phase | Description | Status |
 | :--- | :--- | :---: |
-| 1 | API Foundation & Authentication | 🚧 |
-| 2 | Core Web Dashboard (Alpha) | ⏳ |
+| 1 | API Foundation & Authentication | ✅ |
+| 2 | Core Web Dashboard (Alpha) | 🚧 |
 | 3 | Mobile App & Notification Integration (Beta) | ⏳ |
 | 4 | Full Migration & Legacy Sunset | ⏳ |
 
@@ -33,7 +33,7 @@ This section tracks the migration progress of legacy PHP views to the new React-
 
 ---
 
-## Phase 1: API Foundation & Authentication
+## Phase 1: API Foundation & Authentication ✅
 The goal of Phase 1 is to create the necessary backend infrastructure to support modern client applications.
 
 - ✅ **Milestone 1.1: OpenAPI Compliance**
@@ -44,6 +44,7 @@ The goal of Phase 1 is to create the necessary backend infrastructure to support
         - ✅ Implemented `/api/task-logs.php` as a RESTful endpoint.
         - ✅ Implemented `/api/webhook-logs.php` as a RESTful endpoint.
         - ✅ Implemented `/api/performance-logs.php` as a RESTful endpoint.
+        - ✅ Implemented `/api/user.php` as a RESTful endpoint.
     - ✅ Validate all API responses against the `api/openapi.yaml` specification. This is the relevant API between Browser and Server to use and update if necessary.
 - ✅ **Milestone 1.2: Modern Auth Implementation**
     - ✅ Implement JWT token issuance and validation in `App\Auth`.
@@ -54,15 +55,16 @@ The goal of Phase 1 is to create the necessary backend infrastructure to support
 The goal of Phase 2 is to achieve feature parity with the existing "Project Card" view in a new React application.
 
 - 🚧 **Milestone 2.1: Project Setup & Overview**
-    - ⏳ **Milestone 2.1.1: Project Initialization**
-        - ⏳ Initialize Next.js project with Tailwind CSS and TypeScript.
-        - ⏳ Configure Axios/Fetch client with JWT and Refresh Token support.
-        - ⏳ Setup TanStack Query for state management and data fetching.
-    - ⏳ **Milestone 2.1.2: Core Components**
-        - ⏳ Component: `ProjectCard` - Displays project summary and repository links.
-        - ⏳ Component: `TaskStatusGrid` - Replaces the project status square grid.
-        - ⏳ Component: `StatusBadge` - Unified status display with emojis and color mapping.
-        - ⏳ Component: `TaskFilterBar` - Client-side filtering by status/repository.
+    - 🚧 **Milestone 2.1.1: Project Initialization**
+        - ⏳ Initialize Next.js directory structure and `package.json`.
+        - ⏳ Configure Tailwind CSS and TypeScript compiler options.
+        - ⏳ Implement Axios interceptors for automated JWT injection and token refresh.
+        - ⏳ Configure TanStack Query `QueryClient` and global provider.
+    - ⏳ **Milestone 2.1.2: Core Atomic Components**
+        - ⏳ Component: `StatusSquare` - Low-level status box with hover tooltips.
+        - ⏳ Component: `ProjectCard` - High-level summary displaying `StatusSquare` grid.
+        - ⏳ Component: `StatusBadge` - Pill-shaped indicator for lists and headers.
+        - ⏳ Component: `TaskFilterBar` - Interactive search and status toggle bar.
     - ⏳ **Milestone 2.1.3: Data Synchronization**
         - ⏳ Implement background polling and cache invalidation.
 - ⏳ **Milestone 2.2: Task Detail View**

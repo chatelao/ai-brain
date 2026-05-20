@@ -339,6 +339,24 @@ paths:
         '401':
           description: Unauthorized
 
+  /api/user.php:
+    get:
+      summary: Get current user profile (JSON)
+      description: Returns profile information for the authenticated user.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+        '404':
+          description: User not found
+
   /api/refresh.php:
     get:
       summary: Refresh JWT token
