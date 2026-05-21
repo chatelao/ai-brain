@@ -19,11 +19,11 @@ This section tracks the migration progress of legacy PHP views to the new React-
 | :--- | :--- | :---: | :---: |
 | Dashboard | `index.php` | ✅ | 100.0% |
 | Project View | `project.php` | ⏳ | 0.0% |
-| Task Detail | `task.php` | 🚧 | 20.0% |
+| Task Detail | `task.php` | ✅ | 100.0% |
 | User Settings | `settings.php` | ⏳ | 0.0% |
 | Webhook Logs | `logs.php` | 🚧 | 40.0% |
 | Admin Dashboard | `admin/index.php` | ⏳ | 0.0% |
-| **Total** | | | **26.7%** |
+| **Total** | | | **40.0%** |
 
 ## Goals
 - ✅ Achieve 100% OpenAPI compliance for all core backend endpoints.
@@ -69,11 +69,11 @@ The goal of Phase 2 is to achieve feature parity with the existing "Project Card
         - ✅ Component: `TaskFilterBar` - Client-side filtering by status/repository.
     - ✅ **Milestone 2.1.3: Data Synchronization**
         - ✅ Implement background polling and cache invalidation using TanStack Query.
-- ⏳ **Milestone 2.2: Task Detail View**
-    - ⏳ Component: Task Header (Title, Status, Labels).
-    - ⏳ Component: Log Viewer (Fetch from `/api/task-logs.php`).
-    - ⏳ Component: Interaction Panel (Retry, Restart, Merge buttons).
-    - ⏳ Component: GitHub/Jules Metadata Sidebar.
+- ✅ **Milestone 2.2: Task Detail View**
+    - ✅ Component: Task Header (Title, Status, Labels).
+    - ✅ Component: Log Viewer (Fetch from `/api/task-logs.php`).
+    - ✅ Component: Interaction Panel (Retry, Restart, Merge buttons).
+    - ✅ Component: GitHub/Jules Metadata Sidebar.
 - ⏳ **Milestone 2.3: Integration Testing**
     - ⏳ Ensure the new React dashboard can coexist with the legacy UI (e.g., via subfolder or subdomain).
 
