@@ -20,10 +20,10 @@ This section tracks the migration progress of legacy PHP views to the new React-
 | Dashboard | `index.php` | ✅ | 100.0% |
 | Project View | `project.php` | ✅ | 100.0% |
 | Task Detail | `task.php` | ✅ | 100.0% |
-| User Settings | `settings.php` | ⏳ | 0.0% |
+| User Settings | `settings.php` | ✅ | 100.0% |
 | Webhook Logs | `logs.php` | ✅ | 100.0% |
 | Admin Dashboard | `admin/index.php` | ⏳ | 0.0% |
-| **Total** | | | **66.7%** |
+| **Total** | | | **83.3%** |
 
 ## Goals
 - ✅ Achieve 100% OpenAPI compliance for all core backend endpoints.
