@@ -34,7 +34,72 @@ export interface paths {
             };
         };
         put?: never;
-        post?: never;
+        /**
+         * Update user profile/settings (JSON)
+         * @description Updates the profile and configuration of the currently authenticated user.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        jules_api_key?: string | null;
+                        telegram_bot_name?: string | null;
+                        telegram_bot_token?: string | null;
+                        telegram_webhook_secret?: string | null;
+                        notification_settings?: {
+                            in_app?: boolean;
+                            browser?: boolean;
+                            telegram?: boolean;
+                        };
+                        notification_event_settings?: {
+                            created?: boolean;
+                            processing?: boolean;
+                            ready?: boolean;
+                            finished?: boolean;
+                            failed?: boolean;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description User profile updated successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["User"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Internal server error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -1226,12 +1291,35 @@ export interface components {
             created_at?: string;
             /** @example MyAgentBot */
             telegram_bot_name?: string | null;
+            /** @description Masked or empty in GET responses for security. */
+            telegram_bot_token?: string | null;
+            /** @description Masked or empty in GET responses for security. */
+            telegram_webhook_secret?: string | null;
+            /** @example 123456789 */
+            telegram_chat_id?: number | null;
+            /** @description Masked or empty in GET responses for security. */
+            jules_api_key?: string | null;
             /** @example true */
             has_jules_key?: boolean;
             /** @example 150 */
             jules_quota_usage?: number | null;
             /** @example 1000 */
             jules_quota_limit?: number | null;
+            github_accounts?: {
+                github_username?: string;
+            }[];
+            notification_settings?: {
+                in_app?: boolean;
+                browser?: boolean;
+                telegram?: boolean;
+            };
+            notification_event_settings?: {
+                created?: boolean;
+                processing?: boolean;
+                ready?: boolean;
+                finished?: boolean;
+                failed?: boolean;
+            };
         };
         Project: {
             /** @example 1 */
