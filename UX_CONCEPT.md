@@ -4,10 +4,12 @@
 The Agent Control application aims to provide a highly efficient, "frictionless" experience for managing AI agents across Desktop, Mobile (Web), and Telegram. The UX strategy focuses on **Glanceability**, **Actionability**, and **Continuity**, ensuring that users can monitor and control tasks with minimal cognitive load regardless of their device or location.
 
 ## Business Cases
-- **Operational Speed**: Minimizing the time between receiving a notification and taking corrective action (e.g., retrying a failed session).
-- **Reduced Cognitive Load**: Using a unified visual language (colors, emojis) so users don't have to re-learn statuses across different platforms.
-- **Improved Responsiveness**: Enabling full task control via Telegram for users who are on the move.
-- **Error Reduction**: Prioritizing "Selection over Writing" to prevent input errors and speed up interactions.
+| Case | Description |
+| :--- | :--- |
+| **Operational Speed** | Minimizing the time between receiving a notification and taking corrective action (e.g., retrying a failed session). |
+| **Reduced Cognitive Load** | Using a unified visual language (colors, emojis) so users don't have to re-learn statuses across different platforms. |
+| **Improved Responsiveness** | Enabling full task control via Telegram for users who are on the move. |
+| **Error Reduction** | Prioritizing "Selection over Writing" to prevent input errors and speed up interactions. |
 
 ## Interaction Principles
 
@@ -33,18 +35,12 @@ Typing is a "heavy" interaction, especially on mobile. The system prioritizes:
 - **One-tap operations** for state transitions.
 
 ## Use Cases
-
-### <a name="UC-UX1"></a>Desktop Overlook (UC-UX1)
-A developer starts their day by opening the Dashboard. The high-density "Status Square" grid allows them to immediately identify a single Red square (Failed Task) among dozens of Green ones. They hover to see the issue title and click to jump directly to the logs.
-
-### <a name="UC-UX2"></a>Mobile Monitoring (UC-UX2)
-A user checks the dashboard on their phone while commuting. The responsive UI collapses the dense grid into a scrollable list of projects, with the "Running Autorepeat Tasks" prominently displayed at the top for quick oversight.
-
-### <a name="UC-UX3"></a>Telegram Reaction (UC-UX3)
-A user receives a Telegram notification that a Jules session has failed. Instead of opening a browser, they tap the "Retry" button directly within the Telegram chat. The bot confirms the action, and the user continues their day.
-
-### <a name="UC-UX4"></a>Template-Driven Workflow (UC-UX4)
-To start a recurring task, a user selects a pre-defined "Feature Request" template on the project page. They fill in 1-2 parameters (e.g., Feature Name) and tap "Create". The system handles GitHub issue creation and agent triggering automatically.
+| ID | Use Case | Description |
+| :--- | :--- | :--- |
+| <a name="UC-UX1"></a>**UC-UX1** | **Desktop Overlook** | A developer starts their day by opening the Dashboard. The high-density "Status Square" grid allows them to immediately identify a single Red square (Failed Task) among dozens of Green ones. They hover to see the issue title and click to jump directly to the logs. |
+| <a name="UC-UX2"></a>**UC-UX2** | **Mobile Monitoring** | A user checks the dashboard on their phone while commuting. The responsive UI collapses the dense grid into a scrollable list of projects, with the "Running Autorepeat Tasks" prominently displayed at the top for quick oversight. |
+| <a name="UC-UX3"></a>**UC-UX3** | **Telegram Reaction** | A user receives a Telegram notification that a Jules session has failed. Instead of opening a browser, they tap the "Retry" button directly within the Telegram chat. The bot confirms the action, and the user continues their day. |
+| <a name="UC-UX4"></a>**UC-UX4** | **Template-Driven Workflow** | To start a recurring task, a user selects a pre-defined "Feature Request" template on the project page. They fill in 1-2 parameters (e.g., Feature Name) and tap "Create". The system handles GitHub issue creation and agent triggering automatically. |
 
 ## UX/Formatting
 
