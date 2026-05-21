@@ -738,7 +738,7 @@ export interface paths {
         put?: never;
         /**
          * Perform project action
-         * @description Triggers actions like issue synchronization for a project.
+         * @description Triggers actions like issue synchronization, or creating issues from templates/roadmap.
          */
         post: {
             parameters: {
@@ -754,7 +754,15 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        action: "sync_issues";
+                        action: "sync_issues" | "create_from_template" | "create_from_roadmap";
+                        /** @description Required for 'create_from_template' */
+                        template_id?: number;
+                        /** @description Parameter values for the template */
+                        params?: {
+                            [key: string]: string;
+                        };
+                        /** @description Required for 'create_from_roadmap' */
+                        roadmap_name?: string;
                     };
                 };
             };
@@ -1146,6 +1154,138 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/templates.php": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List issue templates (JSON)
+         * @description Returns a list of issue templates for the authenticated user.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A JSON list of templates */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Template"][];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create or update issue template
+         * @description Creates a new issue template or updates an existing one.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        /** @description Template ID (for updates) */
+                        id?: number;
+                        name: string;
+                        title_template: string;
+                        body_template?: string;
+                        parameter_config?: {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Template saved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /**
+         * Delete issue template
+         * @description Deletes an issue template.
+         */
+        delete: {
+            parameters: {
+                query: {
+                    /** @description Template ID */
+                    id: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Template deleted successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Template not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/user.php": {
         parameters: {
             query?: never;
@@ -1530,6 +1670,24 @@ export interface components {
             created_at?: string;
             /** @example 5 */
             project_count?: number;
+        };
+        Template: {
+            /** @example 1 */
+            id?: number;
+            /** @example Bug Report */
+            name?: string;
+            /** @example Bug: %1 */
+            title_template?: string;
+            /** @example Steps to reproduce: %2 */
+            body_template?: string | null;
+            parameter_config?: {
+                [key: string]: string;
+            } | null;
+            /**
+             * Format: date-time
+             * @example 2023-10-27T10:00:00Z
+             */
+            created_at?: string;
         };
         GitHubIssueEvent: {
             /** @example opened */

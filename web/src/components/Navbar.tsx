@@ -24,6 +24,9 @@ const Navbar = () => {
             <Link href="/settings" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
               Settings
             </Link>
+            <Link href="/templates" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+              Templates
+            </Link>
             {user?.role === 'admin' && (
               <Link href="/admin" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
                 Admin

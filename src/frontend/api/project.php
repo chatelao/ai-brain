@@ -7,6 +7,7 @@ use App\Auth;
 use App\Project;
 use App\Task;
 use App\GitHubService;
+use App\IssueTemplate;
 
 header('Content-Type: application/json');
 
@@ -72,6 +73,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } catch (Exception $e) {
                 http_response_code(500);
                 echo json_encode(['error' => 'Failed to sync: ' . $e->getMessage()]);
+            }
+            break;
+
+        case 'create_from_template':
+            $templateId = (int)($input['template_id'] ?? 0);
+            $params = $input['params'] ?? [];
+            $templateModel = new IssueTemplate($db);
+            $template = $templateModel->findById($templateId);
+            if ($template && (int)$template['user_id'] === $userId) {
+                try {
+                    $title = strtr($template['title_template'], $params);
+                    $body = strtr($template['body_template'], $params);
+
+                    $githubToken = $project['github_token'] ?? null;
+                    if (!$githubToken) {
+                        throw new Exception("GitHub token not found for this project.");
+                    }
+
+                    $labels = ['Jules']; // Default to Jules label for API created issues
+
+                    $githubService = new GitHubService(null, $githubToken);
+                    $githubService->createIssue($project['github_repo'], $title, $body, $labels);
+
+                    echo json_encode(['status' => 'success', 'message' => 'Issue created from template']);
+                } catch (Exception $e) {
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Error creating issue: ' . $e->getMessage()]);
+                }
+            } else {
+                http_response_code(404);
+                echo json_encode(['error' => 'Template not found']);
+            }
+            break;
+
+        case 'create_from_roadmap':
+            $roadmapName = $input['roadmap_name'] ?? '';
+            if (!empty($roadmapName)) {
+                try {
+                    $githubToken = $project['github_token'] ?? null;
+                    if (!$githubToken) {
+                        throw new Exception("GitHub token not found for this project.");
+                    }
+
+                    $title = "Implement one or more of the next, modest, unsolved, feasible and reasonable steps of \"$roadmapName\"";
+                    $body = "If none is available, alternativly break down bigger steps to modest ones without implementing anything, just changing the $roadmapName.";
+
+                    $githubService = new GitHubService(null, $githubToken);
+                    $githubService->createIssue($project['github_repo'], $title, $body, ['Jules']);
+
+                    echo json_encode(['status' => 'success', 'message' => 'Issue created from roadmap']);
+                } catch (Exception $e) {
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Error creating issue from roadmap: ' . $e->getMessage()]);
+                }
+            } else {
+                http_response_code(400);
+                echo json_encode(['error' => 'Missing roadmap name']);
             }
             break;
 

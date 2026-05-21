@@ -4,6 +4,7 @@ import React, { use, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useProject } from '@/hooks/useProject';
 import { useTasks } from '@/hooks/useTasks';
+import { useTemplates } from '@/hooks/useTemplates';
 import StatusBadge from '@/components/StatusBadge';
 import TaskFilterBar from '@/components/TaskFilterBar';
 import Navbar from '@/components/Navbar';
@@ -14,8 +15,9 @@ type TaskStatus = components['schemas']['Task']['status'];
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const projectId = parseInt(id);
-  const { data: project, isLoading: projectLoading, error: projectError, syncIssues, isSyncing } = useProject(projectId);
+  const { data: project, isLoading: projectLoading, error: projectError, syncIssues, isSyncing, createFromTemplate, isCreatingFromTemplate, createFromRoadmap, isCreatingFromRoadmap } = useProject(projectId);
   const { data: tasks, isLoading: tasksLoading } = useTasks(projectId);
+  const { data: templates } = useTemplates();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
@@ -169,8 +171,18 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
-                          <span className="truncate max-w-[150px]">{file.name}</span>
+                          <span className="truncate max-w-[120px]">{file.name}</span>
                         </a>
+                        {file.next_task && (
+                          <button
+                            onClick={() => file.name && createFromRoadmap(file.name)}
+                            disabled={isCreatingFromRoadmap}
+                            className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors"
+                            title="Implement next step"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4.5 2.691l11 6.309-11 6.309V2.691z"/></svg>
+                          </button>
+                        )}
                       </div>
                       {file.next_task && (
                         <div className="pl-6">
@@ -191,9 +203,97 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 </p>
               )}
             </div>
+
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Create from Template</h3>
+              {templates && templates.length > 0 ? (
+                <TemplateForm
+                  templates={templates}
+                  onSubmit={(templateId, params) => createFromTemplate({ templateId, params })}
+                  isSubmitting={isCreatingFromTemplate}
+                />
+              ) : (
+                <p className="text-sm text-gray-500 italic">
+                  No templates found.{' '}
+                  <Link href="/templates" className="text-blue-600 hover:underline">
+                    Create one here.
+                  </Link>
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </main>
     </div>
+  );
+}
+
+function TemplateForm({
+  templates,
+  onSubmit,
+  isSubmitting,
+}: {
+  templates: components['schemas']['Template'][];
+  onSubmit: (id: number, params: Record<string, string>) => void;
+  isSubmitting: boolean;
+}) {
+  const [selectedId, setSelectedId] = useState<number>(templates[0].id || 0);
+  const [params, setParams] = useState<Record<string, string>>({});
+
+  const selectedTemplate = templates.find((t) => t.id === selectedId);
+
+  const placeholders = useMemo(() => {
+    if (!selectedTemplate) return [];
+    const combined = (selectedTemplate.title_template || '') + ' ' + (selectedTemplate.body_template || '');
+    const matches = combined.match(/%\d+/g) || [];
+    return [...new Set(matches)].sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
+  }, [selectedTemplate]);
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(selectedId, params);
+      }}
+      className="space-y-4"
+    >
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Select Template</label>
+        <select
+          value={selectedId}
+          onChange={(e) => setSelectedId(parseInt(e.target.value))}
+          className="block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
+        >
+          {templates.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {placeholders.map((p) => (
+        <div key={p}>
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            {selectedTemplate?.parameter_config?.[p] || p}
+          </label>
+          <input
+            type="text"
+            required
+            value={params[p] || ''}
+            onChange={(e) => setParams({ ...params, [p]: e.target.value })}
+            className="block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
+          />
+        </div>
+      ))}
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+      >
+        {isSubmitting ? 'Creating...' : 'Create Issue'}
+      </button>
+    </form>
   );
 }

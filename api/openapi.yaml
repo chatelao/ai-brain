@@ -412,7 +412,7 @@ paths:
           description: Project not found
     post:
       summary: Perform project action
-      description: Triggers actions like issue synchronization for a project.
+      description: Triggers actions like issue synchronization, or creating issues from templates/roadmap.
       security:
         - BearerAuth: []
       parameters:
@@ -430,7 +430,18 @@ paths:
               properties:
                 action:
                   type: string
-                  enum: [sync_issues]
+                  enum: [sync_issues, create_from_template, create_from_roadmap]
+                template_id:
+                  type: integer
+                  description: Required for 'create_from_template'
+                params:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  description: Parameter values for the template
+                roadmap_name:
+                  type: string
+                  description: Required for 'create_from_roadmap'
               required:
                 - action
       responses:
@@ -617,6 +628,77 @@ paths:
                   $ref: '#/components/schemas/PerformanceLog'
         '401':
           description: Unauthorized
+
+  /api/templates.php:
+    get:
+      summary: List issue templates (JSON)
+      description: Returns a list of issue templates for the authenticated user.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: A JSON list of templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Template'
+        '401':
+          description: Unauthorized
+    post:
+      summary: Create or update issue template
+      description: Creates a new issue template or updates an existing one.
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: Template ID (for updates)
+                name:
+                  type: string
+                title_template:
+                  type: string
+                body_template:
+                  type: string
+                parameter_config:
+                  type: object
+                  additionalProperties:
+                    type: string
+              required:
+                - name
+                - title_template
+      responses:
+        '200':
+          description: Template saved successfully
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+    delete:
+      summary: Delete issue template
+      description: Deletes an issue template.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Template ID
+      responses:
+        '200':
+          description: Template deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Template not found
 
   /api/user.php:
     get:
@@ -1033,6 +1115,32 @@ components:
         project_count:
           type: integer
           example: 5
+
+    Template:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Bug Report"
+        title_template:
+          type: string
+          example: "Bug: %1"
+        body_template:
+          type: string
+          nullable: true
+          example: "Steps to reproduce: %2"
+        parameter_config:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-10-27T10:00:00Z"
 
     GitHubIssueEvent:
       type: object
