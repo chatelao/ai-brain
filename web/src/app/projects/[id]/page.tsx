@@ -6,6 +6,7 @@ import { useProject } from '@/hooks/useProject';
 import { useTasks } from '@/hooks/useTasks';
 import StatusBadge from '@/components/StatusBadge';
 import TaskFilterBar from '@/components/TaskFilterBar';
+import Navbar from '@/components/Navbar';
 import { components } from '@/types/api';
 
 type TaskStatus = components['schemas']['Task']['status'];
@@ -53,19 +54,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      <nav className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <Link href="/" className="text-gray-500 hover:text-gray-700 transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </Link>
-            <h1 className="text-xl font-bold text-gray-900">Project Details</h1>
-          </div>
-          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">

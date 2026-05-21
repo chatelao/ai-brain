@@ -21,9 +21,9 @@ This section tracks the migration progress of legacy PHP views to the new React-
 | Project View | `project.php` | ✅ | 100.0% |
 | Task Detail | `task.php` | ✅ | 100.0% |
 | User Settings | `settings.php` | ⏳ | 0.0% |
-| Webhook Logs | `logs.php` | 🚧 | 40.0% |
+| Webhook Logs | `logs.php` | ✅ | 100.0% |
 | Admin Dashboard | `admin/index.php` | ⏳ | 0.0% |
-| **Total** | | | **56.6%** |
+| **Total** | | | **66.7%** |
 
 ## Goals
 - ✅ Achieve 100% OpenAPI compliance for all core backend endpoints.
@@ -78,8 +78,9 @@ The goal of Phase 2 is to achieve feature parity with the existing "Project Card
     - ✅ Implement `/api/project.php` (GET/POST).
     - ✅ Implement `useProject` hook.
     - ✅ Implement Project Detail page with task list and roadmap.
-- ⏳ **Milestone 2.4: Integration Testing**
-    - ⏳ Ensure the new React dashboard can coexist with the legacy UI (e.g., via subfolder or subdomain).
+- 🚧 **Milestone 2.4: Integration Testing**
+    - 🚧 Ensure the new React dashboard can coexist with the legacy UI (e.g., via subfolder or subdomain).
+    - ✅ Implement common `Navbar` for unified navigation across React views.
 
 ## Phase 3: Mobile App & Notification Integration (Beta)
 The goal of Phase 3 is to launch the native mobile application and enhance the notification ecosystem.
