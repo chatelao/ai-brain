@@ -22,6 +22,25 @@ class GitHubService
     /**
      * @throws Exception
      */
+    public function getRepository(string $repo): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        return $this->apiCall(
+            'GitHub API',
+            "GET repo $repo",
+            fn() => $this->client->api('repo')->show($username, $repository)
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
     public function getIssue(string $repo, int $issueNumber): array
     {
         $parts = explode('/', $repo);
