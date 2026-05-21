@@ -99,7 +99,7 @@ class TaskSkippedTest extends TestCase
         $checkSuitesData = null; // Or empty
 
         $status = $this->taskModel->resolveStatus($task, null, $checkSuitesData);
-        // Current implementation returns STATUS_CHECKING if $checkSuitesData is null
+        // If check suites are null, it stays in CHECKING
         $this->assertEquals(Task::STATUS_CHECKING, $status);
     }
 }

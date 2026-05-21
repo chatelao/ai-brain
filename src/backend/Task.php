@@ -855,10 +855,12 @@ class Task
                         $sha = $pr['head']['sha'] ?? null;
                         if ($sha) {
                             $checkSuites = $githubService->getCheckSuites($task['github_repo'], $sha);
+                        } else {
+                            Logger::getInstance($this->db)->log($userId, $task['task_id'], "Could not find head SHA for PR $prUrl", 'warning');
                         }
                     }
                 } catch (\Exception $e) {
-                    // Ignore PR check errors
+                    Logger::getInstance($this->db)->log($userId, $task['task_id'], "Error fetching PR checks: " . $e->getMessage(), 'error');
                 }
             }
 
