@@ -76,6 +76,7 @@ This document provides a structured index of the application's conceptual and te
 
 - Keep `src/install.sh` to install all tools to build the application (test only tools, see below)
 - Used “ReadTheDocs.org” (RTD) for documentation publishing from main branch
+- Use tables instead of list, esp. for things with IDs
 
 # Testing Locally & with Github Action Workflow (GH Action WF)
 - Setup the empty CI/CD pipeline before coding anything
