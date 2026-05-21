@@ -52,20 +52,25 @@ class UserTest extends TestCase
     public function testCreateOrUpdateCreatesNewUser()
     {
         // 1. Mock findByGoogleId call (returns null)
-        $stmtFind = $this->createMock(PDOStatement::class);
-        $stmtFind->method('fetch')->willReturn(null);
+        $stmtFindGoogle = $this->createMock(PDOStatement::class);
+        $stmtFindGoogle->method('fetch')->willReturn(null);
 
-        // 2. Mock INSERT
+        // 2. Mock findByEmail call (returns null)
+        $stmtFindEmail = $this->createMock(PDOStatement::class);
+        $stmtFindEmail->method('fetch')->willReturn(null);
+
+        // 3. Mock INSERT
         $stmtInsert = $this->createMock(PDOStatement::class);
         $stmtInsert->method('execute')->willReturn(true);
 
-        // 3. Mock findById call
+        // 4. Mock findById call
         $stmtFindById = $this->createMock(PDOStatement::class);
         $stmtFindById->method('fetch')->willReturn(['user_id' => 1, 'google_id' => 'g1', 'name' => 'N', 'email' => 'e']);
 
         $this->pdo->method('prepare')->willReturnMap([
-            ['SELECT * FROM users WHERE google_id = ?', $stmtFind],
-            ['INSERT INTO users (google_id, name, email, avatar, role) VALUES (?, ?, ?, ?, ?)', $stmtInsert],
+            ['SELECT * FROM users WHERE google_id = ?', $stmtFindGoogle],
+            ['SELECT * FROM users WHERE email = ?', $stmtFindEmail],
+            ['INSERT INTO users (name, email, google_id, role) VALUES (?, ?, ?, ?)', $stmtInsert],
             ['SELECT * FROM users WHERE user_id = ?', $stmtFindById]
         ]);
 

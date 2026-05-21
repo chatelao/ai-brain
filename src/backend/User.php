@@ -23,6 +23,22 @@ class User
         return $user ?: null;
     }
 
+    public function findByGithubId(string $githubId): ?array
+    {
+        $stmt = $this->db->getConnection()->prepare("SELECT * FROM users WHERE github_id = ?");
+        $stmt->execute([$githubId]);
+        $user = $stmt->fetch();
+        return $user ?: null;
+    }
+
+    public function findByEmail(string $email): ?array
+    {
+        $stmt = $this->db->getConnection()->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+        return $user ?: null;
+    }
+
     public function findById(int $id): ?array
     {
         $stmt = $this->db->getConnection()->prepare("SELECT * FROM users WHERE user_id = ?");
@@ -33,31 +49,73 @@ class User
 
     public function createOrUpdate(array $data): ?array
     {
-        $user = $this->findByGoogleId($data['google_id']);
+        $user = null;
+        if (isset($data['google_id'])) {
+            $user = $this->findByGoogleId($data['google_id']);
+        } elseif (isset($data['github_id'])) {
+            $user = $this->findByGithubId($data['github_id']);
+        }
+
+        if (!$user && isset($data['email'])) {
+            $user = $this->findByEmail($data['email']);
+        }
 
         if ($user) {
-            $stmt = $this->db->getConnection()->prepare(
-                "UPDATE users SET name = ?, email = ?, avatar = ?, role = ? WHERE google_id = ?"
-            );
-            $stmt->execute([
-                $data['name'],
-                $data['email'],
-                $data['avatar'] ?? null,
-                $data['role'] ?? $user['role'],
-                $data['google_id']
-            ]);
-            return array_merge($user, $data);
+            $updateFields = [];
+            $params = [];
+
+            if (isset($data['name'])) {
+                $updateFields[] = "name = ?";
+                $params[] = $data['name'];
+            }
+            if (isset($data['email'])) {
+                $updateFields[] = "email = ?";
+                $params[] = $data['email'];
+            }
+            if (isset($data['avatar'])) {
+                $updateFields[] = "avatar = ?";
+                $params[] = $data['avatar'];
+            }
+            if (isset($data['google_id'])) {
+                $updateFields[] = "google_id = ?";
+                $params[] = $data['google_id'];
+            }
+            if (isset($data['github_id'])) {
+                $updateFields[] = "github_id = ?";
+                $params[] = $data['github_id'];
+            }
+
+            if (!empty($updateFields)) {
+                $sql = "UPDATE users SET " . implode(", ", $updateFields) . " WHERE user_id = ?";
+                $params[] = $user['user_id'];
+                $stmt = $this->db->getConnection()->prepare($sql);
+                $stmt->execute($params);
+            }
+
+            return $this->findById($user['user_id']);
         } else {
-            $stmt = $this->db->getConnection()->prepare(
-                "INSERT INTO users (google_id, name, email, avatar, role) VALUES (?, ?, ?, ?, ?)"
-            );
-            $stmt->execute([
-                $data['google_id'],
-                $data['name'],
-                $data['email'],
-                $data['avatar'] ?? null,
-                $data['role'] ?? 'user'
-            ]);
+            $fields = ['name', 'email', 'avatar', 'google_id', 'github_id', 'role'];
+            $insertFields = [];
+            $placeholders = [];
+            $params = [];
+
+            foreach ($fields as $field) {
+                if (isset($data[$field])) {
+                    $insertFields[] = $field;
+                    $placeholders[] = "?";
+                    $params[] = $data[$field];
+                }
+            }
+
+            if (!in_array('role', $insertFields)) {
+                $insertFields[] = 'role';
+                $placeholders[] = "?";
+                $params[] = 'user';
+            }
+
+            $sql = "INSERT INTO users (" . implode(", ", $insertFields) . ") VALUES (" . implode(", ", $placeholders) . ")";
+            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt->execute($params);
             $id = $this->db->getConnection()->lastInsertId();
             return $this->findById((int)$id);
         }

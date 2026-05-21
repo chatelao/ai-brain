@@ -71,9 +71,35 @@ class GitHubAuth
 
         $userData = json_decode($userResponse->getBody()->getContents(), true);
 
+        // Fetch email if not public
+        if (empty($userData['email'])) {
+            $emailsResponse = $this->httpClient->get('https://api.github.com/user/emails', [
+                'headers' => [
+                    'Authorization' => 'token ' . $accessToken,
+                    'Accept' => 'application/json',
+                    'User-Agent' => 'Agent-Control-App'
+                ],
+            ]);
+            $emails = json_decode($emailsResponse->getBody()->getContents(), true);
+            foreach ($emails as $emailData) {
+                if ($emailData['primary'] && $emailData['verified']) {
+                    $userData['email'] = $emailData['email'];
+                    break;
+                }
+            }
+            // If still no email, just take the first one
+            if (empty($userData['email']) && !empty($emails)) {
+                $userData['email'] = $emails[0]['email'];
+            }
+        }
+
         return [
             'access_token' => $accessToken,
-            'github_username' => $userData['login']
+            'github_username' => $userData['login'],
+            'github_id' => (string)$userData['id'],
+            'name' => $userData['name'] ?? $userData['login'],
+            'email' => $userData['email'] ?? null,
+            'avatar' => $userData['avatar_url'] ?? null
         ];
     }
 }

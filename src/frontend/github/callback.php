@@ -20,40 +20,62 @@ if (!$rateLimiter->check("github_callback_$ip", 20, 60)) {
 }
 
 $auth = new Auth();
-if (!$auth->isLoggedIn()) {
-    header('Location: ../index.php');
-    exit;
-}
-
 $userModel = new User($db);
 $githubAuth = new GitHubAuth();
 
 if (isset($_GET['code']) && isset($_GET['state'])) {
     try {
         $githubData = $githubAuth->authenticate($_GET['code'], $_GET['state']);
-        $userId = $auth->getUserId();
-        $userModel->addGitHubAccount($userId, $githubData['access_token'], $githubData['github_username']);
 
-        // Sync tasks for all user projects matching this GitHub account
-        $projectModel = new Project($db);
-        $taskModel = new Task($db);
-        $projects = $projectModel->findByUserId($userId);
+        if ($auth->isLoggedIn()) {
+            // Existing behavior: linking a GitHub account to the current user
+            $userId = $auth->getUserId();
+            $userModel->addGitHubAccount($userId, $githubData['access_token'], $githubData['github_username']);
 
-        foreach ($projects as $project) {
-            if ($project['github_username'] === $githubData['github_username']) {
-                try {
-                    $githubService = new GitHubService(null, $githubData['access_token']);
-                    $taskModel->syncIssues($userId, $project['project_id'], $project['github_repo'], $githubService);
-                } catch (Exception $e) {
-                    // Ignore sync errors for individual projects
+            // Sync tasks for all user projects matching this GitHub account
+            $projectModel = new Project($db);
+            $taskModel = new Task($db);
+            $projects = $projectModel->findByUserId($userId);
+
+            foreach ($projects as $project) {
+                if ($project['github_username'] === $githubData['github_username']) {
+                    try {
+                        $githubService = new GitHubService(null, $githubData['access_token']);
+                        $taskModel->syncIssues($userId, $project['project_id'], $project['github_repo'], $githubService);
+                    } catch (Exception $e) {
+                        // Ignore sync errors for individual projects
+                    }
                 }
             }
-        }
 
-        header('Location: ../settings.php?github=success');
-        exit;
+            header('Location: ../settings.php?github=success');
+            exit;
+        } else {
+            // New behavior: GitHub Login
+            $user = $userModel->createOrUpdate([
+                'github_id' => $githubData['github_id'],
+                'name' => $githubData['name'],
+                'email' => $githubData['email'],
+                'avatar' => $githubData['avatar']
+            ]);
+
+            if ($user) {
+                // Also update/add the GitHub account for token persistence
+                $userModel->addGitHubAccount($user['user_id'], $githubData['access_token'], $githubData['github_username']);
+
+                $auth->login($user);
+                header('Location: ../index.php');
+                exit;
+            } else {
+                throw new Exception("Failed to create or update user from GitHub data.");
+            }
+        }
     } catch (Exception $e) {
-        header('Location: ../settings.php?github=error&message=' . urlencode($e->getMessage()));
+        if ($auth->isLoggedIn()) {
+            header('Location: ../settings.php?github=error&message=' . urlencode($e->getMessage()));
+        } else {
+            echo "Error: " . htmlspecialchars($e->getMessage());
+        }
         exit;
     }
 } else {
