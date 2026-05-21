@@ -1,0 +1,48 @@
+@startuml
+!theme plain
+
+actor "User" as user
+
+package "External Systems" {
+    actor "Google SSO" as sso
+    actor "GitHub" as github
+    actor "Google Jules" as jules
+    actor "Telegram" as telegram
+}
+
+package "Agent Control System" {
+    usecase "UC-1: User Authentication" as uc1
+    usecase "UC-2: Project Coordination" as uc2
+    usecase "UC-3: Agent Triggering" as uc3
+    usecase "UC-4: Status Monitoring" as uc4
+
+    usecase "Link GitHub Accounts" as link_gh
+    usecase "Link Telegram Account" as link_tg
+    usecase "Receive Notifications" as notify
+    usecase "Customize Bot" as custom_bot
+}
+
+user --> uc1
+user --> uc2
+user --> uc3
+user --> uc4
+user --> link_tg
+user --> custom_bot
+
+uc1 ..> sso : uses
+uc1 ..> link_gh : includes
+link_gh ..> github : uses
+
+uc2 ..> github : uses
+uc3 ..> jules : uses
+uc3 ..> github : triggers from
+
+uc4 ..> jules : tracks
+uc4 ..> github : tracks
+
+link_tg ..> telegram : uses
+notify <.. uc4 : triggers
+user <-- notify
+notify ..> telegram : delivers via
+
+@enduml
