@@ -85,11 +85,14 @@ class Task
                 if ($success) {
                     return self::STATUS_READY;
                 }
-                if ($running || $julesStatus === 'finished' || $julesStatus === 'completed') {
+                if ($running) {
                     return self::STATUS_CHECKING;
                 }
+                if ($julesStatus === 'finished' || $julesStatus === 'completed') {
+                    return self::STATUS_READY;
+                }
             } elseif ($julesStatus === 'finished' || $julesStatus === 'completed') {
-                return $suitesProvided ? self::STATUS_READY : self::STATUS_CHECKING;
+                return self::STATUS_READY;
             }
         }
 
@@ -855,10 +858,12 @@ class Task
                         $sha = $pr['head']['sha'] ?? null;
                         if ($sha) {
                             $checkSuites = $githubService->getCheckSuites($task['github_repo'], $sha);
+                        } else {
+                            Logger::getInstance($this->db)->log($userId, $task['task_id'], "Could not find head SHA for PR $prUrl", 'warning');
                         }
                     }
                 } catch (\Exception $e) {
-                    // Ignore PR check errors
+                    Logger::getInstance($this->db)->log($userId, $task['task_id'], "Error fetching PR checks: " . $e->getMessage(), 'error');
                 }
             }
 
