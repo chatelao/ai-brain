@@ -127,6 +127,15 @@ $output = [
         'ready' => (bool)($eventSettings[\App\Task::UNIFIED_READY] ?? true),
         'finished' => (bool)($eventSettings[\App\Task::UNIFIED_FINISHED] ?? true),
         'failed' => (bool)($eventSettings[\App\Task::UNIFIED_FAILED] ?? true),
+        // Granular
+        'analyzing' => (bool)($eventSettings[\App\Task::STATUS_ANALYZING] ?? true),
+        'planning' => (bool)($eventSettings[\App\Task::STATUS_PLANNING] ?? true),
+        'executing' => (bool)($eventSettings[\App\Task::STATUS_EXECUTING] ?? true),
+        'verifying' => (bool)($eventSettings[\App\Task::STATUS_VERIFYING] ?? true),
+        'implemented' => (bool)($eventSettings[\App\Task::STATUS_IMPLEMENTED] ?? true),
+        'checking' => (bool)($eventSettings[\App\Task::STATUS_CHECKING] ?? true),
+        'failed_jules' => (bool)($eventSettings[\App\Task::STATUS_FAILED_JULES] ?? true),
+        'failed_pr' => (bool)($eventSettings[\App\Task::STATUS_FAILED_PR] ?? true),
     ],
 ];
 

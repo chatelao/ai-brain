@@ -680,6 +680,22 @@ paths:
                       type: boolean
                     failed:
                       type: boolean
+                    analyzing:
+                      type: boolean
+                    planning:
+                      type: boolean
+                    executing:
+                      type: boolean
+                    verifying:
+                      type: boolean
+                    implemented:
+                      type: boolean
+                    checking:
+                      type: boolean
+                    failed_jules:
+                      type: boolean
+                    failed_pr:
+                      type: boolean
       responses:
         '200':
           description: User profile updated successfully
@@ -807,6 +823,22 @@ components:
             finished:
               type: boolean
             failed:
+              type: boolean
+            analyzing:
+              type: boolean
+            planning:
+              type: boolean
+            executing:
+              type: boolean
+            verifying:
+              type: boolean
+            implemented:
+              type: boolean
+            checking:
+              type: boolean
+            failed_jules:
+              type: boolean
+            failed_pr:
               type: boolean
 
     Project:

@@ -1221,6 +1221,14 @@ export interface paths {
                             ready?: boolean;
                             finished?: boolean;
                             failed?: boolean;
+                            analyzing?: boolean;
+                            planning?: boolean;
+                            executing?: boolean;
+                            verifying?: boolean;
+                            implemented?: boolean;
+                            checking?: boolean;
+                            failed_jules?: boolean;
+                            failed_pr?: boolean;
                         };
                     };
                 };
@@ -1372,6 +1380,14 @@ export interface components {
                 ready?: boolean;
                 finished?: boolean;
                 failed?: boolean;
+                analyzing?: boolean;
+                planning?: boolean;
+                executing?: boolean;
+                verifying?: boolean;
+                implemented?: boolean;
+                checking?: boolean;
+                failed_jules?: boolean;
+                failed_pr?: boolean;
             };
         };
         Project: {
