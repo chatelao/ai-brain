@@ -145,6 +145,7 @@ $errorMessage = $errorMessage ?? null;
                         </div>
                     <?php else : ?>
                         <a href="google/login.php" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 focus:outline-none">Login with Google</a>
+                        <a href="github/login.php" class="text-white bg-gray-800 hover:bg-gray-900 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 focus:outline-none">Login with GitHub</a>
                     <?php endif; ?>
                 </div>
             </div>

@@ -16,7 +16,7 @@ class GitHubAuthIntegrationTest extends TestCase
     {
         $mock = new MockHandler([
             new Response(200, [], json_encode(['access_token' => 'test-token'])),
-            new Response(200, [], json_encode(['login' => 'test-user'])),
+            new Response(200, [], json_encode(['login' => 'test-user', 'id' => 123, 'email' => 'test@example.com'])),
         ]);
 
         $handlerStack = HandlerStack::create($mock);
