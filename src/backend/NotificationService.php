@@ -508,7 +508,7 @@ class NotificationService
 
         $settings = [];
         foreach ($rows as $row) {
-            $settings[$row['notification_type']] = (bool)$row['is_enabled'];
+            $settings[strtoupper($row['notification_type'])] = (bool)$row['is_enabled'];
         }
 
         // Unified states
@@ -536,6 +536,7 @@ class NotificationService
 
         try {
             foreach ($settings as $type => $enabled) {
+                $type = strtoupper($type);
                 $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
                 if ($driver === 'sqlite') {
                     $stmt = $db->prepare(
