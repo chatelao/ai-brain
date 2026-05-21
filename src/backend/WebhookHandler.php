@@ -65,6 +65,7 @@ class WebhookHandler
                 $effectiveNotifService->notify($project['user_id'], 'github_issue', "🗑️ Issue Deleted: #" . $issue['number'], "Issue \"" . ($issue['title'] ?? 'Unknown') . "\" was deleted in " . $project['github_repo'], [
                     'project_id' => $project['project_id'],
                     'issue_number' => $issue['number'],
+                    'status' => Task::STATUS_FINISHED,
                     'source_url' => $issue['html_url'] ?? '',
                     'is_system' => !$this->isUserTriggered($event)
                 ]);
@@ -93,10 +94,13 @@ class WebhookHandler
             ];
 
             if ($action === 'opened') {
+                $notificationData['status'] = Task::STATUS_CREATED;
                 $effectiveNotifService->notify($project['user_id'], 'github_issue', "🆕 Issue Opened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was opened in " . $project['github_repo'], $notificationData, ['acknowledge']);
             } elseif ($action === 'closed') {
+                $notificationData['status'] = Task::STATUS_FINISHED;
                 $effectiveNotifService->notify($project['user_id'], 'github_issue', "🔒 Issue Closed: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was closed in " . $project['github_repo'], $notificationData);
             } elseif ($action === 'reopened') {
+                $notificationData['status'] = Task::STATUS_CREATED;
                 $effectiveNotifService->notify($project['user_id'], 'github_issue', "🔓 Issue Reopened: #" . $issue['number'], "Issue \"" . $issue['title'] . "\" was reopened in " . $project['github_repo'], $notificationData, ['acknowledge']);
             }
         }
@@ -189,6 +193,7 @@ class WebhookHandler
                 $notificationService->notify($project['user_id'], 'github_issue', "🔁 Auto-Repeat: #" . $issue['number'], "Task \"" . $issue['title'] . "\" was merged/closed with Auto-Repeat. A new issue has been created.", [
                     'project_id' => $project['project_id'],
                     'issue_number' => $issue['number'],
+                    'status' => Task::STATUS_CREATED,
                     'source_url' => $issue['html_url'] ?? '',
                     'is_system' => true
                 ]);
@@ -226,6 +231,7 @@ class WebhookHandler
             $notificationService->notify($project['user_id'], 'github_pr', "$emoji PR $actionText: #" . $pr['number'], "Pull Request \"" . $pr['title'] . "\" was $actionText in " . $project['github_repo'], [
                 'project_id' => $project['project_id'],
                 'pr_number' => $pr['number'],
+                'status' => ($action === 'closed' && ($pr['merged'] ?? false)) ? Task::STATUS_FINISHED : Task::STATUS_CHECKING,
                 'source_url' => $pr['html_url'],
                 'is_system' => !$this->isUserTriggered($event)
             ]);

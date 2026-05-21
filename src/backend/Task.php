@@ -18,6 +18,12 @@ class Task
     public const STATUS_FAILED_JULES = 'failed_jules';
     public const STATUS_FAILED_PR = 'failed_pr';
 
+    public const UNIFIED_CREATED = 'CREATED';
+    public const UNIFIED_PROCESSING = 'PROCESSING';
+    public const UNIFIED_READY = 'READY';
+    public const UNIFIED_FINISHED = 'FINISHED';
+    public const UNIFIED_FAILED = 'FAILED';
+
     public function __construct(private Database $db)
     {
     }
@@ -543,6 +549,60 @@ class Task
         }
 
         return ucwords(str_replace('_', ' ', $status));
+    }
+
+    public static function getUnifiedState(string $status): string
+    {
+        switch ($status) {
+            case self::STATUS_CREATED:
+                return self::UNIFIED_CREATED;
+            case self::STATUS_ANALYZING:
+            case self::STATUS_PLANNING:
+            case self::STATUS_EXECUTING:
+            case self::STATUS_VERIFYING:
+            case self::STATUS_IMPLEMENTED:
+            case self::STATUS_CHECKING:
+            case 'in_progress': // Legacy
+                return self::UNIFIED_PROCESSING;
+            case self::STATUS_READY:
+                return self::UNIFIED_READY;
+            case self::STATUS_FINISHED:
+            case 'completed': // Legacy
+                return self::UNIFIED_FINISHED;
+            case self::STATUS_FAILED_JULES:
+            case self::STATUS_FAILED_PR:
+            case 'failed': // Legacy
+                return self::UNIFIED_FAILED;
+            default:
+                return self::UNIFIED_CREATED;
+        }
+    }
+
+    public static function getStatusGrouping(): array
+    {
+        return [
+            self::UNIFIED_CREATED => [
+                self::STATUS_CREATED => 'Waiting for Agent'
+            ],
+            self::UNIFIED_PROCESSING => [
+                self::STATUS_ANALYZING => 'Analyzing',
+                self::STATUS_PLANNING => 'Planning',
+                self::STATUS_EXECUTING => 'Executing',
+                self::STATUS_VERIFYING => 'Verifying',
+                self::STATUS_IMPLEMENTED => 'Implemented',
+                self::STATUS_CHECKING => 'Checking'
+            ],
+            self::UNIFIED_READY => [
+                self::STATUS_READY => 'Ready'
+            ],
+            self::UNIFIED_FINISHED => [
+                self::STATUS_FINISHED => 'Finished'
+            ],
+            self::UNIFIED_FAILED => [
+                self::STATUS_FAILED_JULES => 'Jules Failed',
+                self::STATUS_FAILED_PR => 'PR Failed'
+            ]
+        ];
     }
 
     public function hasAutorepeatLabel(array $task): bool
