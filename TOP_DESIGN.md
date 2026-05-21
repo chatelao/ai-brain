@@ -6,7 +6,7 @@ The application follows a modular architecture, separating concerns between the 
 ### Component Diagram
 The following diagram illustrates the high-level components and their interactions:
 
-![Component Diagram](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/specification/architecture_component.puml)
+![Component Diagram](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/specification/TOP_ARCHITECTURE.puml)
 
 ## Tech Stack
 - **Development & Production**:

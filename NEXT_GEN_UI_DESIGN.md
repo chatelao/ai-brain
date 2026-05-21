@@ -38,7 +38,7 @@ The Next Gen UI transitions from PHP sessions to **JSON Web Tokens (JWT)**:
 - **Refresh Tokens**: Stored securely on mobile devices using **SecureStore** (Expo) to maintain long-running sessions without re-authentication.
 
 ## 4. API & Data Mapping
-The frontend consumes the standardized entities from `CONCEPT.md`:
+The frontend consumes the standardized entities from `TOP_CONCEPT.md`:
 
 | Entity | Frontend Interface | Backend Source |
 | :--- | :--- | :--- |
