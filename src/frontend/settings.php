@@ -102,10 +102,11 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notif
         'browser' => isset($_POST['notify_browser'])
     ];
     $eventSettings = [
-        'github_issue' => isset($_POST['notify_github_issue']),
-        'github_pr' => isset($_POST['notify_github_pr']),
-        'task_status' => isset($_POST['notify_task_status']),
-        'agent_event' => isset($_POST['notify_agent_event'])
+        App\Task::UNIFIED_CREATED => isset($_POST['notify_' . App\Task::UNIFIED_CREATED]),
+        App\Task::UNIFIED_PROCESSING => isset($_POST['notify_' . App\Task::UNIFIED_PROCESSING]),
+        App\Task::UNIFIED_READY => isset($_POST['notify_' . App\Task::UNIFIED_READY]),
+        App\Task::UNIFIED_FINISHED => isset($_POST['notify_' . App\Task::UNIFIED_FINISHED]),
+        App\Task::UNIFIED_FAILED => isset($_POST['notify_' . App\Task::UNIFIED_FAILED])
     ];
     if (
         $notificationService->updateUserSettings($user['user_id'], $settings) &&
@@ -432,18 +433,19 @@ if ($user && !$telegramChatId && !empty($telegramBotName) && empty($telegramLink
                                 </div>
 
                                 <div class="border-t border-gray-100 pt-4">
-                                    <h4 class="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wider">Global Event Subscriptions</h4>
-                                    <p class="text-xs text-gray-500 mb-4">Choose which types of events you want to be notified about across all projects.</p>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <h4 class="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wider">Global Task State Subscriptions</h4>
+                                    <p class="text-xs text-gray-500 mb-4">Choose which task states you want to be notified about across all projects.</p>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                                         <?php
                                         $userEventSettings = $notificationService->getUserEventSettings($user['user_id']);
-                                        $eventTypes = [
-                                            'github_issue' => 'GitHub Issues',
-                                            'github_pr' => 'GitHub PRs',
-                                            'task_status' => 'Task Status',
-                                            'agent_event' => 'Agent Events'
+                                        $unifiedStates = [
+                                            Task::UNIFIED_CREATED => 'Created',
+                                            Task::UNIFIED_PROCESSING => 'Processing',
+                                            Task::UNIFIED_READY => 'Ready',
+                                            Task::UNIFIED_FINISHED => 'Finished',
+                                            Task::UNIFIED_FAILED => 'Failed'
                                         ];
-                                        foreach ($eventTypes as $id => $label) :
+                                        foreach ($unifiedStates as $id => $label) :
                                         ?>
                                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                             <span class="text-sm font-medium text-gray-700"><?= $label ?></span>

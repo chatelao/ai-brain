@@ -143,6 +143,18 @@ class NotificationTriggerTest extends TestCase
 
         $this->pdo->exec("INSERT INTO users (user_id, google_id, name, email, jules_api_key) VALUES (1, 'google-1', 'User 1', 'user1@example.com', 'key-123')");
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'owner/repo')");
+
+        // Enable all unified states for user 1
+        $this->pdo->exec("INSERT INTO user_event_notification_settings (user_id, notification_type, is_enabled) VALUES (1, 'CREATED', 1)");
+        $this->pdo->exec("INSERT INTO user_event_notification_settings (user_id, notification_type, is_enabled) VALUES (1, 'PROCESSING', 1)");
+        $this->pdo->exec("INSERT INTO user_event_notification_settings (user_id, notification_type, is_enabled) VALUES (1, 'READY', 1)");
+        $this->pdo->exec("INSERT INTO user_event_notification_settings (user_id, notification_type, is_enabled) VALUES (1, 'FINISHED', 1)");
+        $this->pdo->exec("INSERT INTO user_event_notification_settings (user_id, notification_type, is_enabled) VALUES (1, 'FAILED', 1)");
+
+        // Enable some common statuses at project level by default for tests
+        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES (1, 'created', 1)");
+        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES (1, 'checking', 1)");
+        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES (1, 'finished', 1)");
     }
 
     public function testWebhookIssueOpenedTriggersNotification()

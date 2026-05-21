@@ -34,19 +34,25 @@ class NotificationService
             return false;
         }
 
-        // 2. Check global user event settings
-        if (!$this->isUserTypeEnabled($userId, $type)) {
-            return false;
-        }
+        // 2. Check for status-based filtering
+        if (isset($data['status'])) {
+            $status = $data['status'];
+            $unifiedState = Task::getUnifiedState($status);
 
-        // 3. Check project-level settings (if project_id is provided)
-        if (isset($data['project_id']) && !$this->isProjectTypeEnabled($data['project_id'], $type)) {
-            return false;
-        }
+            // 2.1 Check global user unified state settings
+            if (!$this->isUserUnifiedStateEnabled($userId, $unifiedState)) {
+                return false;
+            }
 
-        // 3.1 Check if notification is enabled for this status (if it's a task_status event)
-        if ($type === 'task_status' && isset($data['project_id']) && isset($data['status'])) {
-            if (!$this->isStatusNotificationEnabled((int)$data['project_id'], $data['status'])) {
+            // 2.2 Check project-level status settings
+            if (isset($data['project_id'])) {
+                if (!$this->isStatusNotificationEnabled((int)$data['project_id'], $status)) {
+                    return false;
+                }
+            }
+        } else {
+            // Fallback for legacy types or system notifications without status
+            if (!$this->isUserTypeEnabled($userId, $type)) {
                 return false;
             }
         }
@@ -188,59 +194,20 @@ class NotificationService
         return $stmt->execute([$taskId, (int)$isMuted]);
     }
 
+    /**
+     * @deprecated Use getStatusSettings instead
+     */
     public function getProjectSettings(int $projectId): array
     {
-        $stmt = $this->db->getConnection()->prepare(
-            "SELECT notification_type, is_enabled FROM project_notification_settings WHERE project_id = ?"
-        );
-        $stmt->execute([$projectId]);
-        $rows = $stmt->fetchAll();
-
-        $settings = [];
-        foreach ($rows as $row) {
-            $settings[$row['notification_type']] = (bool)$row['is_enabled'];
-        }
-
-        // Default settings if not present
-        $types = ['github_issue', 'github_pr', 'task_status', 'agent_event'];
-        foreach ($types as $type) {
-            if (!isset($settings[$type])) {
-                $settings[$type] = true;
-            }
-        }
-
-        return $settings;
+        return [];
     }
 
+    /**
+     * @deprecated Use updateStatusSettings instead
+     */
     public function updateProjectSettings(int $projectId, array $settings): bool
     {
-        $db = $this->db->getConnection();
-        $db->beginTransaction();
-
-        try {
-            foreach ($settings as $type => $enabled) {
-                $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
-                if ($driver === 'sqlite') {
-                    $stmt = $db->prepare(
-                        "INSERT INTO project_notification_settings (project_id, notification_type, is_enabled)
-                         VALUES (?, ?, ?)
-                         ON CONFLICT(project_id, notification_type) DO UPDATE SET is_enabled = excluded.is_enabled"
-                    );
-                } else {
-                    $stmt = $db->prepare(
-                        "INSERT INTO project_notification_settings (project_id, notification_type, is_enabled)
-                         VALUES (?, ?, ?)
-                         ON DUPLICATE KEY UPDATE is_enabled = VALUES(is_enabled)"
-                    );
-                }
-                $stmt->execute([$projectId, $type, (int)$enabled]);
-            }
-            $db->commit();
-            return true;
-        } catch (\Exception $e) {
-            $db->rollBack();
-            return false;
-        }
+        return true;
     }
 
     public function getStatusSettings(int $projectId): array
@@ -331,10 +298,18 @@ class NotificationService
         return $settings[$type] ?? true;
     }
 
+    private function isUserUnifiedStateEnabled(int $userId, string $unifiedState): bool
+    {
+        $settings = $this->getUserEventSettings($userId);
+        return $settings[$unifiedState] ?? true;
+    }
+
+    /**
+     * @deprecated
+     */
     private function isProjectTypeEnabled(int $projectId, string $type): bool
     {
-        $settings = $this->getProjectSettings($projectId);
-        return $settings[$type] ?? true;
+        return true;
     }
 
     private function isStatusNotificationEnabled(int $projectId, string $status): bool
@@ -536,11 +511,18 @@ class NotificationService
             $settings[$row['notification_type']] = (bool)$row['is_enabled'];
         }
 
-        // Default settings if not present
-        $types = ['github_issue', 'github_pr', 'task_status', 'agent_event'];
-        foreach ($types as $type) {
-            if (!isset($settings[$type])) {
-                $settings[$type] = true;
+        // Unified states
+        $unifiedStates = [
+            Task::UNIFIED_CREATED,
+            Task::UNIFIED_PROCESSING,
+            Task::UNIFIED_READY,
+            Task::UNIFIED_FINISHED,
+            Task::UNIFIED_FAILED
+        ];
+
+        foreach ($unifiedStates as $state) {
+            if (!isset($settings[$state])) {
+                $settings[$state] = true;
             }
         }
 

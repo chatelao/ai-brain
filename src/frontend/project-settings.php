@@ -75,12 +75,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notifications'
     if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
         die("CSRF token validation failed.");
     }
-    $settings = [
-        'github_issue' => isset($_POST['notify_github_issue']),
-        'github_pr' => isset($_POST['notify_github_pr']),
-        'task_status' => isset($_POST['notify_task_status']),
-        'agent_event' => isset($_POST['notify_agent_event'])
-    ];
 
     $statusSettings = [
         str_replace('-', '_', Task::STATUS_CREATED) => isset($_POST['broadcast_' . Task::STATUS_CREATED]),
@@ -97,7 +91,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_notifications'
     ];
 
     if (
-        $notificationService->updateProjectSettings($projectId, $settings) &&
         $notificationService->updateStatusSettings($projectId, $statusSettings)
     ) {
         $redirectUrl = basename($_SERVER['PHP_SELF']) . "?id=$projectId&success=notifications_updated";
@@ -302,73 +295,32 @@ if (isset($_GET['success'])) {
                         <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
                             <h3 class="text-lg font-bold text-gray-900 mb-4">Notification Preferences</h3>
                             <?php
-                            $projectNotifSettings = $notificationService->getProjectSettings($projectId);
                             $statusNotifSettings = $notificationService->getStatusSettings($projectId);
+                            $grouping = Task::getStatusGrouping();
                             ?>
                             <form method="POST" class="space-y-6">
                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                        <span class="text-sm font-medium text-gray-700">GitHub Issues</span>
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" name="notify_github_issue" class="sr-only peer" <?= ($projectNotifSettings['github_issue'] ?? true) ? 'checked' : '' ?>>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                        <span class="text-sm font-medium text-gray-700">GitHub PRs</span>
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" name="notify_github_pr" class="sr-only peer" <?= ($projectNotifSettings['github_pr'] ?? true) ? 'checked' : '' ?>>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                        <span class="text-sm font-medium text-gray-700">Task Status</span>
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" name="notify_task_status" class="sr-only peer" <?= ($projectNotifSettings['task_status'] ?? true) ? 'checked' : '' ?>>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                        <span class="text-sm font-medium text-gray-700">Agent Events</span>
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" name="notify_agent_event" class="sr-only peer" <?= ($projectNotifSettings['agent_event'] ?? true) ? 'checked' : '' ?>>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                </div>
 
-                                <div class="border-t border-gray-100 pt-4">
-                                    <h4 class="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wider">Status Notification Preferences</h4>
-                                    <p class="text-xs text-gray-500 mb-4">Choose which status changes trigger a notification. Disabling a status here will suppress both in-app inbox alerts and external broadcasts (Telegram/Browser).</p>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                        <?php
-                                        $statuses = [
-                                            Task::STATUS_CREATED => 'Waiting for Agent',
-                                            Task::STATUS_ANALYZING => 'Analyzing',
-                                            Task::STATUS_PLANNING => 'Planning',
-                                            Task::STATUS_EXECUTING => 'Executing',
-                                            Task::STATUS_VERIFYING => 'Verifying',
-                                            Task::STATUS_IMPLEMENTED => 'Implemented',
-                                            Task::STATUS_CHECKING => 'Checking',
-                                            Task::STATUS_READY => 'Ready',
-                                            Task::STATUS_FINISHED => 'Finished',
-                                            Task::STATUS_FAILED_JULES => 'Jules Failed',
-                                            Task::STATUS_FAILED_PR => 'PR Failed'
-                                        ];
-                                        foreach ($statuses as $id => $label) :
-                                            $normalizedId = str_replace('-', '_', $id);
+                                <p class="text-xs text-gray-500 mb-4">Choose which status changes trigger a notification. Disabling a status here will suppress both in-app inbox alerts and external broadcasts (Telegram/Browser).</p>
+
+                                <?php foreach ($grouping as $unifiedState => $statuses) : ?>
+                                    <div class="border-t border-gray-100 pt-4">
+                                        <h4 class="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wider"><?= ucfirst(strtolower($unifiedState)) ?></h4>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                            <?php foreach ($statuses as $id => $label) :
+                                                $normalizedId = str_replace('-', '_', $id);
                                             ?>
-                                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100 shadow-sm">
-                                            <span class="text-xs font-medium text-gray-600"><?= $label ?></span>
-                                            <label class="relative inline-flex items-center cursor-pointer scale-75">
-                                                <input type="checkbox" name="broadcast_<?= $id ?>" class="sr-only peer" <?= ($statusNotifSettings[$normalizedId] ?? false) ? 'checked' : '' ?>>
-                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                            </label>
+                                            <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100 shadow-sm">
+                                                <span class="text-xs font-medium text-gray-600"><?= $label ?></span>
+                                                <label class="relative inline-flex items-center cursor-pointer scale-75">
+                                                    <input type="checkbox" name="broadcast_<?= $id ?>" class="sr-only peer" <?= ($statusNotifSettings[$normalizedId] ?? false) ? 'checked' : '' ?>>
+                                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                                </label>
+                                            </div>
+                                            <?php endforeach; ?>
                                         </div>
-                                        <?php endforeach; ?>
                                     </div>
-                                </div>
+                                <?php endforeach; ?>
 
                                 <button type="submit" name="update_notifications" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Save Notification Settings</button>
                             </form>

@@ -36,6 +36,7 @@ class NotificationServiceTest extends TestCase
         $this->pdo->exec("DROP TABLE IF EXISTS user_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS project_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS user_event_notification_settings");
+        $this->pdo->exec("DROP TABLE IF EXISTS project_status_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS task_notification_settings");
         $this->pdo->exec("DROP TABLE IF EXISTS projects");
         $this->pdo->exec("DROP TABLE IF EXISTS users");
@@ -81,6 +82,13 @@ class NotificationServiceTest extends TestCase
             notification_type VARCHAR(50),
             is_enabled BOOLEAN DEFAULT TRUE,
             PRIMARY KEY (project_id, notification_type)
+        )");
+
+        $this->pdo->exec("CREATE TABLE project_status_notification_settings (
+            project_id INT,
+            status VARCHAR(50),
+            is_enabled BOOLEAN DEFAULT TRUE,
+            PRIMARY KEY (project_id, status)
         )");
 
         $this->pdo->exec("CREATE TABLE task_notification_settings (
@@ -129,11 +137,14 @@ class NotificationServiceTest extends TestCase
     {
         $userId = 1;
         $projectId = 200;
-        $type = 'disabled_type';
+        $status = 'some_status';
 
-        $this->pdo->exec("INSERT INTO project_notification_settings (project_id, notification_type, is_enabled) VALUES ($projectId, '$type', 0)");
+        $this->pdo->exec("INSERT INTO project_status_notification_settings (project_id, status, is_enabled) VALUES ($projectId, '$status', 0)");
 
-        $result = $this->notificationService->notify($userId, $type, 'title', 'message', ['project_id' => $projectId]);
+        $result = $this->notificationService->notify($userId, 'type', 'title', 'message', [
+            'project_id' => $projectId,
+            'status' => $status
+        ]);
 
         $this->assertFalse($result);
         $this->assertEquals(0, $this->notificationService->getUnreadCount($userId));
