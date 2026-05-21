@@ -13,10 +13,10 @@ This document provides a structured index of the application's conceptual and te
 | **Telegram Control** | [`CHAT_CONCEPT.md`](CHAT_CONCEPT.md) | [`CHAT_DESIGN.md`](CHAT_DESIGN.md) | [`CHAT_ROADMAP.md`](CHAT_ROADMAP.md) |
 
 # Structure
-- `CONCEPT.md`: The overall structure of the product, including Business & Use Cases as well as the High-Level Architecture.
-- `DESIGN.md`: The detailed design of the solution, including the architecture, used tech stack for development, production and testing, etc.
+- `TOP_CONCEPT.md`: The overall structure of the product, including Business & Use Cases as well as the High-Level Architecture.
+- `TOP_DESIGN.md`: The detailed design of the solution, including the architecture, used tech stack for development, production and testing, etc.
 - `TOP_ARCHITECTURE.puml`: The top-level component overview showing all major modules and the dataflows between them.
-- `ROADMAP.md`: The list of accomplished and planned steps of the project.
+- `TOP_ROADMAP.md`: The list of accomplished and planned steps of the project.
 - `TECHNICAL_DEBTS.md`: If you find technical debts, like outdate components, security flaws, old patterns, etc. log them here, but don’t fix them until asked to do so.
 - `README.md`: Add a link to the GitHub pages if any are produced / present.
 - `/specification/`: External Know-How as datasheet, standards, etc. Should be converted to Markdown if PDF, etc.
