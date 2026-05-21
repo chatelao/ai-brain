@@ -63,14 +63,38 @@ export default function SettingsPage() {
     });
   };
 
-  const toggleEvent = (event: 'created' | 'processing' | 'ready' | 'finished' | 'failed') => {
+  const toggleEvent = (event: string) => {
     if (!user?.notification_event_settings) return;
     updateUser.mutate({
       notification_event_settings: {
         ...user.notification_event_settings,
-        [event]: !user.notification_event_settings[event],
+        [event]: !user.notification_event_settings[event as keyof typeof user.notification_event_settings],
       },
     });
+  };
+
+  const statusGrouping = {
+    'CREATED': {
+      'created': 'Waiting for Agent'
+    },
+    'PROCESSING': {
+      'analyzing': 'Analyzing',
+      'planning': 'Planning',
+      'executing': 'Executing',
+      'verifying': 'Verifying',
+      'implemented': 'Implemented',
+      'checking': 'Checking'
+    },
+    'READY': {
+      'ready': 'Ready'
+    },
+    'FINISHED': {
+      'finished': 'Finished'
+    },
+    'FAILED': {
+      'failed_jules': 'Jules Failed',
+      'failed_pr': 'PR Failed'
+    }
   };
 
   const sendTestBroadcast = async () => {
@@ -317,25 +341,32 @@ export default function SettingsPage() {
 
             <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Global State Subscriptions</h3>
-              <p className="text-sm text-gray-500 mb-6">Receive notifications when tasks reach these states across all projects.</p>
+              <p className="text-sm text-gray-500 mb-6">Choose which status changes trigger a notification across all projects.</p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(['created', 'processing', 'ready', 'finished', 'failed'] as const).map((event) => (
-                  <div key={event} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                    <span className="text-sm font-medium text-gray-700 capitalize">{event}</span>
-                    <button
-                      onClick={() => toggleEvent(event)}
-                      disabled={updateUser.isPending}
-                      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        user?.notification_event_settings?.[event] ? 'bg-blue-600' : 'bg-gray-200'
-                      }`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          user?.notification_event_settings?.[event] ? 'translate-x-4' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
+              <div className="space-y-8">
+                {(Object.entries(statusGrouping) as [string, Record<string, string>][]).map(([group, statuses]) => (
+                  <div key={group} className="border-t border-gray-100 pt-4 first:border-0 first:pt-0">
+                    <h4 className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">{group}</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {Object.entries(statuses).map(([id, label]) => (
+                        <div key={id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                          <span className="text-xs font-medium text-gray-600">{label}</span>
+                          <button
+                            onClick={() => toggleEvent(id)}
+                            disabled={updateUser.isPending}
+                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                              user?.notification_event_settings?.[id as keyof typeof user.notification_event_settings] ? 'bg-blue-600' : 'bg-gray-200'
+                            }`}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                user?.notification_event_settings?.[id as keyof typeof user.notification_event_settings] ? 'translate-x-4' : 'translate-x-0'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>

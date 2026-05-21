@@ -37,10 +37,9 @@ class NotificationService
         // 2. Check for status-based filtering
         if (isset($data['status'])) {
             $status = $data['status'];
-            $unifiedState = Task::getUnifiedState($status);
 
-            // 2.1 Check global user unified state settings
-            if (!$this->isUserUnifiedStateEnabled($userId, $unifiedState)) {
+            // 2.1 Check global user status settings
+            if (!$this->isUserStatusEnabled($userId, $status)) {
                 return false;
             }
 
@@ -304,6 +303,21 @@ class NotificationService
         return $settings[$unifiedState] ?? true;
     }
 
+    private function isUserStatusEnabled(int $userId, string $status): bool
+    {
+        $normalizedStatus = str_replace('-', '_', $status);
+        $settings = $this->getUserEventSettings($userId);
+
+        // 1. If granular setting exists, it takes precedence
+        if (isset($settings[$normalizedStatus])) {
+            return $settings[$normalizedStatus];
+        }
+
+        // 2. Fallback to unified state setting
+        $unifiedState = Task::getUnifiedState($status);
+        return $settings[$unifiedState] ?? true;
+    }
+
     /**
      * @deprecated
      */
@@ -523,6 +537,30 @@ class NotificationService
         foreach ($unifiedStates as $state) {
             if (!isset($settings[$state])) {
                 $settings[$state] = true;
+            }
+        }
+
+        // Granular statuses
+        $granularStatuses = [
+            Task::STATUS_CREATED,
+            Task::STATUS_ANALYZING,
+            Task::STATUS_PLANNING,
+            Task::STATUS_EXECUTING,
+            Task::STATUS_VERIFYING,
+            Task::STATUS_IMPLEMENTED,
+            Task::STATUS_CHECKING,
+            Task::STATUS_READY,
+            Task::STATUS_FINISHED,
+            Task::STATUS_FAILED_JULES,
+            Task::STATUS_FAILED_PR
+        ];
+
+        foreach ($granularStatuses as $status) {
+            $normalizedStatus = str_replace('-', '_', $status);
+            if (!isset($settings[$normalizedStatus])) {
+                // If the unified state is set, use that as default
+                $unifiedState = Task::getUnifiedState($status);
+                $settings[$normalizedStatus] = $settings[$unifiedState] ?? true;
             }
         }
 
