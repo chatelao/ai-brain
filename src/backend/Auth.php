@@ -20,7 +20,16 @@ class Auth
         $this->client = new GoogleClient();
         $this->client->setClientId(getenv('GOOGLE_CLIENT_ID'));
         $this->client->setClientSecret(getenv('GOOGLE_CLIENT_SECRET'));
-        $this->client->setRedirectUri(getenv('GOOGLE_REDIRECT_URI'));
+
+        $redirectUri = getenv('GOOGLE_REDIRECT_URI');
+        if (isset($_SERVER['HTTP_HOST']) && !empty($redirectUri)) {
+            $parsedUrl = parse_url($redirectUri);
+            if (isset($parsedUrl['scheme']) && isset($parsedUrl['path'])) {
+                $redirectUri = $parsedUrl['scheme'] . '://' . $_SERVER['HTTP_HOST'] . $parsedUrl['path'];
+            }
+        }
+        $this->client->setRedirectUri($redirectUri);
+
         $this->client->addScope("email");
         $this->client->addScope("profile");
 

@@ -16,7 +16,16 @@ class GitHubAuth
     {
         $this->clientId = getenv('GITHUB_CLIENT_ID') ?: '';
         $this->clientSecret = getenv('GITHUB_CLIENT_SECRET') ?: '';
-        $this->redirectUri = getenv('GITHUB_REDIRECT_URI') ?: '';
+
+        $redirectUri = getenv('GITHUB_REDIRECT_URI') ?: '';
+        if (isset($_SERVER['HTTP_HOST']) && !empty($redirectUri)) {
+            $parsedUrl = parse_url($redirectUri);
+            if (isset($parsedUrl['scheme']) && isset($parsedUrl['path'])) {
+                $redirectUri = $parsedUrl['scheme'] . '://' . $_SERVER['HTTP_HOST'] . $parsedUrl['path'];
+            }
+        }
+        $this->redirectUri = $redirectUri;
+
         $this->httpClient = new Client();
     }
 
