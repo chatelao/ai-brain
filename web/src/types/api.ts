@@ -680,6 +680,140 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/project.php": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get project details (JSON)
+         * @description Returns details for a specific project, including roadmap data.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Project ID */
+                    id: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Project details */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Project"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Access denied or project not found */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Project not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Perform project action
+         * @description Triggers actions like issue synchronization for a project.
+         */
+        post: {
+            parameters: {
+                query: {
+                    /** @description Project ID */
+                    id: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        action: "sync_issues";
+                    };
+                };
+            };
+            responses: {
+                /** @description Action performed successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            status?: string;
+                            message?: string;
+                        };
+                    };
+                };
+                /** @description Invalid action or missing parameters */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Access denied */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Project not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Action failed */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tasks.php": {
         parameters: {
             query?: never;
@@ -1117,6 +1251,16 @@ export interface components {
             created_at?: string;
             /** @example johndoe_git */
             github_username?: string;
+            roadmap_data?: {
+                name?: string;
+                html_url?: string;
+                next_task?: string | null;
+            }[] | null;
+            /**
+             * Format: date-time
+             * @example 2023-10-27T10:05:00Z
+             */
+            roadmap_updated_at?: string | null;
         };
         Task: {
             /** @example 42 */
