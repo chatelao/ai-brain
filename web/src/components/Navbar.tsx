@@ -24,6 +24,11 @@ const Navbar = () => {
             <Link href="/settings" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
               Settings
             </Link>
+            {user?.role === 'admin' && (
+              <Link href="/admin" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+                Admin
+              </Link>
+            )}
           </div>
         </div>
         <div className="flex items-center space-x-4">

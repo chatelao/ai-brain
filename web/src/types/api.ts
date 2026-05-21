@@ -34,72 +34,7 @@ export interface paths {
             };
         };
         put?: never;
-        /**
-         * Update user profile/settings (JSON)
-         * @description Updates the profile and configuration of the currently authenticated user.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": {
-                        jules_api_key?: string | null;
-                        telegram_bot_name?: string | null;
-                        telegram_bot_token?: string | null;
-                        telegram_webhook_secret?: string | null;
-                        notification_settings?: {
-                            in_app?: boolean;
-                            browser?: boolean;
-                            telegram?: boolean;
-                        };
-                        notification_event_settings?: {
-                            created?: boolean;
-                            processing?: boolean;
-                            ready?: boolean;
-                            finished?: boolean;
-                            failed?: boolean;
-                        };
-                    };
-                };
-            };
-            responses: {
-                /** @description User profile updated successfully */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["User"];
-                    };
-                };
-                /** @description Invalid request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1257,6 +1192,124 @@ export interface paths {
             };
         };
         put?: never;
+        /**
+         * Update user profile/settings (JSON)
+         * @description Updates the profile and configuration of the currently authenticated user.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        jules_api_key?: string | null;
+                        telegram_bot_name?: string | null;
+                        telegram_bot_token?: string | null;
+                        telegram_webhook_secret?: string | null;
+                        notification_settings?: {
+                            in_app?: boolean;
+                            browser?: boolean;
+                            telegram?: boolean;
+                        };
+                        notification_event_settings?: {
+                            created?: boolean;
+                            processing?: boolean;
+                            ready?: boolean;
+                            finished?: boolean;
+                            failed?: boolean;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description User profile updated successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["User"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Internal server error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin-users.php": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all users (Admin only)
+         * @description Returns a list of all users with project counts. Requires admin privileges.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A JSON list of all users */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminUser"][];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Forbidden - Admin privileges required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1451,6 +1504,32 @@ export interface components {
              * @example 2023-10-27T10:30:00Z
              */
             created_at?: string;
+        };
+        AdminUser: {
+            /** @example 1 */
+            id?: number;
+            /** @example 123456789 */
+            google_id?: string | null;
+            /** @example 987654321 */
+            github_id?: string | null;
+            /** @example John Doe */
+            name?: string;
+            /** @example john@example.com */
+            email?: string;
+            /** @example https://avatar.url */
+            avatar?: string | null;
+            /**
+             * @example user
+             * @enum {string}
+             */
+            role?: "user" | "admin";
+            /**
+             * Format: date-time
+             * @example 2023-10-27T10:00:00Z
+             */
+            created_at?: string;
+            /** @example 5 */
+            project_count?: number;
         };
         GitHubIssueEvent: {
             /** @example opened */
