@@ -11,7 +11,7 @@ class Project
     {
     }
 
-    public function create(int $userId, int $githubAccountId, string $githubRepo): array
+    public function create(int $userId, int $githubAccountId, string $githubRepo, ?GitHubService $githubService = null): array
     {
         // Verify that the github account belongs to the user
         $stmt = $this->db->getConnection()->prepare(
@@ -20,6 +20,10 @@ class Project
         $stmt->execute([$githubAccountId, $userId]);
         if (!$stmt->fetch()) {
             throw new Exception("Invalid GitHub account selected.");
+        }
+
+        if ($githubService) {
+            $githubService->getRepository($githubRepo);
         }
 
         $webhookSecret = bin2hex(random_bytes(16));
@@ -74,7 +78,7 @@ class Project
         return $project ?: null;
     }
 
-    public function update(int $projectId, int $userId, int $githubAccountId, string $githubRepo): bool
+    public function update(int $projectId, int $userId, int $githubAccountId, string $githubRepo, ?GitHubService $githubService = null): bool
     {
         // Verify that the github account belongs to the user
         $stmt = $this->db->getConnection()->prepare(
@@ -83,6 +87,10 @@ class Project
         $stmt->execute([$githubAccountId, $userId]);
         if (!$stmt->fetch()) {
             throw new Exception("Invalid GitHub account selected.");
+        }
+
+        if ($githubService) {
+            $githubService->getRepository($githubRepo);
         }
 
         $stmt = $this->db->getConnection()->prepare(

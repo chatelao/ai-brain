@@ -14,6 +14,7 @@ $userModel = new User($db);
 $projectModel = new Project($db);
 
 $user = $auth->isLoggedIn() ? $userModel->findById($auth->getUserId()) : null;
+$githubAccounts = $user ? $userModel->getGitHubAccounts($user['user_id']) : [];
 
 // Handle Project Creation
 if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_repo']) && isset($_POST['github_account_id'])) {
@@ -24,9 +25,7 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_repo'
     $accountId = (int)$_POST['github_account_id'];
     if (!empty($repo) && $accountId > 0) {
         try {
-            $result = $projectModel->create($user['user_id'], $accountId, $repo);
-
-            // Register Webhook with GitHub
+            // Find GitHub account to get the token for validation
             $githubAccount = null;
             foreach ($githubAccounts as $account) {
                 if ((int)$account['github_account_id'] === $accountId) {
@@ -35,8 +34,15 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_repo'
                 }
             }
 
+            $ghService = null;
             if ($githubAccount && !empty($githubAccount['github_token'])) {
                 $ghService = new App\GitHubService(null, $githubAccount['github_token']);
+            }
+
+            $result = $projectModel->create($user['user_id'], $accountId, $repo, $ghService);
+
+            // Register Webhook with GitHub
+            if ($ghService) {
                 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
                 $host = $_SERVER['HTTP_HOST'];
                 $webhookUrl = "$protocol://$host/github/webhook.php?project_id=" . $result['project_id'];
@@ -58,7 +64,6 @@ if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_repo'
 }
 
 $projects = $user ? $projectModel->findByUserId($user['user_id']) : [];
-$githubAccounts = $user ? $userModel->getGitHubAccounts($user['user_id']) : [];
 $taskModel = new Task($db);
 
 

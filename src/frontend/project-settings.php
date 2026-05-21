@@ -23,6 +23,7 @@ if (!$auth->isLoggedIn()) {
 }
 
 $user = $userModel->findById($auth->getUserId());
+$githubAccounts = $userModel->getGitHubAccounts($user['user_id']);
 $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $project = $projectModel->findById($projectId);
 
@@ -30,7 +31,6 @@ if (!$project || $project['user_id'] !== $user['user_id']) {
     die("Project not found or access denied.");
 }
 
-$githubAccounts = $userModel->getGitHubAccounts($user['user_id']);
 $errorMessage = null;
 $successMessage = null;
 
@@ -45,7 +45,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_project'])) {
 
     if (!empty($repo) && $accountId > 0) {
         try {
-            $projectModel->update($projectId, $user['user_id'], $accountId, $repo);
+            // Find GitHub account to get the token for validation
+            $githubAccount = null;
+            foreach ($githubAccounts as $account) {
+                if ((int)$account['github_account_id'] === $accountId) {
+                    $githubAccount = $account;
+                    break;
+                }
+            }
+
+            $ghService = null;
+            if ($githubAccount && !empty($githubAccount['github_token'])) {
+                $ghService = new App\GitHubService(null, $githubAccount['github_token']);
+            }
+
+            $projectModel->update($projectId, $user['user_id'], $accountId, $repo, $ghService);
             header("Location: project-settings.php?id=$projectId&success=project_updated");
             exit;
         } catch (Exception $e) {
