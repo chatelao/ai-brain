@@ -60,7 +60,7 @@ class Task
                     $status = $suite['status'] ?? '';
                     $conclusion = $suite['conclusion'] ?? '';
 
-                    if ($status !== 'completed') {
+                    if ($status !== 'completed' && $status !== 'skipped') {
                         $running = true;
                         $success = false;
                     } elseif (in_array($conclusion, ['failure', 'timed_out', 'cancelled', 'action_required', 'startup_failure'])) {
