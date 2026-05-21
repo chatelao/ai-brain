@@ -30,10 +30,41 @@ export const useProject = (id: string | number) => {
     },
   });
 
+  const createFromTemplateMutation = useMutation({
+    mutationFn: async ({ templateId, params }: { templateId: number; params: Record<string, string> }) => {
+      const response = await apiClient.post(`/project.php?id=${id}`, {
+        action: 'create_from_template',
+        template_id: templateId,
+        params,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', id] });
+    },
+  });
+
+  const createFromRoadmapMutation = useMutation({
+    mutationFn: async (roadmapName: string) => {
+      const response = await apiClient.post(`/project.php?id=${id}`, {
+        action: 'create_from_roadmap',
+        roadmap_name: roadmapName,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', id] });
+    },
+  });
+
   return {
     ...query,
     syncIssues: syncMutation.mutate,
     isSyncing: syncMutation.isPending,
     syncError: syncMutation.error,
+    createFromTemplate: createFromTemplateMutation.mutateAsync,
+    isCreatingFromTemplate: createFromTemplateMutation.isPending,
+    createFromRoadmap: createFromRoadmapMutation.mutateAsync,
+    isCreatingFromRoadmap: createFromRoadmapMutation.isPending,
   };
 };

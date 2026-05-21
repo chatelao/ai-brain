@@ -98,7 +98,7 @@ The final phase involves migrating all remaining features and decommissioning th
 
 - ✅ **Milestone 4.1: Administrative & Advanced Features**
     - ✅ Port Settings, User Management (Admin Dashboard).
-    - ⏳ Roadmap/Template management.
+    - ✅ Roadmap/Template management.
 - ⏳ **Milestone 4.2: User Migration**
     - ⏳ Default all users to the New UI.
     - ⏳ Provide a "Switch back to Legacy" toggle for a limited time to gather feedback.
