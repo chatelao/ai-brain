@@ -5,7 +5,7 @@
 A PHP application to control agents from Google Jules, coordinated by GitHub repositories and issues. It provides a centralized platform for managing AI agent workflows through a unified web interface.
 
 ## Architecture
-![Architecture](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/specification/architecture_component.puml)
+![Architecture](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/specification/TOP_ARCHITECTURE.puml)
 
 ### Top level ERD
 ![Top level ERD](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/specification/erd_top_level.puml)
@@ -73,7 +73,7 @@ For quick local installation:
 2. Install dependencies:
  
    ```bash
-   ./scripts/install.sh
+   ./src/install.sh
    ```
 
 4. Set up your environment variables (DB_HOST, DB_NAME, DB_USER, DB_PASS, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI).
@@ -91,15 +91,15 @@ php -S localhost:8080 -t src/frontend
 - `src/sql/`: Database schema and migrations.
 - `test/`: PHPUnit tests and testing tools.
 - `specification/`: Additional documentation, mockups, and external know-how.
-- `CONCEPT.md`, `DESIGN.md`, `GEMINI.md`, `ROADMAP.md`, `NOTIF_ROADMAP.md`, `CHAT_ROADMAP.md`: Project documentation.
+- `TOP_CONCEPT.md`, `TOP_DESIGN.md`, `GEMINI.md`, `TOP_ROADMAP.md`, `NOTIF_ROADMAP.md`, `CHAT_ROADMAP.md`: Project documentation.
 
 ## Documentation
 - [**User Wiki**](wiki/Home.md) - Comprehensive guide for users.
-- [Concept](CONCEPT.md)
+- [Concept](TOP_CONCEPT.md)
 - [Cron Job Concept](CRONJOB_CONCEPT.md)
-- [Design](DESIGN.md)
+- [Design](TOP_DESIGN.md)
 - [Gemini Project Goal](GEMINI.md)
-- [Roadmap](ROADMAP.md)
+- [Roadmap](TOP_ROADMAP.md)
 - [Notification Roadmap](NOTIF_ROADMAP.md)
 - [Telegram Chat Roadmap](CHAT_ROADMAP.md)
 - [**API Reference (Redocly)**](https://chatelao.github.io/ai-brain/) - Interactive API documentation.

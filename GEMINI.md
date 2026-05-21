@@ -32,7 +32,7 @@ This document provides a structured index of the application's conceptual and te
 
 # `*_DESIGN.md`
 
-- The `*_DESIGN.md` derives all necessary technological choices from `CONCEPT.md`.
+- The `*_DESIGN.md` derives all necessary technological choices from `TOP_CONCEPT.md`.
 - It does contain precise implementation choices.
 - Every major choice is first drawn out as three alternatives, the best one is chosen and the ohter, discarded ones kept in summary in the last chapter of the concept.
 - It contains a detailed architecture of all components and their technical interfaces.
@@ -56,7 +56,7 @@ This document provides a structured index of the application's conceptual and te
 
 # `*_ROADMAP.md` handling
 
-- The `*_ROADMAP.md` is the final plan to implement the `CONCEPT.md` and `DESIGN.md` to achive the top goal
+- The `*_ROADMAP.md` is the final plan to implement the `TOP_CONCEPT.md` and `TOP_DESIGN.md` to achive the top goal
 - Define the steps in a way to allow for parallelization by defining interfaces only first and implementing functions later.
 - The `*_ROADMAP.md` file is structured into several key sections:
   - **Progress Overview**: A table summarizing Phases, Descriptions, and Status (using ✅ for completed, 🚧 for in-progress, ⏳ for planned).
@@ -64,7 +64,7 @@ This document provides a structured index of the application's conceptual and te
   - **Phases**: Detailed chapters for each project phase.
 - The Tasks, and Subtasks if necessary, have checkboxes to show the progress.
 - Every task to be implemented has to be modest, feasible and reasonable.
-  - If no such task is available, then break down a bigger steps to modest ones without implementing anything, just changing the `ROADMAP.md`.
+  - If no such task is available, then break down a bigger steps to modest ones without implementing anything, just changing the `TOP_ROADMAP.md`.
 - Status Emojis:
   - ✅: Completed
   - 🚧: In Progress
