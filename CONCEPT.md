@@ -4,17 +4,21 @@
 This application aims to provide a centralized platform for controlling and coordinating Google Jules agents through GitHub issues. It leverages a PHP-based web server, MySQL database, and Google SSO for secure, multi-user management.
 
 ## Business Cases
-- **Centralized Agent Management**: Simplify the coordination of multiple AI agents across various projects.
-- **Workflow Automation**: Automate repetitive tasks by triggering agent actions directly from project management tools like GitHub.
-- **Improved Collaboration**: Enable team members to manage and monitor agent activities in a unified interface.
+| Case | Description |
+| :--- | :--- |
+| **Centralized Agent Management** | Simplify the coordination of multiple AI agents across various projects. |
+| **Workflow Automation** | Automate repetitive tasks by triggering agent actions directly from project management tools like GitHub. |
+| **Improved Collaboration** | Enable team members to manage and monitor agent activities in a unified interface. |
 
 ## Use Cases
 ![Use Cases](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/specification/use_cases.puml)
 
-- **<a name="UC-1"></a>User Authentication (UC-1)**: Secure login using Google SSO to manage access for different users, with support for linking multiple GitHub accounts per user.
-- **<a name="UC-2"></a>Project Coordination (UC-2)**: Linking GitHub repositories and issues from any connected GitHub account to specific agent tasks.
-- **<a name="UC-3"></a>Agent Triggering (UC-3)**: Automatically or manually initiating Google Jules agents based on GitHub issue activity.
-- **<a name="UC-4"></a>Status Monitoring (UC-4)**: Tracking the progress and results of agent-led tasks within the application.
+| ID | Use Case | Description |
+| :--- | :--- | :--- |
+| <a name="UC-1"></a>**UC-1** | **User Authentication** | Secure login using Google SSO to manage access for different users, with support for linking multiple GitHub accounts per user. |
+| <a name="UC-2"></a>**UC-2** | **Project Coordination** | Linking GitHub repositories and issues from any connected GitHub account to specific agent tasks. |
+| <a name="UC-3"></a>**UC-3** | **Agent Triggering** | Automatically or manually initiating Google Jules agents based on GitHub issue activity. |
+| <a name="UC-4"></a>**UC-4** | **Status Monitoring** | Tracking the progress and results of agent-led tasks within the application. |
 
 ## Core Entities & Mapping
 The following table illustrates the core entities of the system and their representations across integrated services.
