@@ -24,9 +24,9 @@ class TaskStatusReproductionTest extends TestCase
             'pr_url' => 'https://github.com/owner/repo/pull/1'
         ];
 
-        // After fix, if check suites are null but Jules is finished, it should be READY
+        // Reverting to stay in CHECKING if null
         $status = $this->taskModel->resolveStatus($task, null, null);
-        $this->assertEquals(Task::STATUS_READY, $status, "If check suites are null but Jules is finished, it should be READY");
+        $this->assertEquals(Task::STATUS_CHECKING, $status, "If check suites are null, it stays in CHECKING");
     }
 
     public function testResolveStatusWithJulesCompletedButCheckSuitesNull()
@@ -37,8 +37,8 @@ class TaskStatusReproductionTest extends TestCase
             'pr_url' => 'https://github.com/owner/repo/pull/1'
         ];
 
-        // After fix, if check suites are null but Jules is completed, it should be READY
+        // Reverting to stay in CHECKING if null
         $status = $this->taskModel->resolveStatus($task, null, null);
-        $this->assertEquals(Task::STATUS_READY, $status, "If check suites are null but Jules is completed, it should be READY");
+        $this->assertEquals(Task::STATUS_CHECKING, $status, "If check suites are null, it stays in CHECKING");
     }
 }

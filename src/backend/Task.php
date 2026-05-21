@@ -85,14 +85,11 @@ class Task
                 if ($success) {
                     return self::STATUS_READY;
                 }
-                if ($running) {
+                if ($running || $julesStatus === 'finished' || $julesStatus === 'completed') {
                     return self::STATUS_CHECKING;
                 }
-                if ($julesStatus === 'finished' || $julesStatus === 'completed') {
-                    return self::STATUS_READY;
-                }
             } elseif ($julesStatus === 'finished' || $julesStatus === 'completed') {
-                return self::STATUS_READY;
+                return $suitesProvided ? self::STATUS_READY : self::STATUS_CHECKING;
             }
         }
 
