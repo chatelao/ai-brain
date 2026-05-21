@@ -26,7 +26,7 @@ class GitHubServiceTest extends TestCase
             ->willReturnMap([
                 ['chatelao', 'ai-brain', '', null, [
                     ['type' => 'file', 'name' => 'README.md', 'html_url' => 'http://example.com/readme'],
-                    ['type' => 'file', 'name' => 'ROADMAP.md', 'html_url' => 'http://example.com/roadmap'],
+                    ['type' => 'file', 'name' => 'TOP_ROADMAP.md', 'html_url' => 'http://example.com/roadmap'],
                     ['type' => 'file', 'name' => 'NOTIF_ROADMAP.md', 'html_url' => 'http://example.com/notif_roadmap'],
                     ['type' => 'file', 'name' => 'CHAT_ROADMAP.md', 'html_url' => 'http://example.com/chat_roadmap']
                 ]],
@@ -34,7 +34,7 @@ class GitHubServiceTest extends TestCase
                     ['type' => 'file', 'name' => 'roadmap.rst', 'html_url' => 'http://example.com/roadmap_rst'],
                     ['type' => 'file', 'name' => 'install.rst', 'html_url' => 'http://example.com/install']
                 ]],
-                ['chatelao', 'ai-brain', 'ROADMAP.md', null, [
+                ['chatelao', 'ai-brain', 'TOP_ROADMAP.md', null, [
                     'content' => base64_encode("- [x] Done task\n- [ ] Next task\n- [ ] Another task")
                 ]],
                 ['chatelao', 'ai-brain', 'NOTIF_ROADMAP.md', null, [
@@ -52,7 +52,7 @@ class GitHubServiceTest extends TestCase
         $roadmaps = $service->getRoadmapFiles('chatelao/ai-brain');
 
         $this->assertCount(4, $roadmaps);
-        $this->assertEquals('ROADMAP.md', $roadmaps[0]['name']);
+        $this->assertEquals('TOP_ROADMAP.md', $roadmaps[0]['name']);
         $this->assertEquals('Next task', $roadmaps[0]['next_task']);
         $this->assertEquals('NOTIF_ROADMAP.md', $roadmaps[1]['name']);
         $this->assertEquals('Notification task', $roadmaps[1]['next_task']);

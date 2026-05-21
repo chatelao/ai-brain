@@ -4,7 +4,7 @@ This document describes the analysis of why Pull Request [chatelao/alpheusafppar
 
 ## 1. Why PR #771 was not automatically merged
 
-According to `AUTOMATION_CONCEPT.md`, the system should provide a "Merge & Close" operation if certain conditions are met. However, analysis of the current codebase reveals:
+According to `TOP_CONCEPT.md`, the system should provide a "Merge & Close" operation if certain conditions are met. However, analysis of the current codebase reveals:
 
 - **Missing Implementation**: The "Merge & Close" logic is documented as a concept but is **not implemented** in either the frontend (`src/frontend/project.php`, `src/frontend/task.php`) or the backend (`src/backend/WebhookHandler.php`).
 - **No API Calls**: There are no calls to the GitHub Merge API (`/repos/{owner}/{repo}/pulls/{pull_number}/merge`) in the `GitHubService.php` or anywhere else in the application.

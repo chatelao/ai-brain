@@ -46,7 +46,7 @@ The goal of Phase 4 was to enhance the system's reliability, performance, and mu
 - [x] Comprehensive test suite (Unit, Integration, E2E).
 - [x] CI/CD pipeline optimization with caching.
 - [x] Multi-user management features and role-based access.
-- [x] Implement database migration strategy as described in [CONCEPT_UPGRADES.md](CONCEPT_UPGRADES.md).
+- [x] Implement database migration strategy as described in [TOP_CONCEPT.md](TOP_CONCEPT.md).
 - [x] Support for multiple GitHub accounts per ai-brain user.
 - [x] Performance tuning and security hardening.
 
