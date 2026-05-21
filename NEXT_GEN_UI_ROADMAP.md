@@ -22,8 +22,8 @@ This section tracks the migration progress of legacy PHP views to the new React-
 | Task Detail | `task.php` | ✅ | 100.0% |
 | User Settings | `settings.php` | ✅ | 100.0% |
 | Webhook Logs | `logs.php` | ✅ | 100.0% |
-| Admin Dashboard | `admin/index.php` | ⏳ | 0.0% |
-| **Total** | | | **83.3%** |
+| Admin Dashboard | `admin/index.php` | ✅ | 100.0% |
+| **Total** | | | **100.0%** |
 
 ## Goals
 - ✅ Achieve 100% OpenAPI compliance for all core backend endpoints.
@@ -96,8 +96,9 @@ The goal of Phase 3 is to launch the native mobile application and enhance the n
 ## Phase 4: Full Migration & Legacy Sunset
 The final phase involves migrating all remaining features and decommissioning the PHP frontend.
 
-- ⏳ **Milestone 4.1: Administrative & Advanced Features**
-    - ⏳ Port Settings, User Management (Admin Dashboard), and Roadmap/Template management.
+- ✅ **Milestone 4.1: Administrative & Advanced Features**
+    - ✅ Port Settings, User Management (Admin Dashboard).
+    - ⏳ Roadmap/Template management.
 - ⏳ **Milestone 4.2: User Migration**
     - ⏳ Default all users to the New UI.
     - ⏳ Provide a "Switch back to Legacy" toggle for a limited time to gather feedback.
