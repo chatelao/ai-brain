@@ -18,7 +18,7 @@ The application defines a set of unified task states to provide a consistent vie
 | | **`VERIFYING`** | Yellow | 🚧 | The agent is testing the solution locally. | `Jules.Session:testing` |
 | | **`IMPLEMENTED`**| Yellow | 🚧 | The agent completed implementation (no PR yet).| `Jules.Session:finished` AND `GH.PR:none` |
 | | **`CHECKING`** | Orange | 🔍 | Awaiting PR check results from GitHub. | `Jules.Session:finished` AND `GH.PR:open` AND `GH.PR:checks_running` |
-| **`READY`** | - | Green | ✅ | All checks passed, task is ready for merge. | `Jules.Session:finished` AND `GH.PR:open` AND `GH.PR:checks_passed` |
+| **`READY`** | - | Green | ✅ | All checks passed, task is ready for merge. | `Jules.Session:finished` AND `GH.PR:open` AND ( `GH.PR:checks_passed` OR `GH.PR:checks_skipped`  ) |
 | **`FINISHED`** | - | Purple | ✅ | The task has been successfully completed/merged.| `GH.Issue:closed` |
 | **`FAILED`** | **`FAILED_JULES`** | Red | ❌ | An error occurred during agent execution. | `Jules.Session:failed` OR `Jules.Session:error` |
 | | **`FAILED_PR`** | Red | ❌ | PR verification (checks) failed on GitHub. | `GH.PR:checks_failed` |
