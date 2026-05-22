@@ -1,13 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: (process.env.API_PROXY_URL || 'http://localhost:8080') + '/api/:path*',
-      },
-    ];
+  // output: 'export',
+  basePath: '/web',
+  trailingSlash: true,
+  images: {
+    unoptimized: true,
   },
 };
 
