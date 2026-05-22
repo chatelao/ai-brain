@@ -1101,6 +1101,52 @@ components:
                 type: string
               color:
                 type: string
+        pr_details:
+          type: object
+          nullable: true
+          properties:
+            title:
+              type: string
+            body:
+              type: string
+              nullable: true
+            state:
+              type: string
+            merged:
+              type: boolean
+            base:
+              type: object
+              properties:
+                ref:
+                  type: string
+            head:
+              type: object
+              properties:
+                ref:
+                  type: string
+            mergeable_state:
+              type: string
+              nullable: true
+            draft:
+              type: boolean
+              nullable: true
+        jules_messages:
+          type: array
+          items:
+            type: object
+            properties:
+              user:
+                type: object
+                properties:
+                  login:
+                    type: string
+              body:
+                type: string
+              created_at:
+                type: string
+                format: date-time
+              html_url:
+                type: string
 
     TaskLog:
       type: object

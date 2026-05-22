@@ -375,7 +375,7 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                                         </div>
                                         <?php if (!empty($prDetails['body'])) : ?>
                                             <div class="prose prose-sm max-w-none text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-100">
-                                                <?= $parsedown->text($taskModel->processGitHubImages(mb_substr($prDetails['body'], 0, 300) . (mb_strlen($prDetails['body']) > 300 ? '...' : ''))) ?>
+                                                <?= $parsedown->text($taskModel->processGitHubImages($prDetails['body'])) ?>
                                             </div>
                                         <?php endif; ?>
                                     </div>

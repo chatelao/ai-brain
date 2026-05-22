@@ -181,6 +181,57 @@ $labels = array_map(function($label) {
     ];
 }, $githubData['labels'] ?? []);
 
+$prDetails = null;
+$julesMessages = [];
+$githubToken = $project['github_token'] ?? null;
+
+if ($githubToken) {
+    $githubService = new App\GitHubService(null, $githubToken);
+
+    $cacheTimeout = 15 * 60; // 15 minutes
+    $cacheUpdatedAt = strtotime($task['github_data_updated_at'] ?? '2000-01-01');
+    $isCacheValid = (time() - $cacheUpdatedAt) < $cacheTimeout;
+
+    if ($isCacheValid && !empty($task['github_pr_data'])) {
+        $prDetails = json_decode($task['github_pr_data'], true);
+    } elseif (!empty($task['pr_url'])) {
+        $prNumber = $githubService->extractPrNumber($task['pr_url']);
+        if ($prNumber) {
+            try {
+                $prDetails = $githubService->getPullRequest($project['github_repo'], $prNumber);
+                $taskModel->updateGitHubCache($taskId, $prDetails, null);
+            } catch (Exception $e) {
+                // Ignore PR fetch errors
+            }
+        }
+    }
+
+    if ($isCacheValid && !empty($task['github_comments_data'])) {
+        $comments = json_decode($task['github_comments_data'], true);
+    } else {
+        try {
+            $comments = $githubService->getIssueComments($project['github_repo'], $task['issue_number']);
+            $taskModel->updateGitHubCache($taskId, null, $comments);
+        } catch (Exception $e) {
+            $comments = [];
+        }
+    }
+
+    $julesComments = array_filter($comments, function($comment) {
+        $login = strtolower($comment['user']['login'] ?? '');
+        return $login === 'jules' || $login === 'google-labs-jules[bot]';
+    });
+
+    foreach (array_slice(array_reverse($julesComments), 0, 3) as $msg) {
+        $julesMessages[] = [
+            'user' => ['login' => $msg['user']['login'] ?? 'Jules'],
+            'body' => $msg['body'] ?? '',
+            'created_at' => $msg['created_at'] ?? '',
+            'html_url' => $msg['html_url'] ?? ''
+        ];
+    }
+}
+
 // Map internal database fields to OpenAPI schema
 echo json_encode([
     'id' => (int)$task['task_id'],
@@ -197,5 +248,16 @@ echo json_encode([
     'created_at' => $task['created_at'],
     'last_synced_at' => $task['last_synced_at'],
     'autorepeat_remaining' => (int)($task['autorepeat_remaining'] ?? 0),
-    'labels' => $labels
+    'labels' => $labels,
+    'pr_details' => $prDetails ? [
+        'title' => $prDetails['title'] ?? '',
+        'body' => $prDetails['body'] ?? '',
+        'state' => $prDetails['state'] ?? '',
+        'merged' => $prDetails['merged'] ?? false,
+        'base' => ['ref' => $prDetails['base']['ref'] ?? ''],
+        'head' => ['ref' => $prDetails['head']['ref'] ?? ''],
+        'mergeable_state' => $prDetails['mergeable_state'] ?? null,
+        'draft' => $prDetails['draft'] ?? null
+    ] : null,
+    'jules_messages' => $julesMessages
 ]);
