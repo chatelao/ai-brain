@@ -64,6 +64,7 @@ The goal of Phase 2 is to achieve feature parity with the existing "Project Card
         - ✅ Setup TanStack Query for state management and data fetching.
     - ✅ **Milestone 2.1.2: Core Components**
         - ✅ Component: `ProjectCard` - Displays project summary and repository links.
+        - ✅ Component: `LinkRepositoryModal` - Replaces the "Link New Repository" form.
         - ✅ Component: `TaskStatusGrid` - Replaces the project status square grid.
         - ✅ Component: `StatusBadge` - Unified status display with emojis and color mapping.
         - ✅ Component: `TaskFilterBar` - Client-side filtering by status/repository.
@@ -78,8 +79,8 @@ The goal of Phase 2 is to achieve feature parity with the existing "Project Card
     - ✅ Implement `/api/project.php` (GET/POST).
     - ✅ Implement `useProject` hook.
     - ✅ Implement Project Detail page with task list and roadmap.
-- 🚧 **Milestone 2.4: Integration Testing**
-    - 🚧 Ensure the new React dashboard can coexist with the legacy UI (e.g., via subfolder or subdomain).
+- ✅ **Milestone 2.4: Integration Testing**
+    - ✅ Ensure the new React dashboard can coexist with the legacy UI (e.g., via subfolder or subdomain).
     - ✅ Implement common `Navbar` for unified navigation across React views.
 
 ## Phase 3: Mobile App & Notification Integration (Beta)
