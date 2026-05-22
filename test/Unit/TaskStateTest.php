@@ -22,6 +22,13 @@ class TaskStateTest extends TestCase
         $this->assertEquals(Task::STATUS_FINISHED, $this->taskModel->resolveStatus($task));
     }
 
+    public function testResolveStatusPrClosed()
+    {
+        $task = ['github_state' => 'open', 'jules_status' => 'finished'];
+        $prData = ['state' => 'closed'];
+        $this->assertEquals(Task::STATUS_FINISHED, $this->taskModel->resolveStatus($task, $prData));
+    }
+
     public function testResolveStatusJulesFailed()
     {
         $task = ['github_state' => 'open', 'jules_status' => 'failed'];
