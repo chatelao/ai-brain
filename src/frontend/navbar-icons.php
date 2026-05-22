@@ -48,6 +48,22 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     $syncStatus = 'error';
     $syncMessage = $_GET['error'];
 }
+
+$nextGenUrl = '/web/';
+$currentScript = basename($_SERVER['SCRIPT_NAME']);
+if ($currentScript === 'project.php' && isset($_GET['id'])) {
+    $nextGenUrl = '/web/projects/' . (int)$_GET['id'] . '/';
+} elseif ($currentScript === 'task.php' && isset($_GET['id'])) {
+    $nextGenUrl = '/web/tasks/' . (int)$_GET['id'] . '/';
+} elseif ($currentScript === 'settings.php') {
+    $nextGenUrl = '/web/settings/';
+} elseif ($currentScript === 'templates.php') {
+    $nextGenUrl = '/web/templates/';
+} elseif ($currentScript === 'logs.php') {
+    $nextGenUrl = '/web/logs/';
+} elseif (strpos($_SERVER['SCRIPT_NAME'], '/admin/') !== false) {
+    $nextGenUrl = '/web/admin/';
+}
 ?>
 
 <div class="flex items-center space-x-4 mr-4" x-data="{
@@ -263,7 +279,7 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     </div>
 
     <!-- Next-Gen UI Link -->
-    <a href="/web/" class="text-xs font-bold text-blue-600 hover:underline border border-blue-200 px-2 py-1 rounded bg-blue-50 transition-colors" title="Switch to Next-Generation React UI">
+    <a href="<?= htmlspecialchars($nextGenUrl) ?>" class="text-xs font-bold text-blue-600 hover:underline border border-blue-200 px-2 py-1 rounded bg-blue-50 transition-colors" title="Switch to Next-Generation React UI">
         Next-Gen UI
     </a>
 
