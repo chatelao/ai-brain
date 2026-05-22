@@ -3,32 +3,34 @@
 import React from 'react';
 import Link from 'next/link';
 import { useUser } from '@/hooks/useUser';
+import { useRelativePath } from '@/hooks/useRelativePath';
 
 const Navbar = () => {
   const { data: user } = useUser();
+  const { toApp } = useRelativePath();
 
   return (
     <nav className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-8">
-          <Link href="/" className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
+          <Link href={toApp('/')} className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
             Agent Control
           </Link>
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+            <Link href={toApp('/')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
               Dashboard
             </Link>
-            <Link href="/logs" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+            <Link href={toApp('/logs')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
               Logs
             </Link>
-            <Link href="/settings" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+            <Link href={toApp('/settings')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
               Settings
             </Link>
-            <Link href="/templates" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+            <Link href={toApp('/templates')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
               Templates
             </Link>
             {user?.role === 'admin' && (
-              <Link href="/admin" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+              <Link href={toApp('/admin')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
                 Admin
               </Link>
             )}

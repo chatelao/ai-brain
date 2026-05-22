@@ -4,19 +4,21 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import { useAdminUsers } from '@/hooks/useAdminUsers';
 import { useUser } from '@/hooks/useUser';
+import { useRelativePath } from '@/hooks/useRelativePath';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function AdminDashboard() {
   const { data: currentUser, isLoading: isUserLoading } = useUser();
   const { data: users, isLoading: isUsersLoading, error } = useAdminUsers();
+  const { toApp, toLegacy } = useRelativePath();
   const router = useRouter();
 
   useEffect(() => {
     if (!isUserLoading && currentUser && currentUser.role !== 'admin') {
-      router.push('/');
+      router.push(toApp('/'));
     }
-  }, [currentUser, isUserLoading, router]);
+  }, [currentUser, isUserLoading, router, toApp]);
 
   if (isUserLoading || isUsersLoading) {
     return (
@@ -55,13 +57,13 @@ export default function AdminDashboard() {
           </div>
           <div className="flex space-x-3">
             <a
-              href="/admin/db-check.php"
+              href={toLegacy('/admin/db-check.php')}
               className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               DB Check
             </a>
             <a
-              href="/admin/upgrade.php"
+              href={toLegacy('/admin/upgrade.php')}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               System Upgrade

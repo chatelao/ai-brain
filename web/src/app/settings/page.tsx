@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { useUser, useUpdateUser } from '@/hooks/useUser';
+import { useRelativePath } from '@/hooks/useRelativePath';
 import apiClient from '@/api/client';
 
 export default function SettingsPage() {
   const { data: user, isLoading } = useUser();
+  const { toLegacy } = useRelativePath();
   const updateUser = useUpdateUser();
   const [activeTab, setActiveTab] = useState<'general' | 'notifications'>('general');
   const [testStatus, setTestStatus] = useState<{ status: 'success' | 'error'; message: string } | null>(null);
@@ -272,7 +274,7 @@ export default function SettingsPage() {
                 )}
                 <div className="pt-2">
                   <a
-                    href="/github/login.php"
+                    href={toLegacy('/github/login.php')}
                     className="inline-flex items-center text-sm font-medium text-blue-600 hover:underline"
                   >
                     Link another GitHub account →

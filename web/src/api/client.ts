@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getRelativePrefixToDomainRoot } from '@/hooks/useRelativePath';
 
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || '/api',
@@ -45,7 +46,8 @@ apiClient.interceptors.response.use(
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
           if (typeof window !== 'undefined') {
-            window.location.href = '/google/login.php';
+            const prefix = getRelativePrefixToDomainRoot(window.location.pathname);
+            window.location.href = `${prefix}google/login.php`;
           }
         }
       }

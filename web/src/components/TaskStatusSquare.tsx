@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { components } from '@/types/api';
+import { useRelativePath } from '@/hooks/useRelativePath';
 
 type Task = components['schemas']['Task'];
 type TaskStatus = Task['status'];
@@ -42,6 +43,7 @@ const getStatusLabel = (status: TaskStatus): string => {
 };
 
 export const TaskStatusSquare: React.FC<TaskStatusSquareProps> = ({ task }) => {
+  const { toApp } = useRelativePath();
   const status = task.status || 'created';
   const colorClass = statusColors[status] || 'bg-gray-400';
   const emoji = getStatusEmoji(status);
@@ -56,7 +58,7 @@ export const TaskStatusSquare: React.FC<TaskStatusSquareProps> = ({ task }) => {
   return (
     <div className="relative group">
       <Link
-        href={`/tasks/${task.id}`}
+        href={toApp(`/tasks/${task.id}`)}
         className={`block w-6 h-6 rounded shadow-sm transition-transform duration-200 hover:scale-125 hover:z-10 ${colorClass}`}
         aria-label={`Task #${task.issue_number}: ${label}`}
       />
