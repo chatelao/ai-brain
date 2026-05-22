@@ -1595,6 +1595,10 @@ export interface components {
              * @example 2023-10-27T10:15:00Z
              */
             last_synced_at?: string | null;
+            labels?: {
+                name?: string;
+                color?: string;
+            }[];
         };
         TaskLog: {
             /** @example 500 */

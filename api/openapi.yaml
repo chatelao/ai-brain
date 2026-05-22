@@ -1017,6 +1017,15 @@ components:
           format: date-time
           nullable: true
           example: "2023-10-27T10:15:00Z"
+        labels:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              color:
+                type: string
 
     TaskLog:
       type: object

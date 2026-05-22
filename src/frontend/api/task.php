@@ -156,6 +156,14 @@ if (!$project || (int)$project['user_id'] !== $userId) {
     exit;
 }
 
+$githubData = json_decode($task['github_data'] ?? '{}', true);
+$labels = array_map(function($label) {
+    return [
+        'name' => $label['name'] ?? '',
+        'color' => $label['color'] ?? ''
+    ];
+}, $githubData['labels'] ?? []);
+
 // Map internal database fields to OpenAPI schema
 echo json_encode([
     'id' => (int)$task['task_id'],
@@ -170,5 +178,6 @@ echo json_encode([
     'jules_status' => $task['jules_status'],
     'github_state' => $task['github_state'],
     'created_at' => $task['created_at'],
-    'last_synced_at' => $task['last_synced_at']
+    'last_synced_at' => $task['last_synced_at'],
+    'labels' => $labels
 ]);

@@ -52,6 +52,14 @@ $tasks = $taskModel->findByProjectId($projectId);
 
 // Map internal database fields to OpenAPI schema
 $output = array_map(function($task) {
+    $githubData = json_decode($task['github_data'] ?? '{}', true);
+    $labels = array_map(function($label) {
+        return [
+            'name' => $label['name'] ?? '',
+            'color' => $label['color'] ?? ''
+        ];
+    }, $githubData['labels'] ?? []);
+
     return [
         'id' => (int)$task['task_id'],
         'project_id' => (int)$task['project_id'],
@@ -65,7 +73,8 @@ $output = array_map(function($task) {
         'jules_status' => $task['jules_status'],
         'github_state' => $task['github_state'],
         'created_at' => $task['created_at'],
-        'last_synced_at' => $task['last_synced_at']
+        'last_synced_at' => $task['last_synced_at'],
+        'labels' => $labels
     ];
 }, $tasks);
 
