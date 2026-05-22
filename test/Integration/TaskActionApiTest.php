@@ -61,7 +61,7 @@ class TaskActionApiTest extends TestCase
             body TEXT,
             status VARCHAR(50) DEFAULT 'created',
             github_state VARCHAR(20) DEFAULT 'open',
-            github_data TEXT,
+            github_data TEXT, autorepeat_remaining INT DEFAULT 0,
             pr_url VARCHAR(255),
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(project_id, issue_number)

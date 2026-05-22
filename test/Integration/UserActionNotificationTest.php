@@ -70,7 +70,7 @@ class UserActionNotificationTest extends TestCase
             body TEXT,
             status VARCHAR(50) DEFAULT 'pending',
             github_state VARCHAR(20) DEFAULT 'open',
-            github_data TEXT,
+            github_data TEXT, autorepeat_remaining INT DEFAULT 0,
             UNIQUE(project_id, issue_number)
         )");
 

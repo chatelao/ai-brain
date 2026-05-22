@@ -27,7 +27,7 @@ namespace {
     $pdo->exec("CREATE TABLE performance_logs (performance_log_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, type TEXT, target TEXT, duration FLOAT, context TEXT, status_code INTEGER, error_message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
     $pdo->exec("CREATE TABLE webhook_logs (log_id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, endpoint TEXT, payload TEXT, headers TEXT, status_code INTEGER, error_message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
     $pdo->exec("CREATE TABLE task_logs (task_log_id INTEGER PRIMARY KEY, user_id INTEGER, task_id INTEGER, level TEXT, message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
-    $pdo->exec("CREATE TABLE tasks (task_id INTEGER PRIMARY KEY, user_id INTEGER, project_id INTEGER, issue_number INTEGER, title TEXT, status TEXT, github_state TEXT)");
+    $pdo->exec("CREATE TABLE tasks (task_id INTEGER PRIMARY KEY, user_id INTEGER, project_id INTEGER, issue_number INTEGER, title TEXT, status TEXT, autorepeat_remaining INT DEFAULT 0, github_state TEXT)");
 
     // Insert mock user
     $pdo->prepare("INSERT INTO users (user_id, name, email) VALUES (1, 'Admin User', 'admin@example.com')")->execute();

@@ -35,7 +35,7 @@ class TaskDBIntegrationTest extends TestCase
             body TEXT,
             status TEXT DEFAULT 'created',
             github_state VARCHAR(20) DEFAULT 'open',
-            github_data TEXT,
+            github_data TEXT, autorepeat_remaining INT DEFAULT 0,
             created_at $timestamp,
             updated_at $timestamp,
             UNIQUE(project_id, issue_number)
