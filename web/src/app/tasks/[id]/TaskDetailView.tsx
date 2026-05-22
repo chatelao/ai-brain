@@ -233,20 +233,24 @@ export default function TaskDetailView({ id }: { id: string }) {
                 </div>
               </div>
               <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => performAction({ action: 'trigger_agent' })}
-                  disabled={isPerformingAction}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                >
-                  Retry Task
-                </button>
-                <button
-                  onClick={() => performAction({ action: 'trigger_agent' })}
-                  disabled={isPerformingAction}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
-                >
-                  Restart from Scratch
-                </button>
+                {task.status === 'failed_jules' && (
+                  <>
+                    <button
+                      onClick={() => performAction({ action: 'trigger_agent' })}
+                      disabled={isPerformingAction}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    >
+                      Retry Task
+                    </button>
+                    <button
+                      onClick={() => performAction({ action: 'trigger_agent' })}
+                      disabled={isPerformingAction}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                    >
+                      Restart from Scratch
+                    </button>
+                  </>
+                )}
                 {(task.status === 'ready' || task.status === 'implemented') && task.github_state === 'open' && (
                   <>
                     <button

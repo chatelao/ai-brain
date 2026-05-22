@@ -581,17 +581,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                     <div class="flex flex-col space-y-2">
                                                         <?php
                                                         $isClosed = $task['status'] === App\Task::STATUS_FINISHED;
-                                                        $isReady = $task['status'] === App\Task::STATUS_READY;
-                                                        $isImplemented = $task['status'] === App\Task::STATUS_IMPLEMENTED;
+                                                        $isFailedJules = $task['status'] === App\Task::STATUS_FAILED_JULES;
                                                         ?>
-                                                        <?php if (!$isClosed && !$isReady && !$isImplemented) : ?>
-                                                            <form method="POST" class="inline">
-                                                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
-                                                                <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
-                                                                <button type="submit" name="trigger_agent" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-2 focus:outline-none w-full">Run Agent</button>
-                                                            </form>
-                                                        <?php endif; ?>
-                                                        <?php if ($isReady || $isImplemented) : ?>
+                                                        <?php if ($isFailedJules) : ?>
                                                             <form method="POST" class="inline">
                                                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                                                 <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">

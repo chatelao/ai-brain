@@ -19,16 +19,6 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({ task, onActi
     <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
       <h3 className="text-lg font-bold text-gray-900 mb-4">Actions</h3>
       <div className="space-y-3">
-        {!isClosed && !isReady && !isImplemented && (
-          <button
-            onClick={() => onAction('trigger_agent')}
-            disabled={isLoading}
-            className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none disabled:opacity-50"
-          >
-            {isLoading ? 'Running...' : 'Run Agent'}
-          </button>
-        )}
-
         {hasPr && !isClosed && task.github_state === 'open' && (
           <>
             <button
@@ -48,7 +38,7 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({ task, onActi
           </>
         )}
 
-        {(isReady || isImplemented) && (
+        {task.status === 'failed_jules' && (
           <button
              onClick={() => onAction('trigger_agent')}
              disabled={isLoading}
