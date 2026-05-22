@@ -2,7 +2,7 @@ import React, { use } from 'react';
 import TaskDetailView from './TaskDetailView';
 
 export async function generateStaticParams() {
-  return [];
+  return [{ id: '1' }];
 }
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
