@@ -538,7 +538,7 @@ paths:
               properties:
                 action:
                   type: string
-                  enum: [trigger_agent, merge_close]
+                  enum: [trigger_agent, merge_close, merge_close_duplicate]
               required:
                 - action
       responses:

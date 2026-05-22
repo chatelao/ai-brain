@@ -89,13 +89,22 @@ export default function TaskDetailView({ id }: { id: string }) {
                   Restart from Scratch
                 </button>
                 {(task.status === 'ready' || task.status === 'implemented') && (
-                  <button
-                    onClick={() => performAction({ action: 'merge_close' })}
-                    disabled={isPerformingAction}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
-                  >
-                    Merge PR
-                  </button>
+                  <>
+                    <button
+                      onClick={() => performAction({ action: 'merge_close' })}
+                      disabled={isPerformingAction}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+                    >
+                      Merge PR
+                    </button>
+                    <button
+                      onClick={() => performAction({ action: 'merge_close_duplicate' })}
+                      disabled={isPerformingAction}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                    >
+                      Merge, Close & Duplicate
+                    </button>
+                  </>
                 )}
               </div>
             </div>
