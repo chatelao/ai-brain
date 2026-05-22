@@ -103,8 +103,8 @@ export default function SettingsPage() {
     setIsTesting(true);
     setTestStatus(null);
     try {
-      // Use full URL or ensure it's routed correctly
-      const response = await apiClient.post('/../ajax-notifications.php?action=test_broadcast', {});
+      // API call should be absolute to domain root, as per user requirement "(not the ones to the API)"
+      const response = await apiClient.post('/ajax-notifications.php?action=test_broadcast', {});
       if (response.data.status === 'success') {
         const channels = Object.keys(response.data.channels).filter((c: any) => response.data.channels[c]);
         setTestStatus({ status: 'success', message: `Test broadcast sent to: ${channels.join(', ')}` });
