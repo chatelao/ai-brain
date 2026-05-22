@@ -3,6 +3,7 @@
 import React, { use } from 'react';
 import { useTask } from '@/hooks/useTask';
 import { useTaskLogs } from '@/hooks/useTaskLogs';
+import { useRelativePath } from '@/hooks/useRelativePath';
 import StatusBadge from '@/components/StatusBadge';
 import TaskStatusSquare from '@/components/TaskStatusSquare';
 import TaskSidebar from '@/components/TaskSidebar';
@@ -11,6 +12,7 @@ import Navbar from '@/components/Navbar';
 export default function TaskDetailView({ id }: { id: string }) {
   const { data: task, isLoading, error, performAction, isPerformingAction } = useTask(id);
   const { data: logs } = useTaskLogs(id);
+  const { rel } = useRelativePath();
   const [autorepeatCount, setAutorepeatCount] = React.useState<number>(0);
 
   React.useEffect(() => {
@@ -18,6 +20,37 @@ export default function TaskDetailView({ id }: { id: string }) {
       setAutorepeatCount(task.autorepeat_remaining);
     }
   }, [task?.autorepeat_remaining]);
+
+  React.useEffect(() => {
+    const link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
+    const originalHref = link?.href;
+
+    if (task?.status) {
+      let faviconPath = rel('/favicon.ico');
+      if (['ready', 'finished'].includes(task.status)) {
+        faviconPath = rel('/favicon-success.svg');
+      } else if (['failed_jules', 'failed_pr'].includes(task.status)) {
+        faviconPath = rel('/favicon-error.svg');
+      } else {
+        faviconPath = rel('/favicon-pending.svg');
+      }
+
+      if (link) {
+        link.href = faviconPath;
+      } else {
+        const newLink = document.createElement('link');
+        newLink.rel = 'icon';
+        newLink.href = faviconPath;
+        document.head.appendChild(newLink);
+      }
+    }
+
+    return () => {
+      if (link && originalHref) {
+        link.href = originalHref;
+      }
+    };
+  }, [task?.status, rel]);
 
   if (isLoading) {
     return (
