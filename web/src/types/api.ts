@@ -1710,6 +1710,29 @@ export interface components {
                 name?: string;
                 color?: string;
             }[];
+            pr_details?: {
+                title?: string;
+                body?: string | null;
+                state?: string;
+                merged?: boolean;
+                base?: {
+                    ref?: string;
+                };
+                head?: {
+                    ref?: string;
+                };
+                mergeable_state?: string | null;
+                draft?: boolean | null;
+            } | null;
+            jules_messages?: {
+                user?: {
+                    login?: string;
+                };
+                body?: string;
+                /** Format: date-time */
+                created_at?: string;
+                html_url?: string;
+            }[];
         };
         TaskLog: {
             /** @example 500 */
