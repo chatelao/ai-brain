@@ -35,6 +35,10 @@ class Task
             return self::STATUS_FINISHED;
         }
 
+        if ($prData && ($prData['state'] ?? 'open') === 'closed') {
+            return self::STATUS_FINISHED;
+        }
+
         $julesStatus = $task['jules_status'] ?? '';
         if ($julesStatus === 'failed' || $julesStatus === 'error') {
             return self::STATUS_FAILED_JULES;
@@ -926,7 +930,7 @@ class Task
 
             $tempTask = $task;
             $tempTask['jules_status'] = $julesStatus;
-            $mappedStatus = $this->resolveStatus($tempTask, null, $checkSuites);
+            $mappedStatus = $this->resolveStatus($tempTask, $pr ?? null, $checkSuites);
 
             if ($mappedStatus !== $task['status'] || $julesStatus !== $task['jules_status']) {
                 $updateStmt = $this->db->getConnection()->prepare(

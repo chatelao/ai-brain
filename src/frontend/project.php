@@ -600,7 +600,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sync_issues'])) {
                                                         <?php endif; ?>
                                                         <?php
                                                         $prData = json_decode($task['github_pr_data'] ?? '{}', true);
-                                                        $isMergeable = (!$isClosed && !empty($task['pr_url']) && ($prData['state'] ?? '') === 'open' && ($prData['mergeable_state'] ?? '') === 'clean' && !($prData['draft'] ?? false));
+                                                        $isIssueOpen = ($task['github_state'] ?? 'open') === 'open';
+                                                        $isMergeable = ($isIssueOpen && !$isClosed && !empty($task['pr_url']) && ($prData['state'] ?? '') === 'open' && ($prData['mergeable_state'] ?? '') === 'clean' && !($prData['draft'] ?? false));
                                                         if ($isMergeable) : ?>
                                                             <form method="POST" class="inline">
                                                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">

@@ -172,14 +172,27 @@ if (in_array($julesStatus, ['coding', 'testing', 'researching', 'planning', 'in-
 
 $prStatus = !empty($task['pr_url']) ? 'Open' : 'None';
 $prColor = !empty($task['pr_url']) ? 'green' : 'gray';
-if ($task['github_state'] === 'closed' && !empty($task['pr_url'])) {
+
+if ($prDetails) {
+    $prStatus = ucfirst($prDetails['state'] ?? 'open');
+    if ($prDetails['merged'] ?? false) {
+        $prStatus = 'Merged';
+        $prColor = 'purple';
+    } elseif ($prStatus === 'Closed') {
+        $prColor = 'purple';
+    }
+} elseif ($task['github_state'] === 'closed' && !empty($task['pr_url'])) {
     $prStatus = 'Closed';
     $prColor = 'purple';
-} elseif ($task['status'] === App\Task::STATUS_FAILED_PR) {
+}
+
+if ($task['status'] === App\Task::STATUS_FAILED_PR) {
     $prStatus = 'Failed';
     $prColor = 'red';
 } elseif ($task['status'] === App\Task::STATUS_READY && !empty($task['pr_url'])) {
-    $prStatus = 'Passed';
+    if ($prStatus === 'Open') {
+        $prStatus = 'Passed';
+    }
 }
 
 $prBadgeClasses = "bg-{$prColor}-100 text-{$prColor}-800";
@@ -479,7 +492,8 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                                     </div>
 
                                     <?php
-                                    $isMergeable = ($prDetails && ($prDetails['state'] ?? '') === 'open' && ($prDetails['mergeable_state'] ?? '') === 'clean' && !($prDetails['draft'] ?? false));
+                                    $isIssueOpen = ($task['github_state'] ?? 'open') === 'open';
+                                    $isMergeable = ($isIssueOpen && $prDetails && ($prDetails['state'] ?? '') === 'open' && ($prDetails['mergeable_state'] ?? '') === 'clean' && !($prDetails['draft'] ?? false));
                                     if ($isMergeable) : ?>
                                         <div class="mt-4 pt-4 border-t border-gray-100 space-y-2">
                                             <form method="POST">

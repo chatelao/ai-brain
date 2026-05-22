@@ -88,7 +88,7 @@ export default function TaskDetailView({ id }: { id: string }) {
                 >
                   Restart from Scratch
                 </button>
-                {(task.status === 'ready' || task.status === 'implemented') && (
+                {(task.status === 'ready' || task.status === 'implemented') && task.github_state === 'open' && (
                   <>
                     <button
                       onClick={() => performAction({ action: 'merge_close' })}

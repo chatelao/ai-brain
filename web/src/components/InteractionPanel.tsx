@@ -29,7 +29,7 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({ task, onActi
           </button>
         )}
 
-        {hasPr && !isClosed && (
+        {hasPr && !isClosed && task.github_state === 'open' && (
           <>
             <button
               onClick={() => onAction('merge_close')}
