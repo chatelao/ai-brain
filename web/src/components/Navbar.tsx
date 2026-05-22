@@ -34,6 +34,9 @@ const Navbar = () => {
                 Admin
               </Link>
             )}
+            <a href="/" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+              Legacy UI
+            </a>
           </div>
         </div>
         <div className="flex items-center space-x-4">

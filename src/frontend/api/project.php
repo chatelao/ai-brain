@@ -8,6 +8,7 @@ use App\Project;
 use App\Task;
 use App\GitHubService;
 use App\IssueTemplate;
+use App\NotificationService;
 
 header('Content-Type: application/json');
 
@@ -50,11 +51,65 @@ if (!$project || (int)$project['user_id'] !== $userId) {
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    if ($projectModel->delete($projectId, $userId)) {
+        echo json_encode(['status' => 'success', 'message' => 'Project deleted']);
+    } else {
+        http_response_code(500);
+        echo json_encode(['error' => 'Failed to delete project']);
+    }
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
     $action = $input['action'] ?? $_GET['action'] ?? '';
 
     switch ($action) {
+        case 'update_settings':
+            $repo = trim($input['github_repo'] ?? '');
+            $accountId = (int)($input['github_account_id'] ?? 0);
+            if (empty($repo) || $accountId <= 0) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Repository and GitHub Account ID are required']);
+                exit;
+            }
+            try {
+                // Fetch GitHub token for validation
+                $stmt = $db->getConnection()->prepare(
+                    "SELECT github_token FROM user_github_accounts WHERE github_account_id = ? AND user_id = ?"
+                );
+                $stmt->execute([$accountId, $userId]);
+                $account = $stmt->fetch();
+
+                $ghService = null;
+                if ($account) {
+                    $ghService = new GitHubService(null, $account['github_token']);
+                }
+
+                if ($projectModel->update($projectId, $userId, $accountId, $repo, $ghService)) {
+                    echo json_encode(['status' => 'success', 'message' => 'Project settings updated']);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Failed to update settings']);
+                }
+            } catch (Exception $e) {
+                http_response_code(500);
+                echo json_encode(['error' => $e->getMessage()]);
+            }
+            break;
+
+        case 'update_notifications':
+            $statusSettings = $input['status_settings'] ?? [];
+            $notificationService = new NotificationService($db);
+            if ($notificationService->updateStatusSettings($projectId, $statusSettings)) {
+                echo json_encode(['status' => 'success', 'message' => 'Notification settings updated']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['error' => 'Failed to update notification settings']);
+            }
+            break;
+
         case 'sync_issues':
             try {
                 $githubToken = $project['github_token'] ?? null;

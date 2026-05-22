@@ -114,7 +114,10 @@ $output = [
     'jules_quota_usage' => isset($user['jules_quota_usage']) ? (int)$user['jules_quota_usage'] : null,
     'jules_quota_limit' => isset($user['jules_quota_limit']) ? (int)$user['jules_quota_limit'] : null,
     'github_accounts' => array_map(function($acc) {
-        return ['github_username' => $acc['github_username']];
+        return [
+            'github_account_id' => (int)$acc['github_account_id'],
+            'github_username' => $acc['github_username']
+        ];
     }, $githubAccounts),
     'notification_settings' => [
         'in_app' => (bool)($notifSettings['in_app'] ?? true),

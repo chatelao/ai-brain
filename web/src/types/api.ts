@@ -673,7 +673,62 @@ export interface paths {
             };
         };
         put?: never;
-        post?: never;
+        /**
+         * Link new repository
+         * @description Creates a new project by linking a GitHub repository.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        github_repo: string;
+                        github_account_id: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Project created successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            status?: string;
+                            project_id?: number;
+                            message?: string;
+                        };
+                    };
+                };
+                /** @description Missing parameters */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Internal server error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -738,7 +793,7 @@ export interface paths {
         put?: never;
         /**
          * Perform project action
-         * @description Triggers actions like issue synchronization, or creating issues from templates/roadmap.
+         * @description Triggers actions like issue synchronization, creating issues from templates/roadmap, or updating settings.
          */
         post: {
             parameters: {
@@ -754,7 +809,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        action: "sync_issues" | "create_from_template" | "create_from_roadmap";
+                        action: "sync_issues" | "create_from_template" | "create_from_roadmap" | "update_settings" | "update_notifications";
                         /** @description Required for 'create_from_template' */
                         template_id?: number;
                         /** @description Parameter values for the template */
@@ -763,6 +818,14 @@ export interface paths {
                         };
                         /** @description Required for 'create_from_roadmap' */
                         roadmap_name?: string;
+                        /** @description Required for 'update_settings' */
+                        github_repo?: string;
+                        /** @description Required for 'update_settings' */
+                        github_account_id?: number;
+                        /** @description Required for 'update_notifications' */
+                        status_settings?: {
+                            [key: string]: boolean;
+                        };
                     };
                 };
             };
@@ -816,7 +879,52 @@ export interface paths {
                 };
             };
         };
-        delete?: never;
+        /**
+         * Delete project
+         * @description Deletes a project.
+         */
+        delete: {
+            parameters: {
+                query: {
+                    /** @description Project ID */
+                    id: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Project deleted successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Access denied */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Project not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -1507,6 +1615,7 @@ export interface components {
             /** @example 1000 */
             jules_quota_limit?: number | null;
             github_accounts?: {
+                github_account_id?: number;
                 github_username?: string;
             }[];
             notification_settings?: {
