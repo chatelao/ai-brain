@@ -52,12 +52,16 @@ $tasks = $taskModel->findByProjectId($projectId);
 
 // Map internal database fields to OpenAPI schema
 $output = array_map(function($task) {
+    $githubData = json_decode($task['github_data'] ?? '{}', true);
+    $labels = $githubData['labels'] ?? [];
+
     return [
         'id' => (int)$task['task_id'],
         'project_id' => (int)$task['project_id'],
         'issue_number' => (int)$task['issue_number'],
         'title' => $task['title'],
         'body' => $task['body'],
+        'labels' => $labels,
         'status' => $task['status'],
         'agent_response' => $task['agent_response'],
         'pr_url' => $task['pr_url'],

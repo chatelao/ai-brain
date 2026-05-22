@@ -538,7 +538,7 @@ paths:
               properties:
                 action:
                   type: string
-                  enum: [trigger_agent, merge_close]
+                  enum: [trigger_agent, merge_close, merge_close_duplicate]
               required:
                 - action
       responses:
@@ -985,6 +985,15 @@ components:
         body:
           type: string
           example: "Steps to reproduce..."
+        labels:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              color:
+                type: string
         status:
           type: string
           enum: [created, analyzing, planning, executing, verifying, checking, ready, finished, implemented, failed_jules, failed_pr]

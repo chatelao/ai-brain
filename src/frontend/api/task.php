@@ -103,6 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'merge_close':
+        case 'merge_close_duplicate':
             try {
                 $githubToken = $project['github_token'] ?? null;
                 if (!$githubToken) {
@@ -110,6 +111,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $githubService = new App\GitHubService(null, $githubToken);
+
+                if ($action === 'merge_close_duplicate') {
+                    $githubService->addLabel($project['github_repo'], $task['issue_number'], 'autorepeat');
+                }
+
                 $prNumber = $githubService->extractPrNumber($task['pr_url'] ?? '');
 
                 if (!$prNumber) {
@@ -120,10 +126,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $githubService->closeIssue($project['github_repo'], $task['issue_number'], 'completed');
                 $taskModel->markAsMerged($taskId);
 
-                echo json_encode(['status' => 'success', 'message' => 'PR merged and issue closed']);
+                echo json_encode(['status' => 'success', 'message' => $action === 'merge_close_duplicate' ? 'PR merged, issue closed and duplicated' : 'PR merged and issue closed']);
             } catch (Exception $e) {
                 http_response_code(500);
-                echo json_encode(['error' => 'Failed to merge/close: ' . $e->getMessage()]);
+                echo json_encode(['error' => 'Failed to ' . ($action === 'merge_close_duplicate' ? 'merge/close/duplicate' : 'merge/close') . ': ' . $e->getMessage()]);
             }
             break;
 
@@ -156,6 +162,9 @@ if (!$project || (int)$project['user_id'] !== $userId) {
     exit;
 }
 
+$githubData = json_decode($task['github_data'] ?? '{}', true);
+$labels = $githubData['labels'] ?? [];
+
 // Map internal database fields to OpenAPI schema
 echo json_encode([
     'id' => (int)$task['task_id'],
@@ -163,6 +172,7 @@ echo json_encode([
     'issue_number' => (int)$task['issue_number'],
     'title' => $task['title'],
     'body' => $task['body'],
+    'labels' => $labels,
     'status' => $task['status'],
     'agent_response' => $task['agent_response'],
     'pr_url' => $task['pr_url'],

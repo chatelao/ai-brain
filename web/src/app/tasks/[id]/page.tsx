@@ -76,27 +76,36 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               <h3 className="text-lg font-bold text-gray-900 mb-4">Actions</h3>
               <div className="flex flex-wrap gap-3">
                 <button
-                  onClick={() => performAction('retry')}
+                  onClick={() => performAction({ action: 'trigger_agent' })}
                   disabled={isPerformingAction}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
                 >
                   Retry Task
                 </button>
                 <button
-                  onClick={() => performAction('restart')}
+                  onClick={() => performAction({ action: 'trigger_agent' })}
                   disabled={isPerformingAction}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
                 >
                   Restart from Scratch
                 </button>
-                {task.github_status === 'passed' && (
-                  <button
-                    onClick={() => performAction('merge')}
-                    disabled={isPerformingAction}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
-                  >
-                    Merge PR
-                  </button>
+                {task.status === 'ready' && (
+                  <>
+                    <button
+                      onClick={() => performAction({ action: 'merge_close' })}
+                      disabled={isPerformingAction}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                    >
+                      Merge & Close
+                    </button>
+                    <button
+                      onClick={() => performAction({ action: 'merge_close_duplicate' })}
+                      disabled={isPerformingAction}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                    >
+                      Merge, Close & Duplicate
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -114,7 +123,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   <div className="space-y-2">
                     {logs.map((log, index) => (
                       <div key={index} className="flex space-x-4">
-                        <span className="text-gray-500 shrink-0">[{new Date(log.created_at).toLocaleTimeString()}]</span>
+                        <span className="text-gray-500 shrink-0">[{log.created_at ? new Date(log.created_at).toLocaleTimeString() : 'Unknown'}]</span>
                         <span className={log.level === 'error' ? 'text-red-400' : 'text-gray-300'}>
                           {log.message}
                         </span>

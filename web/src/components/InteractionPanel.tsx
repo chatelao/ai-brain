@@ -5,7 +5,7 @@ type Task = components['schemas']['Task'];
 
 interface InteractionPanelProps {
   task: Task;
-  onAction: (action: 'trigger_agent' | 'merge_close') => void;
+  onAction: (action: 'trigger_agent' | 'merge_close' | 'merge_close_duplicate') => void;
   isLoading?: boolean;
 }
 
@@ -30,13 +30,22 @@ export const InteractionPanel: React.FC<InteractionPanelProps> = ({ task, onActi
         )}
 
         {hasPr && !isClosed && (
-          <button
-            onClick={() => onAction('merge_close')}
-            disabled={isLoading}
-            className="w-full text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none disabled:opacity-50"
-          >
-            {isLoading ? 'Merging...' : 'Merge & Close'}
-          </button>
+          <>
+            <button
+              onClick={() => onAction('merge_close')}
+              disabled={isLoading}
+              className="w-full text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none disabled:opacity-50"
+            >
+              {isLoading ? 'Merging...' : 'Merge & Close'}
+            </button>
+            <button
+              onClick={() => onAction('merge_close_duplicate')}
+              disabled={isLoading}
+              className="w-full text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none disabled:opacity-50"
+            >
+              {isLoading ? 'Processing...' : 'Merge, Close & Duplicate'}
+            </button>
+          </>
         )}
 
         {(isReady || isImplemented) && (

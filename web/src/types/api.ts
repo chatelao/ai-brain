@@ -945,7 +945,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        action: "trigger_agent" | "merge_close";
+                        action: "trigger_agent" | "merge_close" | "merge_close_duplicate";
                     };
                 };
             };
@@ -1570,6 +1570,10 @@ export interface components {
             title?: string;
             /** @example Steps to reproduce... */
             body?: string;
+            labels?: {
+                name?: string;
+                color?: string;
+            }[];
             /**
              * @example created
              * @enum {string}

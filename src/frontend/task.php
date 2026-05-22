@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_task_notificat
 }
 
 // Handle Merge & Close
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['merge_close'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['merge_close']) || isset($_POST['merge_close_duplicate']))) {
     if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
         die("CSRF token validation failed.");
     }
@@ -70,6 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['merge_close'])) {
         }
 
         $githubService = new \App\GitHubService(null, $githubToken);
+
+        if (isset($_POST['merge_close_duplicate'])) {
+            $githubService->addLabel($project['github_repo'], $task['issue_number'], 'autorepeat');
+        }
+
         $prNumber = $githubService->extractPrNumber($task['pr_url'] ?? '');
 
         if (!$prNumber) {
@@ -85,7 +90,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['merge_close'])) {
         // 3. Mark as merged in database
         $taskModel->markAsMerged($taskId);
 
-        header("Location: task.php?id=$taskId&success=merged_closed");
+        $successAction = isset($_POST['merge_close_duplicate']) ? 'merged_closed_duplicated' : 'merged_closed';
+        header("Location: task.php?id=$taskId&success=$successAction");
         exit;
     } catch (Exception $e) {
         $errorMessage = "Error merging/closing: " . $e->getMessage();
@@ -257,6 +263,12 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                     <?php if (isset($_GET['success']) && $_GET['success'] === 'merged_closed') : ?>
                         <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
                             <span class="font-medium">Success!</span> Pull Request merged and Issue closed.
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'merged_closed_duplicated') : ?>
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                            <span class="font-medium">Success!</span> Pull Request merged, Issue closed and duplicated.
                         </div>
                     <?php endif; ?>
 
@@ -467,11 +479,17 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                                     <?php
                                     $isMergeable = ($prDetails && ($prDetails['state'] ?? '') === 'open' && ($prDetails['mergeable_state'] ?? '') === 'clean' && !($prDetails['draft'] ?? false));
                                     if ($isMergeable) : ?>
-                                        <div class="mt-4 pt-4 border-t border-gray-100">
+                                        <div class="mt-4 pt-4 border-t border-gray-100 space-y-3">
                                             <form method="POST">
                                                 <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
                                                 <button type="submit" name="merge_close" class="w-full text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none" onclick="return confirm('Are you sure you want to merge this PR and close the issue?')">
                                                     Merge & Close
+                                                </button>
+                                            </form>
+                                            <form method="POST">
+                                                <input type="hidden" name="csrf_token" value="<?= $auth->getCsrfToken() ?>">
+                                                <button type="submit" name="merge_close_duplicate" class="w-full text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none" onclick="return confirm('Are you sure you want to merge this PR, close the issue and create a duplicate?')">
+                                                    Merge, Close & Duplicate
                                                 </button>
                                             </form>
                                         </div>
