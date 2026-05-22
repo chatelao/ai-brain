@@ -4,8 +4,10 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { useUser, useUpdateUser } from '@/hooks/useUser';
 import apiClient from '@/api/client';
+import { useRelativePath } from '@/hooks/useRelativePath';
 
 export default function SettingsPage() {
+  const { rel } = useRelativePath();
   const { data: user, isLoading } = useUser();
   const updateUser = useUpdateUser();
   const [activeTab, setActiveTab] = useState<'general' | 'notifications'>('general');
@@ -272,7 +274,7 @@ export default function SettingsPage() {
                 )}
                 <div className="pt-2">
                   <a
-                    href="/github/login.php"
+                    href={rel('/github/login.php')}
                     className="inline-flex items-center text-sm font-medium text-blue-600 hover:underline"
                   >
                     Link another GitHub account →
