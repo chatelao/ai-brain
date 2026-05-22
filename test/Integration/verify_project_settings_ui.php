@@ -100,7 +100,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS tasks (
     status TEXT DEFAULT 'pending',
     jules_status VARCHAR(50) DEFAULT 'pending',
     github_state VARCHAR(20) DEFAULT 'open',
-    github_data TEXT,
+    github_data TEXT, autorepeat_remaining INT DEFAULT 0,
     agent_response TEXT,
     pr_url VARCHAR(255),
     jules_url VARCHAR(255),
