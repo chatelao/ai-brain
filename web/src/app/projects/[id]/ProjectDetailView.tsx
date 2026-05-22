@@ -3,6 +3,7 @@
 import React, { use, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useProject } from '@/hooks/useProject';
+import { useRelativePath } from '@/hooks/useRelativePath';
 import { useTasks } from '@/hooks/useTasks';
 import { useTemplates } from '@/hooks/useTemplates';
 import StatusBadge from '@/components/StatusBadge';
@@ -13,6 +14,7 @@ import { components } from '@/types/api';
 type TaskStatus = components['schemas']['Task']['status'];
 
 export default function ProjectDetailView({ id }: { id: string }) {
+  const { rel } = useRelativePath();
   const projectId = parseInt(id);
   const { data: project, isLoading: projectLoading, error: projectError, syncIssues, isSyncing, createFromTemplate, isCreatingFromTemplate, createFromRoadmap, isCreatingFromRoadmap } = useProject(projectId);
   const { data: tasks, isLoading: tasksLoading } = useTasks(projectId);
@@ -46,7 +48,7 @@ export default function ProjectDetailView({ id }: { id: string }) {
           <p className="font-bold">Error loading project</p>
           <p className="text-sm">Please try again later or check your connection.</p>
         </div>
-        <Link href="/" className="mt-4 text-blue-600 hover:underline">
+        <Link href={rel('/')} className="mt-4 text-blue-600 hover:underline">
           Back to Dashboard
         </Link>
       </div>
@@ -62,7 +64,7 @@ export default function ProjectDetailView({ id }: { id: string }) {
           <div>
             <nav className="flex mb-2" aria-label="Breadcrumb">
               <ol className="flex items-center space-x-2 text-sm text-gray-500">
-                <li><Link href="/" className="hover:text-gray-700">Dashboard</Link></li>
+                <li><Link href={rel('/')} className="hover:text-gray-700">Dashboard</Link></li>
                 <li><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"></path></svg></li>
                 <li className="font-medium text-gray-900 truncate max-w-[200px]">{project.github_repo}</li>
               </ol>
@@ -84,7 +86,7 @@ export default function ProjectDetailView({ id }: { id: string }) {
               {isSyncing ? 'Syncing...' : 'Sync Issues'}
             </button>
             <Link
-              href={`/projects/${id}/settings`}
+              href={rel(`/projects/${id}/settings`)}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
             >
               Settings
@@ -128,7 +130,7 @@ export default function ProjectDetailView({ id }: { id: string }) {
                       <tr key={task.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex flex-col">
-                            <Link href={`/tasks/${task.id}`} className="text-sm font-bold text-blue-600 hover:underline">
+                            <Link href={rel(`/tasks/${task.id}`)} className="text-sm font-bold text-blue-600 hover:underline">
                               #{task.issue_number} - {task.title}
                             </Link>
                             <span className="text-xs text-gray-500 mt-1 line-clamp-1">
@@ -141,7 +143,7 @@ export default function ProjectDetailView({ id }: { id: string }) {
                           <StatusBadge status={task.status} />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <Link href={`/tasks/${task.id}`} className="text-blue-600 hover:text-blue-900">
+                          <Link href={rel(`/tasks/${task.id}`)} className="text-blue-600 hover:text-blue-900">
                             Details
                           </Link>
                         </td>
@@ -214,7 +216,7 @@ export default function ProjectDetailView({ id }: { id: string }) {
               ) : (
                 <p className="text-sm text-gray-500 italic">
                   No templates found.{' '}
-                  <Link href="/templates" className="text-blue-600 hover:underline">
+                  <Link href={rel('/templates')} className="text-blue-600 hover:underline">
                     Create one here.
                   </Link>
                 </p>

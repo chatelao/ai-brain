@@ -1,5 +1,6 @@
 import React from 'react';
 import { components } from '@/types/api';
+import { useRelativePath } from '@/hooks/useRelativePath';
 
 type Task = components['schemas']['Task'];
 
@@ -8,6 +9,7 @@ interface TaskSidebarProps {
 }
 
 export const TaskSidebar: React.FC<TaskSidebarProps> = ({ task }) => {
+  const { rel } = useRelativePath();
   return (
     <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
       <h3 className="text-lg font-bold text-gray-900 mb-4">Links & Info</h3>
