@@ -1,6 +1,6 @@
-# Installation Guide
+# Installation Guide (Backend & Legacy UI)
 
-This guide explains how to install the AI Brain application on a web server.
+This guide explains how to install the AI Brain PHP backend and legacy UI on a web server. For the new React-based interface, please refer to the [Next-Gen UI Installation Guide](NEXT_GEN_UI_INSTALL.md).
 
 ## Prerequisites
 

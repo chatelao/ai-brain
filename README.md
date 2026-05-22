@@ -66,7 +66,9 @@ A PHP application to control agents from Google Jules, coordinated by GitHub rep
 - Composer
 
 ### Installation
-See the [Installation Guide](INSTALL.md) for detailed instructions on how to install AI Brain on a web server using SSH.
+See the [Installation Guide](INSTALL.md) for detailed instructions on how to install the PHP backend and legacy UI.
+
+For the new React-based interface, see the [Next-Gen UI Installation Guide](NEXT_GEN_UI_INSTALL.md).
 
 For quick local installation:
 1. Clone the repository.
@@ -95,6 +97,8 @@ php -S localhost:8080 -t src/frontend
 
 ## Documentation
 - [**User Wiki**](wiki/Home.md) - Comprehensive guide for users.
+- [**Installation Guide (Backend)**](INSTALL.md)
+- [**Installation Guide (Next-Gen UI)**](NEXT_GEN_UI_INSTALL.md)
 - [Concept](TOP_CONCEPT.md)
 - [Cron Job Concept](CRONJOB_CONCEPT.md)
 - [Design](TOP_DESIGN.md)
