@@ -112,6 +112,32 @@ class WebhookHandler
         return $result;
     }
 
+    public function autoMergeAndDuplicate(array $project, array $task, GitHubService $githubService, ?NotificationService $notificationService = null): void
+    {
+        $prNumber = $githubService->extractPrNumber($task['pr_url'] ?? '');
+        if (!$prNumber) {
+            return;
+        }
+
+        try {
+            // 1. Add autorepeat label if requested
+            $githubService->addLabel($project['github_repo'], $task['issue_number'], 'autorepeat');
+
+            // 2. Merge PR
+            $githubService->mergePullRequest($project['github_repo'], $prNumber, "Merged automatically via Auto-Repeat: " . $task['title']);
+
+            // 3. Close Issue
+            $githubService->closeIssue($project['github_repo'], $task['issue_number'], 'completed');
+
+            // 4. Mark as merged in DB
+            $taskModel = new Task($this->db);
+            $taskModel->markAsMerged($task['task_id']);
+
+        } catch (\Exception $e) {
+            Logger::getInstance($this->db)->log($project['user_id'], $task['task_id'], "Auto-merge failed: " . $e->getMessage(), 'error');
+        }
+    }
+
     private function maybeDuplicateTask(array $project, array $event, GitHubService $githubService, ?NotificationService $notificationService = null): void
     {
         $issue = $event['issue'] ?? null;
@@ -186,7 +212,15 @@ class WebhookHandler
                 );
             }
 
-            $githubService->createIssue($repo, $issue['title'], $issue['body'] ?? null, array_values($labelNames));
+            $newIssue = $githubService->createIssue($repo, $issue['title'], $issue['body'] ?? null, array_values($labelNames));
+
+            if (!empty($newIssue['number'])) {
+                $newAutorepeatRemaining = max(0, ($task['autorepeat_remaining'] ?? 0) - 1);
+                if ($newAutorepeatRemaining > 0) {
+                    $taskModel->upsert($project['user_id'], $project['project_id'], $newIssue, $newAutorepeatRemaining);
+                }
+            }
+
             $githubService->removeLabel($repo, $issue['number'], $autorepeatLabelName);
 
             if ($notificationService) {
@@ -329,6 +363,11 @@ class WebhookHandler
                 if ($notificationService) {
                     $title = $newStatus === Task::STATUS_FAILED_PR ? "❌ PR Failed: #" . $task['issue_number'] : "✅ PR Fixed: #" . $task['issue_number'];
                     $message = $newStatus === Task::STATUS_FAILED_PR ? "PR checks for \"" . $task['title'] . "\" failed." : "PR checks for \"" . $task['title'] . "\" are now passing.";
+
+                    if ($newStatus === Task::STATUS_READY && ($task['autorepeat_remaining'] ?? 0) > 0 && $githubService) {
+                        $this->autoMergeAndDuplicate($project, array_merge($task, ['status' => $newStatus]), $githubService, $notificationService);
+                        $message .= " (Auto-merging...)";
+                    }
 
                     $actions = [];
                     if ($newStatus === Task::STATUS_READY) {

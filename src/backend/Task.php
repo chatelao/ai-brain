@@ -399,7 +399,7 @@ class Task
         }
 
         $stmt = $this->db->getConnection()->prepare(
-            "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state, autorepeat_remaining) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         return $stmt->execute([
             $data['user_id'],
@@ -409,7 +409,8 @@ class Task
             $data['body'] ?? '',
             $data['github_data'] ?? null,
             $status,
-            $data['github_state'] ?? 'open'
+            $data['github_state'] ?? 'open',
+            $data['autorepeat_remaining'] ?? 0
         ]);
     }
 
@@ -430,32 +431,34 @@ class Task
         $this->deleteByIssueNumbersNotIn($projectId, $issueNumbers);
     }
 
-    public function upsert(int $userId, int $projectId, array $issue): bool
+    public function upsert(int $userId, int $projectId, array $issue, int $autorepeatRemaining = 0): bool
     {
         $connection = $this->db->getConnection();
         $driver = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
 
         if ($driver === 'sqlite') {
-            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state, autorepeat_remaining)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(project_id, issue_number) DO UPDATE SET
                         title = excluded.title,
                         body = excluded.body,
                         github_data = excluded.github_data,
                         github_state = excluded.github_state,
+                        autorepeat_remaining = excluded.autorepeat_remaining,
                         status = CASE
                             WHEN excluded.github_state = 'closed' THEN 'finished'
                             WHEN status = 'pending' THEN 'created'
                             ELSE status
                         END";
         } else {
-            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state, autorepeat_remaining)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE
                         title = VALUES(title),
                         body = VALUES(body),
                         github_data = VALUES(github_data),
                         github_state = VALUES(github_state),
+                        autorepeat_remaining = VALUES(autorepeat_remaining),
                         status = CASE
                             WHEN VALUES(github_state) = 'closed' THEN 'finished'
                             WHEN status = 'pending' THEN 'created'
@@ -475,7 +478,8 @@ class Task
             $issue['body'],
             json_encode($issue),
             $status,
-            $issue['state'] ?? 'open'
+            $issue['state'] ?? 'open',
+            $autorepeatRemaining
         ]);
     }
 
@@ -767,6 +771,14 @@ class Task
         return $issueUrl;
     }
 
+    public function updateAutorepeatRemaining(int $id, int $count): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE tasks SET autorepeat_remaining = ? WHERE task_id = ?"
+        );
+        return $stmt->execute([$count, $id]);
+    }
+
     public function refreshJulesStatus(int $userId, GitHubService $githubService, JulesService $julesService, ?NotificationService $notificationService = null, ?int $taskId = null, ?int $projectId = null): void
     {
         $sql = "SELECT t.*, p.github_repo
@@ -946,6 +958,17 @@ class Task
                     } elseif ($mappedStatus === self::STATUS_READY) {
                         $title = "🚀 Task Ready: #" . $task['issue_number'];
                         $message = "Task \"" . $task['title'] . "\" is ready to merge.";
+
+                        // Automatic merge if autorepeat is active
+                        if (($task['autorepeat_remaining'] ?? 0) > 0) {
+                            $webhookHandler = new WebhookHandler($this->db);
+                            $projectModel = new Project($this->db);
+                            $project = $projectModel->findById($task['project_id']);
+                            if ($project) {
+                                $webhookHandler->autoMergeAndDuplicate($project, array_merge($task, ['status' => $mappedStatus]), $githubService, $notificationService);
+                                $message .= " (Auto-merging...)";
+                            }
+                        }
                     } elseif ($mappedStatus === self::STATUS_FAILED_JULES) {
                         $title = "❌ Jules Failed: #" . $task['issue_number'];
                         $message = "Jules session for \"" . $task['title'] . "\" failed.";

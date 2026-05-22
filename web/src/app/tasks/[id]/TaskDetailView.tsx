@@ -11,6 +11,13 @@ import Navbar from '@/components/Navbar';
 export default function TaskDetailView({ id }: { id: string }) {
   const { data: task, isLoading, error, performAction, isPerformingAction } = useTask(id);
   const { data: logs } = useTaskLogs(id);
+  const [autorepeatCount, setAutorepeatCount] = React.useState<number>(0);
+
+  React.useEffect(() => {
+    if (task?.autorepeat_remaining !== undefined) {
+      setAutorepeatCount(task.autorepeat_remaining);
+    }
+  }, [task?.autorepeat_remaining]);
 
   if (isLoading) {
     return (
@@ -72,7 +79,26 @@ export default function TaskDetailView({ id }: { id: string }) {
 
             {/* Interaction Panel */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Actions</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-900">Actions</h3>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
+                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Auto-Repeat</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={autorepeatCount}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        setAutorepeatCount(val);
+                        performAction({ action: 'update_autorepeat', autorepeat_remaining: val });
+                      }}
+                      className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() => performAction({ action: 'trigger_agent' })}

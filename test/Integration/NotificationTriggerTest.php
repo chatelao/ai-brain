@@ -87,7 +87,7 @@ class NotificationTriggerTest extends TestCase
             body TEXT,
             status VARCHAR(50) DEFAULT 'pending',
             github_state VARCHAR(20) DEFAULT 'open',
-            github_data TEXT,
+            github_data TEXT, autorepeat_remaining INT DEFAULT 0,
             jules_session_id VARCHAR(255),
             jules_status VARCHAR(50),
             jules_url VARCHAR(255),

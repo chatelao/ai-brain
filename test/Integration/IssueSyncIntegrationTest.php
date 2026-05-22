@@ -27,7 +27,7 @@ class IssueSyncIntegrationTest extends TestCase
             body TEXT,
             status TEXT DEFAULT 'pending',
             github_state VARCHAR(20) DEFAULT 'open',
-            github_data TEXT,
+            github_data TEXT, autorepeat_remaining INT DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(project_id, issue_number)
