@@ -1595,6 +1595,8 @@ export interface components {
              * @example 2023-10-27T10:15:00Z
              */
             last_synced_at?: string | null;
+            /** @example 5 */
+            autorepeat_remaining?: number;
             labels?: {
                 name?: string;
                 color?: string;

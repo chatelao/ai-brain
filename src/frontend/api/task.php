@@ -57,6 +57,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $userModel->findById($userId);
 
     switch ($action) {
+        case 'update_autorepeat':
+            try {
+                $count = isset($input['autorepeat_remaining']) ? (int)$input['autorepeat_remaining'] : 0;
+                $taskModel->updateAutorepeatRemaining($taskId, $count);
+                echo json_encode(['status' => 'success', 'message' => 'Auto-repeat updated']);
+            } catch (Exception $e) {
+                http_response_code(500);
+                echo json_encode(['error' => 'Failed to update auto-repeat: ' . $e->getMessage()]);
+            }
+            break;
+
         case 'trigger_agent':
             try {
                 $julesService = new App\JulesService(null, $user['jules_api_key'] ?? null);
@@ -185,5 +196,6 @@ echo json_encode([
     'github_state' => $task['github_state'],
     'created_at' => $task['created_at'],
     'last_synced_at' => $task['last_synced_at'],
+    'autorepeat_remaining' => (int)($task['autorepeat_remaining'] ?? 0),
     'labels' => $labels
 ]);

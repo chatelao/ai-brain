@@ -1017,6 +1017,9 @@ components:
           format: date-time
           nullable: true
           example: "2023-10-27T10:15:00Z"
+        autorepeat_remaining:
+          type: integer
+          example: 5
         labels:
           type: array
           items:
