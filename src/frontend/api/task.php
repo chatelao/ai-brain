@@ -245,6 +245,7 @@ echo json_encode([
     'jules_url' => $task['jules_url'],
     'jules_status' => $task['jules_status'],
     'github_state' => $task['github_state'],
+    'github_repo' => $project['github_repo'] ?? '',
     'created_at' => $task['created_at'],
     'last_synced_at' => $task['last_synced_at'],
     'autorepeat_remaining' => (int)($task['autorepeat_remaining'] ?? 0),

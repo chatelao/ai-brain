@@ -90,6 +90,7 @@ The goal of Phase 3 is to launch the native mobile application and enhance the n
     - ⏳ Initialize the Expo project and implement shared API clients.
     - ⏳ Build the unified Login flow (Google/GitHub).
 - ⏳ **Milestone 3.2: Native Oversight**
+    - ✅ Implement the "Running Autorepeat Tasks" view for web.
     - ⏳ Implement the "Running Autorepeat Tasks" and "Project Grid" views for mobile.
 - ⏳ **Milestone 3.3: Push Notifications**
     - ⏳ Integrate with Firebase or Expo Notifications to deliver native alerts for `FAILED` and `READY` states.

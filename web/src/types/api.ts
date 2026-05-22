@@ -986,6 +986,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/autorepeat-tasks.php": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List running autorepeat tasks (JSON)
+         * @description Returns a list of all active autorepeat tasks for the authenticated user.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A JSON list of tasks */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Task"][];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/task.php": {
         parameters: {
             query?: never;
@@ -1694,6 +1740,8 @@ export interface components {
             jules_status?: string | null;
             /** @example open */
             github_state?: string;
+            /** @example google/jules */
+            github_repo?: string;
             /**
              * Format: date-time
              * @example 2023-10-27T10:10:00Z
