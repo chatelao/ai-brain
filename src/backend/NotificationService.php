@@ -448,6 +448,14 @@ class NotificationService
         return $stmt->execute([$userId]);
     }
 
+    public function deleteAllNotifications(int $userId): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "DELETE FROM notifications WHERE user_id = ?"
+        );
+        return $stmt->execute([$userId]);
+    }
+
     public function getTotalCount(int $userId): int
     {
         $stmt = $this->db->getConnection()->prepare(

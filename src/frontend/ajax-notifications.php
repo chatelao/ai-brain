@@ -105,6 +105,15 @@ try {
 
         $notificationService->markAllAsRead($userId);
         echo json_encode(['status' => 'success']);
+    } elseif ($action === 'clear_all') {
+        if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
+            http_response_code(403);
+            echo json_encode(['error' => 'CSRF token validation failed']);
+            exit;
+        }
+
+        $notificationService->deleteAllNotifications($userId);
+        echo json_encode(['status' => 'success']);
     } elseif ($action === 'test_broadcast') {
         if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {
             http_response_code(403);

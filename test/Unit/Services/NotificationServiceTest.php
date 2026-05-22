@@ -195,6 +195,19 @@ class NotificationServiceTest extends TestCase
         $this->assertEquals(1, $updatedNotification['is_read']);
     }
 
+    public function testDeleteAllNotifications()
+    {
+        $userId = 1;
+        $this->notificationService->notify($userId, 'type1', 'title1', 'message1');
+        $this->notificationService->notify($userId, 'type2', 'title2', 'message2');
+
+        $this->assertEquals(2, $this->notificationService->getTotalCount($userId));
+
+        $this->notificationService->deleteAllNotifications($userId);
+
+        $this->assertEquals(0, $this->notificationService->getTotalCount($userId));
+    }
+
     public function testGetUnreadCount()
     {
         $userId = 1;
