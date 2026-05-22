@@ -103,6 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'merge_close':
+        case 'merge_close_duplicate':
             try {
                 $githubToken = $project['github_token'] ?? null;
                 if (!$githubToken) {
@@ -116,14 +117,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new Exception("No pull request associated with this task.");
                 }
 
+                if ($action === 'merge_close_duplicate') {
+                    $githubService->addLabel($project['github_repo'], $task['issue_number'], 'autorepeat');
+                }
+
                 $githubService->mergePullRequest($project['github_repo'], $prNumber, "Merged via Agent Control API: " . $task['title']);
                 $githubService->closeIssue($project['github_repo'], $task['issue_number'], 'completed');
                 $taskModel->markAsMerged($taskId);
 
-                echo json_encode(['status' => 'success', 'message' => 'PR merged and issue closed']);
+                $msg = $action === 'merge_close_duplicate' ? 'PR merged, issue closed and duplicated' : 'PR merged and issue closed';
+                echo json_encode(['status' => 'success', 'message' => $msg]);
             } catch (Exception $e) {
                 http_response_code(500);
-                echo json_encode(['error' => 'Failed to merge/close: ' . $e->getMessage()]);
+                echo json_encode(['error' => 'Failed to perform ' . $action . ': ' . $e->getMessage()]);
             }
             break;
 

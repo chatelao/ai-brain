@@ -945,7 +945,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        action: "trigger_agent" | "merge_close";
+                        action: "trigger_agent" | "merge_close" | "merge_close_duplicate";
                     };
                 };
             };
