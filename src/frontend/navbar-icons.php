@@ -205,6 +205,24 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
             }
         })
         .catch(err => console.error('Failed to mark notification as read:', err));
+    },
+    markAllRead() {
+        const basePath = window.location.pathname.includes('/admin/') ? '../' : '';
+        const formData = new FormData();
+        formData.append('csrf_token', this.csrfToken);
+
+        fetch(basePath + 'ajax-notifications.php?action=mark_all_read', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                this.unreadNotifications = 0;
+                this.notifications = this.notifications.map(n => ({ ...n, is_read: 1 }));
+            }
+        })
+        .catch(err => console.error('Failed to mark all notifications as read:', err));
     }
 }">
     <div class="flex items-center" x-show="syncing || syncStatus">
@@ -286,7 +304,8 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
                     </div>
                 </template>
             </div>
-            <div class="p-2 border-t border-gray-100 text-center bg-gray-50">
+            <div class="p-2 border-t border-gray-100 flex justify-center space-x-6 bg-gray-50">
+                <button @click="markAllRead()" class="text-xs text-blue-600 hover:underline">Clear all</button>
                 <a href="notifications.php" class="text-xs text-blue-600 hover:underline">View all</a>
             </div>
         </div>
