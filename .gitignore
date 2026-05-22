@@ -1,5 +1,6 @@
 /vendor/
 /build/
+/src/frontend/web/
 .phpunit.result.cache
 .phpunit.cache/
 .env

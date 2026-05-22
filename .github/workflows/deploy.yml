@@ -34,6 +34,26 @@ jobs:
         if: ${{ inputs.include_vendor }}
         run: composer install --no-dev --optimize-autoloader
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install web dependencies
+        run: npm install
+        working-directory: web
+
+      - name: Build web
+        run: npm run build
+        working-directory: web
+
+      - name: Prepare web for deployment
+        run: |
+          mkdir -p src/frontend/web
+          cp -r web/out/* src/frontend/web/
+
       - name: Deploy via SSH
         uses: wlixcc/SFTP-Deploy-Action@v1.2.6
         with:
@@ -64,3 +84,4 @@ jobs:
             --exclude=.readthedocs.yaml
             --exclude=phpunit.xml
             --exclude=README.md
+            --exclude=web/

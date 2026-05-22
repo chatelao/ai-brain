@@ -121,7 +121,16 @@ Use this method if you want to deploy from your local machine via SSH.
 1. **Build locally:**
    On your local machine, clone the repository and run:
    ```bash
+   # Build backend
    composer install --no-dev --optimize-autoloader
+
+   # Build frontend (Next-Gen UI)
+   cd web
+   npm install
+   npm run build
+   cd ..
+   mkdir -p src/frontend/web
+   cp -r web/out/* src/frontend/web/
    ```
 
 2. **Upload files:**
@@ -129,7 +138,7 @@ Use this method if you want to deploy from your local machine via SSH.
    ```bash
    rsync -avz --exclude='.git*' --exclude='.github/' --exclude='test/' \
      --exclude='docs/' --exclude='specification/' --exclude='scripts/' \
-     --exclude='*.sqlite' \
+     --exclude='web/' --exclude='*.sqlite' \
      ./ user@your-server:/var/www/ai-brain/
    ```
 
