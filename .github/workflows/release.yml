@@ -31,3 +31,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.event.release.tag_name }} agent-control-php-${{ github.event.release.tag_name }}.zip
+
+  deploy:
+    needs: upload
+    uses: ./.github/workflows/deploy.yml
+    with:
+      include_vendor: true
+      lts_target: true
+    secrets: inherit
