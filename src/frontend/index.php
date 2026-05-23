@@ -28,40 +28,52 @@ if (isset($_GET['legacy'])) {
     }
 }
 
-// Next-Gen UI Deep Redirection: Map legacy fallback URLs (e.g. /web/project.php) to React routes
+// Next-Gen UI Redirection & Safeguard
 if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1') {
-    $uri = $_SERVER['REQUEST_URI'] ?? '';
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+    $isWebPath = strpos($requestUri, '/web/') !== false;
 
-    if (strpos($uri, '/web/') !== false) {
-        if (strpos($uri, 'project.php') !== false && isset($_GET['id'])) {
-            header('Location: /web/projects/' . (int)$_GET['id'] . '/');
-            exit;
-        }
-        if (strpos($uri, 'task.php') !== false && isset($_GET['id'])) {
-            header('Location: /web/tasks/' . (int)$_GET['id'] . '/');
-            exit;
-        }
-        if (strpos($uri, 'settings.php') !== false) {
-            header('Location: /web/settings/');
-            exit;
-        }
-    } else {
-        // Redirection for root index.php
+    // 1. Deep Redirection Mapping (for both root and /web fallback)
+    $mappedUrl = null;
+    if (strpos($requestUri, 'project.php') !== false && isset($_GET['id'])) {
+        $mappedUrl = '/web/projects/' . (int)$_GET['id'] . '/';
+    } elseif (strpos($requestUri, 'task.php') !== false && isset($_GET['id'])) {
+        $mappedUrl = '/web/tasks/' . (int)$_GET['id'] . '/';
+    } elseif (strpos($requestUri, 'settings.php') !== false) {
+        $mappedUrl = '/web/settings/';
+    } elseif (strpos($requestUri, 'templates.php') !== false) {
+        $mappedUrl = '/web/templates/';
+    } elseif (strpos($requestUri, 'logs.php') !== false) {
+        $mappedUrl = '/web/logs/';
+    } elseif (strpos($requestUri, '/admin/') !== false) {
+        $mappedUrl = '/web/admin/';
+    }
+
+    if ($mappedUrl) {
+        header('Location: ' . $mappedUrl);
+        exit;
+    }
+
+    // 2. Default root redirection
+    if (!$isWebPath) {
         header('Location: /web/');
         exit;
     }
-}
 
-// Next-Gen UI Safeguard: If we are in /web/ but reached index.php, it's a fallback.
-// Avoid catching AJAX (.php) or assets.
-if (strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') !== false && strpos($_SERVER['REQUEST_URI'], '.php') === false) {
-    $webIndex = __DIR__ . '/web/index.html';
-    if (file_exists($webIndex)) {
-        readfile($webIndex);
-        exit;
+    // 3. Next-Gen UI Safeguard: If we are in /web/ but reached index.php, it's a fallback.
+    // We should try to serve the Next-Gen UI index.html if it exists.
+    // We avoid catching AJAX (.php) or assets.
+    if ($isWebPath && strpos($requestUri, '.php') === false) {
+        $webIndex = __DIR__ . '/web/index.html';
+        if (file_exists($webIndex)) {
+            readfile($webIndex);
+            exit;
+        }
+        if ($requestUri !== '/web/' && $requestUri !== '/web/index.php') {
+            header('Location: /web/');
+            exit;
+        }
     }
-    header('Location: /web/');
-    exit;
 }
 
 $githubAccounts = $user ? $userModel->getGitHubAccounts($user['user_id']) : [];
