@@ -14,7 +14,7 @@ if (isset($_GET['code'])) {
         $googleUser = $auth->authenticate($_GET['code']);
         $user = $userModel->createOrUpdate($googleUser);
         $auth->login($user);
-        header('Location: ../index.php');
+        header('Location: /web/');
         exit;
     } catch (Exception $e) {
         echo "Error: " . htmlspecialchars($e->getMessage());

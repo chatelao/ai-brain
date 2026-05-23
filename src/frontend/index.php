@@ -14,6 +14,19 @@ $userModel = new User($db);
 $projectModel = new Project($db);
 
 $user = $auth->isLoggedIn() ? $userModel->findById($auth->getUserId()) : null;
+
+// Handle Legacy Preference
+if (isset($_GET['legacy'])) {
+    setcookie('prefer_legacy', (string)$_GET['legacy'], time() + (86400 * 30), "/"); // 30 days
+    $_COOKIE['prefer_legacy'] = (string)$_GET['legacy'];
+}
+
+// Default Redirection to Next-Gen UI
+if ($user && !isset($_COOKIE['prefer_legacy']) && !isset($_GET['legacy'])) {
+    header('Location: /web/');
+    exit;
+}
+
 $githubAccounts = $user ? $userModel->getGitHubAccounts($user['user_id']) : [];
 
 // Handle Project Creation

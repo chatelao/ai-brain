@@ -18,26 +18,32 @@ const Navbar = () => {
     const segments = pathname.split('/').filter(Boolean);
 
     if (segments[0] === 'projects' && segments[1]) {
-      return rel(`/project.php?id=${segments[1]}`);
+      return rel(`/project.php?id=${segments[1]}&legacy=1`);
     }
     if (segments[0] === 'tasks' && segments[1]) {
-      return rel(`/task.php?id=${segments[1]}`);
+      return rel(`/task.php?id=${segments[1]}&legacy=1`);
     }
     if (segments[0] === 'settings') {
-      return rel('/settings.php');
+      return rel('/settings.php?legacy=1');
     }
     if (segments[0] === 'templates') {
-      return rel('/templates.php');
+      return rel('/templates.php?legacy=1');
     }
     if (segments[0] === 'logs') {
-      return rel('/logs.php');
+      return rel('/logs.php?legacy=1');
     }
     if (segments[0] === 'admin') {
-      return rel('/admin/index.php');
+      return rel('/admin/index.php?legacy=1');
     }
 
-    return rel('/index.php');
+    return rel('/index.php?legacy=1');
   }, [pathname, rel]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    window.location.href = rel('/logout.php');
+  };
 
   return (
     <nav className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-50">
@@ -67,7 +73,7 @@ const Navbar = () => {
                 Admin
               </Link>
             )}
-            <a href="/" className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors border border-blue-200 px-2 py-0.5 rounded bg-blue-50">
+            <a href={legacyUrl} className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors border border-blue-200 px-2 py-0.5 rounded bg-blue-50">
               Legacy UI
             </a>
           </div>
@@ -90,6 +96,13 @@ const Navbar = () => {
                   alt={user.name}
                   className="w-8 h-8 rounded-full border border-gray-200"
                 />
+                <button
+                  onClick={handleLogout}
+                  className="text-xs font-bold text-red-600 hover:text-red-800 transition-colors border border-red-100 px-2 py-1 rounded bg-red-50"
+                  title="Logout from system"
+                >
+                  Logout
+                </button>
               </div>
             </>
           )}

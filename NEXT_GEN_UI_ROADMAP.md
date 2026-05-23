@@ -6,10 +6,10 @@ This roadmap outlines the evolution of the Agent Control interface from a PHP-ce
 
 | Phase | Description | Status |
 | :--- | :--- | :---: |
-| 1 | API Foundation & Authentication | 🚧 |
-| 2 | Core Web Dashboard (Alpha) | ⏳ |
+| 1 | API Foundation & Authentication | ✅ |
+| 2 | Core Web Dashboard (Alpha) | ✅ |
 | 3 | Mobile App & Notification Integration (Beta) | ⏳ |
-| 4 | Full Migration & Legacy Sunset | ⏳ |
+| 4 | Full Migration & Legacy Sunset | 🚧 |
 
 ## Frontend Migration Coverage
 
@@ -35,7 +35,7 @@ This section tracks the migration progress of legacy PHP views to the new React-
 
 ---
 
-## Phase 1: API Foundation & Authentication
+## Phase 1: API Foundation & Authentication ✅
 The goal of Phase 1 is to create the necessary backend infrastructure to support modern client applications.
 
 - ✅ **Milestone 1.1: OpenAPI Compliance**
@@ -53,10 +53,10 @@ The goal of Phase 1 is to create the necessary backend infrastructure to support
     - ✅ Implement `/api/token.php` for JWT token issuance.
     - ✅ Support Refresh Tokens for persistent mobile sessions via `/api/refresh.php`.
 
-## Phase 2: Core Web Dashboard (Alpha)
+## Phase 2: Core Web Dashboard (Alpha) ✅
 The goal of Phase 2 is to achieve feature parity with the existing "Project Card" view in a new React application.
 
-- 🚧 **Milestone 2.1: Project Setup & Overview**
+- ✅ **Milestone 2.1: Project Setup & Overview**
     - ✅ **Milestone 2.1.1: Project Initialization**
         - ✅ Define standard directory structure (src/components, src/hooks, src/api).
         - ✅ Configure ESLint, Prettier, and TypeScript for project consistency.
@@ -104,8 +104,8 @@ The final phase involves migrating all remaining features and decommissioning th
 - ✅ **Milestone 4.1: Administrative & Advanced Features**
     - ✅ Port Settings, User Management (Admin Dashboard).
     - ✅ Roadmap/Template management.
-- ⏳ **Milestone 4.2: User Migration**
-    - ⏳ Default all users to the New UI.
+- 🚧 **Milestone 4.2: User Migration**
+    - 🚧 Default all users to the New UI.
     - ⏳ Provide a "Switch back to Legacy" toggle for a limited time to gather feedback.
 - ⏳ **Milestone 4.3: Legacy Decommission**
     - ⏳ Remove PHP frontend templates and Alpine.js dependencies.
