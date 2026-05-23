@@ -1,0 +1,21 @@
+@startsalt
+{
+  { (X) Blocks | ( ) JavaScript }
+  {
+    {
+      "<b>onEvent</b> [Checks Completed  v]"
+      {
+        "  <b>if</b> [readLabel [\"auto-merge\"] v]"
+        {
+          "    [merge]"
+          "    [notify [\"PR merged automatically\"]]"
+        }
+        "  <b>if</b> [readLabel [\"auto-repeat\"] v]"
+        {
+          "    [duplicate]"
+        }
+      }
+    }
+  }
+}
+@endsalt
