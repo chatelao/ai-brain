@@ -25,7 +25,7 @@ if (!$auth->isLoggedIn()) {
 $user = $userModel->findById($auth->getUserId());
 
 // Default Redirection to Next-Gen UI
-if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1') {
+if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false) {
     $taskId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
     $redirectUrl = '/web/';
     if ($taskId > 0) {
