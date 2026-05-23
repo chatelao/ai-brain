@@ -28,8 +28,38 @@ if (isset($_GET['legacy'])) {
     }
 }
 
-// Default Redirection to Next-Gen UI
-if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false) {
+// Next-Gen UI Deep Redirection: Map legacy fallback URLs (e.g. /web/project.php) to React routes
+if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1') {
+    $uri = $_SERVER['REQUEST_URI'] ?? '';
+
+    if (strpos($uri, '/web/') !== false) {
+        if (strpos($uri, 'project.php') !== false && isset($_GET['id'])) {
+            header('Location: /web/projects/' . (int)$_GET['id'] . '/');
+            exit;
+        }
+        if (strpos($uri, 'task.php') !== false && isset($_GET['id'])) {
+            header('Location: /web/tasks/' . (int)$_GET['id'] . '/');
+            exit;
+        }
+        if (strpos($uri, 'settings.php') !== false) {
+            header('Location: /web/settings/');
+            exit;
+        }
+    } else {
+        // Redirection for root index.php
+        header('Location: /web/');
+        exit;
+    }
+}
+
+// Next-Gen UI Safeguard: If we are in /web/ but reached index.php, it's a fallback.
+// Avoid catching AJAX (.php) or assets.
+if (strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') !== false && strpos($_SERVER['REQUEST_URI'], '.php') === false) {
+    $webIndex = __DIR__ . '/web/index.html';
+    if (file_exists($webIndex)) {
+        readfile($webIndex);
+        exit;
+    }
     header('Location: /web/');
     exit;
 }

@@ -24,6 +24,12 @@ if (!$auth->isLoggedIn()) {
 
 $user = $userModel->findById($auth->getUserId());
 
+// Default Redirection to Next-Gen UI
+if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1') {
+    header('Location: /web/settings/');
+    exit;
+}
+
 // Handle Jules API Key Update
 if ($user && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_jules_key'])) {
     if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {

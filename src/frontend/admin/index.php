@@ -16,6 +16,12 @@ if (!$auth->isLoggedIn()) {
     exit;
 }
 
+// Default Redirection to Next-Gen UI
+if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1') {
+    header('Location: /web/admin/');
+    exit;
+}
+
 if (!$auth->isAdmin()) {
     die("Access denied. Admin privileges required.");
 }
