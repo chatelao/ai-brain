@@ -29,9 +29,54 @@ if (isset($_GET['legacy'])) {
 }
 
 // Default Redirection to Next-Gen UI
-if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false) {
-    header('Location: /web/');
-    exit;
+if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1') {
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+    $isWebPath = strpos($requestUri, '/web/') !== false;
+
+    if (!$isWebPath) {
+        // Map legacy pages to Next-Gen routes to preserve context
+        $nextGenUrl = '/web/';
+        $currentScript = basename($_SERVER['SCRIPT_NAME']);
+
+        if ($currentScript === 'project.php' && isset($_GET['id'])) {
+            $nextGenUrl = '/web/projects/' . (int)$_GET['id'] . '/';
+        } elseif ($currentScript === 'task.php' && isset($_GET['id'])) {
+            $nextGenUrl = '/web/tasks/' . (int)$_GET['id'] . '/';
+        } elseif ($currentScript === 'settings.php') {
+            $nextGenUrl = '/web/settings/';
+        } elseif ($currentScript === 'templates.php') {
+            $nextGenUrl = '/web/templates/';
+        } elseif ($currentScript === 'logs.php') {
+            $nextGenUrl = '/web/logs/';
+        } elseif (strpos($_SERVER['SCRIPT_NAME'], '/admin/') !== false) {
+            $nextGenUrl = '/web/admin/';
+        }
+
+        header('Location: ' . $nextGenUrl);
+        exit;
+    } elseif ($isWebPath && basename($_SERVER['SCRIPT_NAME']) === 'index.php') {
+        // Safeguard: If we are inside /web/ but landed in the legacy index.php,
+        // it means the server fell back to the root index.php (e.g. missing static file).
+        // We must not render the legacy UI here.
+        $uriPath = parse_url($requestUri, PHP_URL_PATH);
+        if ($uriPath !== '/web/' && $uriPath !== '/web/index.php') {
+            // If it's a known mapable path mistakenly called under /web/
+            // e.g. /web/project.php?id=16
+            $mappedUrl = null;
+            if (strpos($uriPath, 'project.php') !== false && isset($_GET['id'])) {
+                $mappedUrl = '/web/projects/' . (int)$_GET['id'] . '/';
+            } elseif (strpos($uriPath, 'task.php') !== false && isset($_GET['id'])) {
+                $mappedUrl = '/web/tasks/' . (int)$_GET['id'] . '/';
+            }
+
+            if ($mappedUrl && $mappedUrl !== $requestUri) {
+                header('Location: ' . $mappedUrl);
+            } else {
+                header('Location: /web/');
+            }
+            exit;
+        }
+    }
 }
 
 $githubAccounts = $user ? $userModel->getGitHubAccounts($user['user_id']) : [];

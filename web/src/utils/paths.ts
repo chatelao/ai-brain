@@ -20,9 +20,10 @@ export const getRelativePath = (targetPath: string, currentPathname: string): st
   }
 
   // 3. Identify if the path is intended to be outside the /web basePath (Legacy UI)
+  // We exclude /admin/ here because Next-Gen UI has its own /admin routes.
+  // Legacy admin paths usually end in .php which is caught by the regex below.
   const isLegacy = targetPath.startsWith('/github/') ||
                    targetPath.startsWith('/google/') ||
-                   targetPath.startsWith('/admin/') ||
                    targetPath.startsWith('/logout.php') ||
                    targetPath.startsWith('/index.php') ||
                    /\.php(\?|$)/.test(targetPath);
@@ -49,5 +50,12 @@ export const getRelativePath = (targetPath: string, currentPathname: string): st
   }
 
   const upToWebRoot = depth > 0 ? '../'.repeat(depth) : './';
-  return upToWebRoot + target + (target.includes('.') ? '' : '/');
+
+  // Don't append a trailing slash if it already has one, or if it's a file, or has query/hash
+  const needsTrailingSlash = !target.endsWith('/') &&
+                             !target.includes('.') &&
+                             !target.includes('?') &&
+                             !target.includes('#');
+
+  return upToWebRoot + target + (needsTrailingSlash ? '/' : '');
 };
