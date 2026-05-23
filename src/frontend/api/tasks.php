@@ -30,25 +30,25 @@ if (!$userId) {
 }
 
 $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if (!$projectId) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Missing project ID']);
-    exit;
-}
+$filter = $_GET['filter'] ?? 'all_open';
 
 $db = new Database();
 $projectModel = new Project($db);
 $taskModel = new Task($db);
 
-// Verify project ownership
-$project = $projectModel->findById($projectId);
-if (!$project || (int)$project['user_id'] !== $userId) {
-    http_response_code(404);
-    echo json_encode(['error' => 'Project not found']);
-    exit;
+if ($projectId > 0) {
+    // Verify project ownership
+    $project = $projectModel->findById($projectId);
+    if (!$project || (int)$project['user_id'] !== $userId) {
+        http_response_code(404);
+        echo json_encode(['error' => 'Project not found']);
+        exit;
+    }
+    $tasks = $taskModel->findByProjectId($projectId);
+} else {
+    // Global filter
+    $tasks = $taskModel->findByFilter($userId, $filter);
 }
-
-$tasks = $taskModel->findByProjectId($projectId);
 
 // Map internal database fields to OpenAPI schema
 $output = array_map(function($task) {

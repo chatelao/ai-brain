@@ -4,14 +4,25 @@ import { components } from '@/types/api';
 
 type Task = components['schemas']['Task'];
 
-export const useTasks = (projectId: number | undefined) => {
+export const useTasks = (projectId: number | undefined, filter: string = 'all_open') => {
   return useQuery({
-    queryKey: ['tasks', projectId],
+    queryKey: ['tasks', projectId, filter],
     queryFn: async (): Promise<Task[]> => {
-      if (!projectId) return [];
-      const response = await apiClient.get<Task[]>(`/tasks.php?id=${projectId}`);
+      let url = '/tasks.php';
+      const params = new URLSearchParams();
+
+      if (projectId) {
+        params.append('id', projectId.toString());
+      } else {
+        params.append('filter', filter);
+      }
+
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
+      const response = await apiClient.get<Task[]>(url);
       return response.data;
     },
-    enabled: !!projectId,
   });
 };

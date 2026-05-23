@@ -4,21 +4,26 @@ import React from 'react';
 import Link from 'next/link';
 import { useUser } from '@/hooks/useUser';
 import { useRelativePath } from '@/hooks/useRelativePath';
+import StatusIndicators from './StatusIndicators';
+import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
   const { data: user } = useUser();
   const { rel } = useRelativePath();
 
   return (
-    <nav className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
+    <nav className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-8">
           <Link href={rel('/')} className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
             Agent Control
           </Link>
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center space-x-4">
             <Link href={rel('/')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
               Dashboard
+            </Link>
+            <Link href={rel('/tasks')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+              Tasks
             </Link>
             <Link href={rel('/logs')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
               Logs
@@ -34,24 +39,31 @@ const Navbar = () => {
                 Admin
               </Link>
             )}
-            <a href="/" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+            <a href="/" className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors border border-blue-200 px-2 py-0.5 rounded bg-blue-50">
               Legacy UI
             </a>
           </div>
         </div>
-        <div className="flex items-center space-x-4">
+
+        <div className="flex items-center space-x-6">
           {user && (
-            <div className="flex items-center space-x-3">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                <p className="text-xs text-gray-500">{user.role === 'admin' ? 'Administrator' : 'User'}</p>
+            <>
+              <div className="hidden md:block">
+                <StatusIndicators />
               </div>
-              <img
-                src={user.avatar || 'https://www.gravatar.com/avatar/?d=mp'}
-                alt={user.name}
-                className="w-8 h-8 rounded-full border border-gray-200"
-              />
-            </div>
+              <NotificationBell />
+              <div className="flex items-center space-x-3 border-l pl-6 border-gray-100">
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                  <p className="text-xs text-gray-500">{user.role === 'admin' ? 'Administrator' : 'User'}</p>
+                </div>
+                <img
+                  src={user.avatar || 'https://www.gravatar.com/avatar/?d=mp'}
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full border border-gray-200"
+                />
+              </div>
+            </>
           )}
           {!user && (
             <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>

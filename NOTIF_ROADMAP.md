@@ -61,5 +61,5 @@
 - [x] Trigger notifications on PR creation/updates.
 - [x] Trigger notifications on Jules session failures or completions.
 - [x] Trigger notifications on task status changes.
-- [ ] Verify notification delivery consistency (parity) between webhook-triggered events and those discovered via cronjob polling.
+- [x] Verify notification delivery consistency (parity) between webhook-triggered events and those discovered via cronjob polling.
 - [x] Final end-to-end testing of all notification flows.
