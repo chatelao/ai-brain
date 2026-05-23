@@ -17,12 +17,19 @@ $user = $auth->isLoggedIn() ? $userModel->findById($auth->getUserId()) : null;
 
 // Handle Legacy Preference
 if (isset($_GET['legacy'])) {
-    setcookie('prefer_legacy', (string)$_GET['legacy'], time() + (86400 * 30), "/"); // 30 days
-    $_COOKIE['prefer_legacy'] = (string)$_GET['legacy'];
+    $legacy = (string)$_GET['legacy'];
+    if ($legacy === '0') {
+        setcookie('prefer_legacy', '', time() - 3600, "/");
+        header('Location: /web/');
+        exit;
+    } else {
+        setcookie('prefer_legacy', '1', time() + (86400 * 30), "/");
+        $_COOKIE['prefer_legacy'] = '1';
+    }
 }
 
 // Default Redirection to Next-Gen UI
-if ($user && !isset($_COOKIE['prefer_legacy']) && !isset($_GET['legacy'])) {
+if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1') {
     header('Location: /web/');
     exit;
 }

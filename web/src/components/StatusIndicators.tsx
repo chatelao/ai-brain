@@ -44,6 +44,13 @@ const StatusIndicators: React.FC = () => {
           <Link href={rel('/tasks?filter=jules_failed')} className="text-red-600 hover:underline">{status.jules_failed}</Link>
         </span>
       </div>
+
+      {/* Telegram Status */}
+      <div className={`flex items-center ${status.telegram_connected ? 'text-gray-900' : 'text-gray-300'}`} title={`Telegram: ${status.telegram_connected ? 'Connected' : 'Not Linked'}`}>
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M20.665 3.717l-17.73 6.837c-1.21.486-1.203 1.161-.222 1.462l4.552 1.42l10.532-6.645c.498-.303.953-.14.579.192l-8.533 7.701l-.333 4.981c.488 0 .704-.224.977-.488l2.347-2.284l4.882 3.606c.899.496 1.542.24 1.766-.83l3.201-15.084c.328-1.315-.502-1.912-1.362-1.523z"/>
+        </svg>
+      </div>
     </div>
   );
 };

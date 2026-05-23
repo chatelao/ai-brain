@@ -49,7 +49,7 @@ if ((isset($_GET['success']) && $_GET['success'] === 'synced') || (isset($_GET['
     $syncMessage = $_GET['error'];
 }
 
-$nextGenUrl = '/web/';
+$nextGenUrl = '/index.php?legacy=0';
 $currentScript = basename($_SERVER['SCRIPT_NAME']);
 if ($currentScript === 'project.php' && isset($_GET['id'])) {
     $nextGenUrl = '/web/projects/' . (int)$_GET['id'] . '/';

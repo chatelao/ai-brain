@@ -1605,6 +1605,8 @@ components:
           type: integer
         github_failed:
           type: integer
+        telegram_connected:
+          type: boolean
 
     GitHubIssueEvent:
       type: object

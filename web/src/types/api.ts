@@ -2253,6 +2253,7 @@ export interface components {
             github_running?: number;
             github_passed?: number;
             github_failed?: number;
+            telegram_connected?: boolean;
         };
         GitHubIssueEvent: {
             /** @example opened */
