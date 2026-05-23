@@ -82,7 +82,7 @@ class TelegramWebhookHandler
         $taskId = isset($parts[1]) ? (int)$parts[1] : null;
         $notificationId = isset($parts[2]) ? (int)$parts[2] : null;
 
-        if (!$taskId || !in_array($action, ['retry', 'restart', 'merge', 'acknowledge'])) {
+        if (!$taskId || !in_array($action, ['retry', 'restart', 'merge', 'acknowledge', 'approve_plan', 'fix_bug'])) {
             $this->telegramService->answerCallbackQuery($callbackId, [
                 'text' => "Invalid action.",
                 'show_alert' => true
@@ -146,6 +146,15 @@ class TelegramWebhookHandler
                 $ghs->postComment($repo, $issueNumber, "retry");
 
                 $statusText = "🚀 Retry signal sent to Issue #$issueNumber.";
+            } elseif ($action === 'approve_plan') {
+                $ghs->postComment($repo, $issueNumber, "approve plan");
+
+                $statusText = "✅ Plan approved for Issue #$issueNumber.";
+            } elseif ($action === 'fix_bug') {
+                $ghs->addLabel($repo, $issueNumber, 'bug');
+                $ghs->addLabel($repo, $issueNumber, 'Jules');
+
+                $statusText = "🐛 Bug label added and Jules triggered for Issue #$issueNumber.";
             } elseif ($action === 'acknowledge') {
                 $statusText = "✅ Acknowledged.";
             } else {

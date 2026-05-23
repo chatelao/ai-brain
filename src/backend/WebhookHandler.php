@@ -373,7 +373,7 @@ class WebhookHandler
                     if ($newStatus === Task::STATUS_READY) {
                         $actions = ['merge'];
                     } elseif ($newStatus === Task::STATUS_FAILED_PR) {
-                        $actions = ['retry', 'restart'];
+                        $actions = ['fix_bug', 'retry', 'restart'];
                     } else {
                         $actions = ['acknowledge'];
                     }
