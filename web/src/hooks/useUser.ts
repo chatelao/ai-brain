@@ -8,7 +8,7 @@ export const useUser = () => {
   return useQuery({
     queryKey: ['user'],
     queryFn: async (): Promise<User> => {
-      const response = await apiClient.get<User>('/user.php');
+      const response = await apiClient.get<User>('user.php');
       return response.data;
     },
   });
@@ -19,7 +19,7 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async (data: Partial<User>) => {
-      const response = await apiClient.post<User>('/user.php', data);
+      const response = await apiClient.post<User>('user.php', data);
       return response.data;
     },
     onSuccess: (newUser) => {

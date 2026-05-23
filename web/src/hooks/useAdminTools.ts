@@ -9,7 +9,7 @@ export const useDbCheck = () => {
   return useQuery({
     queryKey: ['admin', 'db-check'],
     queryFn: async (): Promise<DbCheckResults> => {
-      const response = await apiClient.get<DbCheckResults>('/admin-db-check.php');
+      const response = await apiClient.get<DbCheckResults>('admin-db-check.php');
       return response.data;
     },
   });
@@ -19,7 +19,7 @@ export const useMigrationStatus = () => {
   return useQuery({
     queryKey: ['admin', 'migration-status'],
     queryFn: async (): Promise<MigrationStatus> => {
-      const response = await apiClient.get<MigrationStatus>('/admin-upgrade.php');
+      const response = await apiClient.get<MigrationStatus>('admin-upgrade.php');
       return response.data;
     },
   });
@@ -34,7 +34,7 @@ export const useApplyPatch = () => {
         status: string;
         message: string;
         logs: string[];
-      }>('/admin-upgrade.php', { patch });
+      }>('admin-upgrade.php', { patch });
       return response.data;
     },
     onSuccess: () => {
