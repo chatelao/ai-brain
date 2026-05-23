@@ -52,10 +52,15 @@ class TelegramChannelHandler implements NotificationChannelInterface
             $notificationId = $notification['notification_id'] ?? '';
             $buttons = [];
             foreach ($actions as $action) {
-                $label = ucfirst($action);
-                if ($action === 'merge') {
-                    $label = 'Merge & Close';
-                }
+                $label = match ($action) {
+                    'merge' => '[Merge & Close]',
+                    'approve_plan' => '[Approve Plan]',
+                    'fix_bug' => '[Fix Bug]',
+                    'retry' => '[Retry]',
+                    'restart' => '[Restart]',
+                    'acknowledge' => '[Acknowledge]',
+                    default => '[' . ucfirst($action) . ']'
+                };
                 $buttons[] = [
                     'text' => $label,
                     'callback_data' => "$action:$taskId" . ($notificationId ? ":$notificationId" : "")

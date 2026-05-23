@@ -971,6 +971,9 @@ class Task
                                 $message .= " (Auto-merging...)";
                             }
                         }
+                    } elseif ($mappedStatus === self::STATUS_PLANNING) {
+                        $title = "📝 Plan Ready: #" . $task['issue_number'];
+                        $message = "Jules has created a plan for \"" . $task['title'] . "\". Please review and approve.";
                     } elseif ($mappedStatus === self::STATUS_FAILED_JULES) {
                         $title = "❌ Jules Failed: #" . $task['issue_number'];
                         $message = "Jules session for \"" . $task['title'] . "\" failed.";
@@ -982,8 +985,10 @@ class Task
                     $actions = [];
                     if ($mappedStatus === self::STATUS_READY) {
                         $actions = ['merge'];
+                    } elseif ($mappedStatus === self::STATUS_PLANNING) {
+                        $actions = ['approve_plan', 'acknowledge'];
                     } elseif ($mappedStatus === self::STATUS_FAILED_JULES || $mappedStatus === self::STATUS_FAILED_PR) {
-                        $actions = ['retry', 'restart'];
+                        $actions = ['fix_bug', 'retry', 'restart'];
                     } else {
                         $actions = ['acknowledge'];
                     }

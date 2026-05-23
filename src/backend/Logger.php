@@ -36,11 +36,37 @@ class Logger
             if ($stmt === false) {
                 return false;
             }
-            return $stmt->execute([$userId, $taskId, $message, $level]);
+            $result = $stmt->execute([$userId, $taskId, $message, $level]);
+
+            if ($result && ($level === 'critical' || $level === 'error')) {
+                $this->notifyError($userId, $taskId, $message, $level);
+            }
+
+            return $result;
         } catch (\Throwable $e) {
             error_log("Failed to log task event: " . $e->getMessage());
             return false;
         }
+    }
+
+    private function notifyError(int $userId, int $taskId, string $message, string $level): void
+    {
+        $taskModel = new Task($this->db);
+        $task = $taskModel->findById($taskId);
+        if (!$task) {
+            return;
+        }
+
+        $notificationService = new NotificationService($this->db);
+        $title = ($level === 'critical' ? "🚨 CRITICAL Error" : "❌ Task Error") . ": #" . ($task['issue_number'] ?? 'Unknown');
+
+        $notificationService->notify($userId, 'task_error', $title, $message, [
+            'task_id' => $taskId,
+            'project_id' => $task['project_id'],
+            'status' => $task['status'],
+            'source_url' => $taskModel->getTargetUrl($task),
+            'is_system' => true
+        ], ['fix_bug', 'retry', 'acknowledge']);
     }
 
     public function getLogsByTaskId(int $taskId): array
