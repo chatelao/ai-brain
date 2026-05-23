@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { useUser } from '@/hooks/useUser';
 import { useRelativePath } from '@/hooks/useRelativePath';
@@ -10,6 +10,33 @@ import NotificationBell from './NotificationBell';
 const Navbar = () => {
   const { data: user } = useUser();
   const { rel } = useRelativePath();
+  const pathname = usePathname() || '/';
+
+  const legacyUrl = useMemo(() => {
+    // pathname example: /projects/13/ or /tasks/42/ or /
+    const segments = pathname.split('/').filter(Boolean);
+
+    if (segments[0] === 'projects' && segments[1]) {
+      return rel(`/project.php?id=${segments[1]}`);
+    }
+    if (segments[0] === 'tasks' && segments[1]) {
+      return rel(`/task.php?id=${segments[1]}`);
+    }
+    if (segments[0] === 'settings') {
+      return rel('/settings.php');
+    }
+    if (segments[0] === 'templates') {
+      return rel('/templates.php');
+    }
+    if (segments[0] === 'logs') {
+      return rel('/logs.php');
+    }
+    if (segments[0] === 'admin') {
+      return rel('/admin/index.php');
+    }
+
+    return rel('/index.php');
+  }, [pathname, rel]);
 
   return (
     <nav className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-50">

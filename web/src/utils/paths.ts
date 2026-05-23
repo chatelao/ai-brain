@@ -25,7 +25,7 @@ export const getRelativePath = (targetPath: string, currentPathname: string): st
                    targetPath.startsWith('/admin/') ||
                    targetPath.startsWith('/logout.php') ||
                    targetPath.startsWith('/index.php') ||
-                   targetPath.endsWith('.php');
+                   /\.php(\?|$)/.test(targetPath);
 
   // Calculate how many levels we are deep within the /web basePath
   const segments = pathname.split('/').filter(s => s.length > 0);
