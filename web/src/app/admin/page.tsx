@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Navbar from '@/components/Navbar';
+import Link from 'next/link';
 import { useAdminUsers } from '@/hooks/useAdminUsers';
 import { useUser } from '@/hooks/useUser';
 import { useRouter } from 'next/navigation';
@@ -56,18 +57,18 @@ export default function AdminDashboard() {
             <p className="text-gray-500 text-sm mt-1">Manage all users and their projects across the platform.</p>
           </div>
           <div className="flex space-x-3">
-            <a
-              href={rel('/admin/db-check.php')}
+            <Link
+              href={rel('/admin/db-check')}
               className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               DB Check
-            </a>
-            <a
-              href={rel('/admin/upgrade.php')}
+            </Link>
+            <Link
+              href={rel('/admin/upgrade')}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               System Upgrade
-            </a>
+            </Link>
           </div>
         </div>
 
