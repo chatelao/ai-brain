@@ -13,12 +13,24 @@ on:
         required: true
         type: boolean
         default: false
+  workflow_call:
+    inputs:
+      include_vendor:
+        description: 'Include vendor directory'
+        required: true
+        type: boolean
+        default: false
+      lts_target:
+        description: 'LTS target'
+        required: true
+        type: boolean
+        default: false
 
 jobs:
   deploy:
     name: Deploy to Webserver
     runs-on: ubuntu-latest
-    if: github.actor == github.repository_owner
+    if: github.actor == github.repository_owner || github.event_name == 'workflow_call'
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:

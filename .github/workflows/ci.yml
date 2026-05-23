@@ -82,3 +82,12 @@ jobs:
           test/screenshots/
           docs/_build/html/
           CODE_QUALITY.md
+
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      include_vendor: true
+      lts_target: false
+    secrets: inherit
