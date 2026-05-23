@@ -990,6 +990,77 @@ paths:
         '403':
           description: Forbidden - Admin privileges required
 
+  /api/admin-db-check.php:
+    get:
+      summary: Get database health check (Admin only)
+      description: Returns database connection status, missing patches, table validation, and basic data health. Requires admin privileges.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Database health check results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DbCheckResults'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin privileges required
+
+  /api/admin-upgrade.php:
+    get:
+      summary: Get migration status (Admin only)
+      description: Returns applied and pending database patches. Requires admin privileges.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Migration status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigrationStatus'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin privileges required
+    post:
+      summary: Apply database patches (Admin only)
+      description: Applies pending database patches. Requires admin privileges.
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patch:
+                  type: string
+                  description: Patch name to apply or 'all' to apply all pending.
+                  default: all
+      responses:
+        '200':
+          description: Migrations process completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  logs:
+                    type: array
+                    items:
+                      type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Admin privileges required
+
 components:
   securitySchemes:
     BearerAuth:
@@ -1414,6 +1485,63 @@ components:
           type: string
           format: date-time
           example: "2023-10-27T10:00:00Z"
+
+    DbCheckResults:
+      type: object
+      properties:
+        connection_status:
+          type: object
+          properties:
+            status:
+              type: string
+            driver:
+              type: string
+            version:
+              type: string
+            message:
+              type: string
+              nullable: true
+        missing_patches:
+          type: array
+          items:
+            type: string
+        table_status:
+          type: array
+          items:
+            type: object
+            properties:
+              table:
+                type: string
+              exists:
+                type: boolean
+              rows:
+                type: integer
+              error:
+                type: string
+                nullable: true
+        basic_data_status:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              status:
+                type: string
+              message:
+                type: string
+
+    MigrationStatus:
+      type: object
+      properties:
+        applied:
+          type: array
+          items:
+            type: string
+        pending:
+          type: array
+          items:
+            type: string
 
     Notification:
       type: object

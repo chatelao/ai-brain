@@ -1767,6 +1767,163 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin-db-check.php": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get database health check (Admin only)
+         * @description Returns database connection status, missing patches, table validation, and basic data health. Requires admin privileges.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Database health check results */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DbCheckResults"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Forbidden - Admin privileges required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin-upgrade.php": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get migration status (Admin only)
+         * @description Returns applied and pending database patches. Requires admin privileges.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Migration status */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MigrationStatus"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Forbidden - Admin privileges required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Apply database patches (Admin only)
+         * @description Applies pending database patches. Requires admin privileges.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Patch name to apply or 'all' to apply all pending.
+                         * @default all
+                         */
+                        patch?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Migrations process completed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            status?: string;
+                            message?: string;
+                            logs?: string[];
+                        };
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Forbidden - Admin privileges required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2038,6 +2195,30 @@ export interface components {
              * @example 2023-10-27T10:00:00Z
              */
             created_at?: string;
+        };
+        DbCheckResults: {
+            connection_status?: {
+                status?: string;
+                driver?: string;
+                version?: string;
+                message?: string | null;
+            };
+            missing_patches?: string[];
+            table_status?: {
+                table?: string;
+                exists?: boolean;
+                rows?: number;
+                error?: string | null;
+            }[];
+            basic_data_status?: {
+                name?: string;
+                status?: string;
+                message?: string;
+            }[];
+        };
+        MigrationStatus: {
+            applied?: string[];
+            pending?: string[];
         };
         Notification: {
             notification_id?: number;

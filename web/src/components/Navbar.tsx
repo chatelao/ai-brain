@@ -2,6 +2,7 @@
 
 import React, { useMemo } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
 import { useRelativePath } from '@/hooks/useRelativePath';
 import StatusIndicators from './StatusIndicators';
