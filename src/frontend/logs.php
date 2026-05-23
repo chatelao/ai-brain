@@ -22,6 +22,12 @@ if (!$auth->isLoggedIn()) {
 
 $user = $userModel->findById($auth->getUserId());
 
+// Default Redirection to Next-Gen UI
+if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false) {
+    header('Location: /web/logs/');
+    exit;
+}
+
 // Determine if the user is the main user (admin)
 $allowedUpgradeEmail = getenv('UPGRADE_ALLOWED_EMAIL');
 $isAdmin = !empty($allowedUpgradeEmail) && $user['email'] === $allowedUpgradeEmail;

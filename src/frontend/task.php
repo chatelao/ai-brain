@@ -24,6 +24,17 @@ if (!$auth->isLoggedIn()) {
 
 $user = $userModel->findById($auth->getUserId());
 
+// Default Redirection to Next-Gen UI
+if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false) {
+    $taskId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+    $redirectUrl = '/web/';
+    if ($taskId > 0) {
+        $redirectUrl = '/web/tasks/' . $taskId . '/';
+    }
+    header('Location: ' . $redirectUrl);
+    exit;
+}
+
 // Initialize Markdown parser
 if (!class_exists('\Parsedown')) {
     die("Error: Class 'Parsedown' not found. Please run 'composer install' to install dependencies.");

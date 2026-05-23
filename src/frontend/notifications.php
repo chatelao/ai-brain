@@ -22,6 +22,12 @@ if (!$auth->isLoggedIn()) {
 $userId = $auth->getUserId();
 $user = $userModel->findById($userId);
 
+// Default Redirection to Next-Gen UI
+if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false) {
+    header('Location: /web/notifications/');
+    exit;
+}
+
 // Handle Mark All as Read
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_all_read'])) {
     if (!$auth->validateCsrfToken($_POST['csrf_token'] ?? null)) {

@@ -19,6 +19,12 @@ if (!$auth->isLoggedIn()) {
 }
 
 $user = $userModel->findById($auth->getUserId());
+
+// Default Redirection to Next-Gen UI
+if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false) {
+    header('Location: /web/templates/');
+    exit;
+}
 $taskModel = new Task($db);
 $errorMessage = null;
 $successMessage = null;

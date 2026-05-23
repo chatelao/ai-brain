@@ -29,6 +29,17 @@ if (!$auth->isLoggedIn()) {
 }
 
 $user = $userModel->findById($auth->getUserId());
+
+// Default Redirection to Next-Gen UI
+if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false) {
+    $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+    $redirectUrl = '/web/';
+    if ($projectId > 0) {
+        $redirectUrl = '/web/projects/' . $projectId . '/';
+    }
+    header('Location: ' . $redirectUrl);
+    exit;
+}
 $julesService = new JulesService(null, $user['jules_api_key'] ?? null);
 $telegramService = new TelegramService(null, $user['telegram_bot_token'] ?? null);
 $telegramChatId = $userModel->getTelegramChatId($user['user_id']);
