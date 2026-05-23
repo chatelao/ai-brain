@@ -486,6 +486,10 @@ paths:
                 github_account_id:
                   type: integer
                   description: Required for 'update_settings'
+                blockly_config:
+                  type: string
+                  nullable: true
+                  description: Optional for 'update_settings'
                 status_settings:
                   type: object
                   additionalProperties:
@@ -826,6 +830,9 @@ paths:
                 jules_api_key:
                   type: string
                   nullable: true
+                blockly_config:
+                  type: string
+                  nullable: true
                 telegram_bot_name:
                   type: string
                   nullable: true
@@ -1126,6 +1133,9 @@ components:
           type: integer
           nullable: true
           example: 1000
+        blockly_config:
+          type: string
+          nullable: true
         github_accounts:
           type: array
           items:
@@ -1199,6 +1209,9 @@ components:
         github_username:
           type: string
           example: "johndoe_git"
+        blockly_config:
+          type: string
+          nullable: true
         roadmap_data:
           type: array
           nullable: true

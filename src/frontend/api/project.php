@@ -88,6 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if ($projectModel->update($projectId, $userId, $accountId, $repo, $ghService)) {
+                    if (isset($input['blockly_config'])) {
+                        $projectModel->updateBlocklyConfig($projectId, $input['blockly_config']);
+                    }
                     echo json_encode(['status' => 'success', 'message' => 'Project settings updated']);
                 } else {
                     http_response_code(500);
@@ -205,6 +208,7 @@ echo json_encode([
     'webhook_secret' => $project['webhook_secret'],
     'created_at' => $project['created_at'],
     'github_username' => $project['github_username'],
+    'blockly_config' => $project['blockly_config'] ?? null,
     'roadmap_data' => $project['roadmap_data'] ? json_decode($project['roadmap_data'], true) : null,
     'roadmap_updated_at' => $project['roadmap_updated_at']
 ]);

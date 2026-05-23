@@ -248,4 +248,12 @@ class User
         );
         return $stmt->execute([$usage, $limit, date('Y-m-d H:i:s'), $userId]);
     }
+
+    public function updateBlocklyConfig(int $userId, ?string $config): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE users SET blockly_config = ? WHERE user_id = ?"
+        );
+        return $stmt->execute([$config, $userId]);
+    }
 }
