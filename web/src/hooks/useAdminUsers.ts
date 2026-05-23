@@ -8,7 +8,7 @@ export const useAdminUsers = () => {
   return useQuery({
     queryKey: ['admin-users'],
     queryFn: async (): Promise<AdminUser[]> => {
-      const response = await apiClient.get<AdminUser[]>('/admin-users.php');
+      const response = await apiClient.get<AdminUser[]>('admin-users.php');
       return response.data;
     },
   });

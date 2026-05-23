@@ -8,7 +8,7 @@ export const useWebhookLogs = () => {
   return useQuery({
     queryKey: ['webhook-logs'],
     queryFn: async (): Promise<WebhookLog[]> => {
-      const response = await apiClient.get<WebhookLog[]>('/webhook-logs.php');
+      const response = await apiClient.get<WebhookLog[]>('webhook-logs.php');
       return response.data;
     },
   });

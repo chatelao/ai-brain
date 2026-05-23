@@ -10,7 +10,7 @@ export const useProject = (id: string | number) => {
   const query = useQuery({
     queryKey: ['projects', id],
     queryFn: async (): Promise<Project> => {
-      const response = await apiClient.get<Project>(`/project.php?id=${id}`);
+      const response = await apiClient.get<Project>(`project.php?id=${id}`);
       return response.data;
     },
     enabled: !!id,
@@ -18,7 +18,7 @@ export const useProject = (id: string | number) => {
 
   const syncMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiClient.post(`/project.php?id=${id}`, {
+      const response = await apiClient.post(`project.php?id=${id}`, {
         action: 'sync_issues',
       });
       return response.data;
@@ -32,7 +32,7 @@ export const useProject = (id: string | number) => {
 
   const createFromTemplateMutation = useMutation({
     mutationFn: async ({ templateId, params }: { templateId: number; params: Record<string, string> }) => {
-      const response = await apiClient.post(`/project.php?id=${id}`, {
+      const response = await apiClient.post(`project.php?id=${id}`, {
         action: 'create_from_template',
         template_id: templateId,
         params,
@@ -46,7 +46,7 @@ export const useProject = (id: string | number) => {
 
   const createFromRoadmapMutation = useMutation({
     mutationFn: async (roadmapName: string) => {
-      const response = await apiClient.post(`/project.php?id=${id}`, {
+      const response = await apiClient.post(`project.php?id=${id}`, {
         action: 'create_from_roadmap',
         roadmap_name: roadmapName,
       });
@@ -59,7 +59,7 @@ export const useProject = (id: string | number) => {
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: { github_repo: string; github_account_id: number }) => {
-      const response = await apiClient.post(`/project.php?id=${id}`, {
+      const response = await apiClient.post(`project.php?id=${id}`, {
         action: 'update_settings',
         ...data,
       });
@@ -73,7 +73,7 @@ export const useProject = (id: string | number) => {
 
   const updateNotificationsMutation = useMutation({
     mutationFn: async (statusSettings: Record<string, boolean>) => {
-      const response = await apiClient.post(`/project.php?id=${id}`, {
+      const response = await apiClient.post(`project.php?id=${id}`, {
         action: 'update_notifications',
         status_settings: statusSettings,
       });
@@ -86,7 +86,7 @@ export const useProject = (id: string | number) => {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiClient.delete(`/project.php?id=${id}`);
+      const response = await apiClient.delete(`project.php?id=${id}`);
       return response.data;
     },
     onSuccess: () => {

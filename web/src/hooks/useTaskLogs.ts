@@ -8,7 +8,7 @@ export const useTaskLogs = (taskId: number | string | undefined) => {
   return useQuery({
     queryKey: ['task-logs', taskId],
     queryFn: async (): Promise<TaskLog[]> => {
-      const response = await apiClient.get<TaskLog[]>(`/task-logs.php?id=${taskId}`);
+      const response = await apiClient.get<TaskLog[]>(`task-logs.php?id=${taskId}`);
       return response.data;
     },
     enabled: !!taskId,

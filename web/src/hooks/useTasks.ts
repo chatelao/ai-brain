@@ -8,7 +8,7 @@ export const useTasks = (projectId: number | undefined, filter: string = 'all_op
   return useQuery({
     queryKey: ['tasks', projectId, filter],
     queryFn: async (): Promise<Task[]> => {
-      let url = '/tasks.php';
+      let url = 'tasks.php';
       const params = new URLSearchParams();
 
       if (projectId) {

@@ -8,7 +8,7 @@ export const useAutorepeatTasks = () => {
   return useQuery({
     queryKey: ['autorepeat-tasks'],
     queryFn: async (): Promise<Task[]> => {
-      const response = await apiClient.get<Task[]>('/autorepeat-tasks.php');
+      const response = await apiClient.get<Task[]>('autorepeat-tasks.php');
       return response.data;
     },
   });

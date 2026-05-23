@@ -15,7 +15,7 @@ export const useNotifications = (action: 'list' | 'unread_count' = 'list') => {
   return useQuery({
     queryKey: ['notifications', action],
     queryFn: async (): Promise<NotificationResponse> => {
-      const response = await apiClient.get<NotificationResponse>(`/notifications.php?action=${action}`);
+      const response = await apiClient.get<NotificationResponse>(`notifications.php?action=${action}`);
       return response.data;
     },
     // Poll for unread count every 15 seconds
@@ -28,7 +28,7 @@ export const useNotificationActions = () => {
 
   const markReadMutation = useMutation({
     mutationFn: async (notificationId: number) => {
-      await apiClient.post('/notifications.php', {
+      await apiClient.post('notifications.php', {
         action: 'mark_read',
         notification_id: notificationId,
       });
@@ -40,7 +40,7 @@ export const useNotificationActions = () => {
 
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
-      await apiClient.post('/notifications.php', {
+      await apiClient.post('notifications.php', {
         action: 'mark_all_read',
       });
     },
@@ -51,7 +51,7 @@ export const useNotificationActions = () => {
 
   const clearAllMutation = useMutation({
     mutationFn: async () => {
-      await apiClient.post('/notifications.php', {
+      await apiClient.post('notifications.php', {
         action: 'clear_all',
       });
     },

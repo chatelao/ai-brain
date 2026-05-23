@@ -8,7 +8,7 @@ export const useProjects = () => {
   return useQuery({
     queryKey: ['projects'],
     queryFn: async (): Promise<Project[]> => {
-      const response = await apiClient.get<Project[]>('/projects.php');
+      const response = await apiClient.get<Project[]>('projects.php');
       return response.data;
     },
   });
@@ -20,7 +20,7 @@ export const useCreateProject = () => {
   return useMutation({
     mutationFn: async (data: { github_repo: string; github_account_id: number }) => {
       const response = await apiClient.post<{ project_id: number; status: string; message: string }>(
-        '/projects.php',
+        'projects.php',
         data
       );
       return response.data;

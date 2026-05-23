@@ -8,7 +8,7 @@ export const usePerformanceLogs = () => {
   return useQuery({
     queryKey: ['performance-logs'],
     queryFn: async (): Promise<PerformanceLog[]> => {
-      const response = await apiClient.get<PerformanceLog[]>('/performance-logs.php');
+      const response = await apiClient.get<PerformanceLog[]>('performance-logs.php');
       return response.data;
     },
   });
