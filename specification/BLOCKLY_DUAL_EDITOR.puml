@@ -1,0 +1,19 @@
+@startsalt
+{
+  { ( ) Blocks | (X) JavaScript }
+  {
+    {
+      "onEvent(\"Checks Completed\", (event) => \{"
+      "  if (readLabel(\"auto-merge\") && event.status === \"success\") \{"
+      "    merge();"
+      "    notify(\"PR merged automatically\");"
+      "  \}"
+      " "
+      "  if (readLabel(\"auto-repeat\")) \{"
+      "    duplicate();"
+      "  \}"
+      "\});"
+    }
+  }
+}
+@endsalt

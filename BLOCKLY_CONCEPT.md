@@ -1,5 +1,7 @@
 # Concept: Blockly Event Handling
 
+![Blockly Logo](https://raw.githubusercontent.com/google/blockly/master/media/logo_only.png)
+
 ## Overview
 This document describes the integration of [Blockly](https://developers.google.com/blockly) for customizable event-driven automation within Agent Control. It allows users to define complex logic for handling system and external events through a visual "OnEvent" interface.
 
@@ -51,6 +53,8 @@ When an event occurs:
 ## 4. Dual-Language Definition (Blockly & JavaScript)
 The system supports bidirectional synchronization between the visual Blockly interface and a text-based JavaScript editor, similar to the [Microsoft MakeCode](https://www.microsoft.com/en-us/makecode) experience.
 
+![Dual-Language Editor](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/specification/BLOCKLY_DUAL_EDITOR.puml)
+
 ### 4.1 Bidirectional Sync
 * **Blockly to JS**: As blocks are manipulated, the corresponding JavaScript code is automatically generated.
 * **JS to Blockly**: When switching back to the visual editor, the JavaScript code is transpiled back into blocks.
@@ -63,6 +67,8 @@ The system supports bidirectional synchronization between the visual Blockly int
 
 ## 5. Visual Programming with "OnEvent"
 The core of the Blockly integration is the `OnEvent` block. Users can drag and drop action blocks into the `OnEvent` handler to define their workflow.
+
+![Visual OnEvent Logic](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/chatelao/ai-brain/main/specification/BLOCKLY_VISUAL.puml)
 
 ### Example Logic (JavaScript Equivalent):
 ```javascript
