@@ -14,7 +14,8 @@ if (isset($_GET['code'])) {
         $googleUser = $auth->authenticate($_GET['code']);
         $user = $userModel->createOrUpdate($googleUser);
         $auth->login($user);
-        header('Location: /web/');
+        $redirectUrl = file_exists(__DIR__ . '/../web/index.html') ? '/web/' : '/index.php';
+        header('Location: ' . $redirectUrl);
         exit;
     } catch (Exception $e) {
         echo "Error: " . htmlspecialchars($e->getMessage());

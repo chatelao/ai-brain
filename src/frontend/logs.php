@@ -23,7 +23,7 @@ if (!$auth->isLoggedIn()) {
 $user = $userModel->findById($auth->getUserId());
 
 // Default Redirection to Next-Gen UI
-if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false) {
+if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false && file_exists(__DIR__ . '/web/index.html')) {
     header('Location: /web/logs/');
     exit;
 }

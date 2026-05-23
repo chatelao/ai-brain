@@ -17,7 +17,7 @@ if (!$auth->isLoggedIn()) {
 }
 
 // Default Redirection to Next-Gen UI
-if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false) {
+if ($auth->isLoggedIn() && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false && file_exists(__DIR__ . '/../web/index.html')) {
     header('Location: /web/admin/');
     exit;
 }
