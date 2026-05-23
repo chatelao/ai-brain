@@ -5,12 +5,13 @@ import Navbar from '@/components/Navbar';
 import { useUser, useUpdateUser } from '@/hooks/useUser';
 import apiClient from '@/api/client';
 import { useRelativePath } from '@/hooks/useRelativePath';
+import BlocklyEditor from '@/components/blockly/BlocklyEditor';
 
 export default function SettingsPage() {
   const { rel } = useRelativePath();
   const { data: user, isLoading } = useUser();
   const updateUser = useUpdateUser();
-  const [activeTab, setActiveTab] = useState<'general' | 'notifications'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'automation'>('general');
   const [testStatus, setTestStatus] = useState<{ status: 'success' | 'error'; message: string } | null>(null);
   const [isTesting, setIsTesting] = useState(false);
 
@@ -149,6 +150,16 @@ export default function SettingsPage() {
               }`}
             >
               Notifications
+            </button>
+            <button
+              onClick={() => setActiveTab('automation')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'automation'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Automation
             </button>
           </nav>
         </div>
@@ -296,6 +307,25 @@ export default function SettingsPage() {
               >
                 Switch to Legacy UI
               </button>
+            </section>
+          </div>
+        )}
+
+        {activeTab === 'automation' && (
+          <div className="space-y-6">
+            <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Global Automation (Experimental)</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Define global workflows that apply to all your projects using Blockly.
+                These scripts are executed when events occur in any of your linked repositories.
+              </p>
+
+              <BlocklyEditor
+                initialXml={user?.blockly_config?.xml}
+                onSave={(config) => {
+                  updateUser.mutate({ blockly_config: config });
+                }}
+              />
             </section>
           </div>
         )}

@@ -1965,6 +1965,10 @@ export interface components {
             jules_quota_usage?: number | null;
             /** @example 1000 */
             jules_quota_limit?: number | null;
+            blockly_config?: {
+                xml?: string;
+                js?: string;
+            } | null;
             github_accounts?: {
                 github_account_id?: number;
                 github_username?: string;
