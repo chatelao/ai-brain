@@ -282,6 +282,21 @@ export default function SettingsPage() {
                 </div>
               </div>
             </section>
+
+            {/* UI Preference */}
+            <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Interface Preference</h3>
+              <p className="text-sm text-gray-500 mb-4">Switch back to the legacy PHP-based interface if you encounter issues or prefer the old design.</p>
+              <button
+                onClick={() => {
+                  document.cookie = "prefer_legacy=1; path=/; max-age=" + (30 * 24 * 60 * 60);
+                  window.location.href = rel('/index.php?legacy=1');
+                }}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Switch to Legacy UI
+              </button>
+            </section>
           </div>
         )}
 

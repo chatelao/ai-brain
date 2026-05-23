@@ -104,9 +104,9 @@ The final phase involves migrating all remaining features and decommissioning th
 - ✅ **Milestone 4.1: Administrative & Advanced Features**
     - ✅ Port Settings, User Management (Admin Dashboard).
     - ✅ Roadmap/Template management.
-- 🚧 **Milestone 4.2: User Migration**
-    - 🚧 Default all users to the New UI.
-    - ⏳ Provide a "Switch back to Legacy" toggle for a limited time to gather feedback.
+- ✅ **Milestone 4.2: User Migration**
+    - ✅ Default all users to the New UI (handled in `index.php` and OAuth callbacks).
+    - ✅ Provide a "Switch back to Legacy" toggle in Settings and handle `legacy=0/1` preference state.
 - ⏳ **Milestone 4.3: Legacy Decommission**
     - ⏳ Remove PHP frontend templates and Alpine.js dependencies.
     - ⏳ Complete refactoring of the backend into a pure API server (e.g., transitioning to NestJS).

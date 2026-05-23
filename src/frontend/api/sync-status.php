@@ -77,7 +77,8 @@ try {
         'jules_failed' => (int)($counts['jules_failed'] ?? 0),
         'github_running' => (int)($counts['github_running'] ?? 0),
         'github_passed' => (int)($counts['github_passed'] ?? 0),
-        'github_failed' => (int)($counts['github_failed'] ?? 0)
+        'github_failed' => (int)($counts['github_failed'] ?? 0),
+        'telegram_connected' => (bool)$userModel->getTelegramChatId($userId)
     ]);
 } catch (Exception $e) {
     http_response_code(500);
