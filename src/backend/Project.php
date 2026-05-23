@@ -118,4 +118,12 @@ class Project
             $projectId
         ]);
     }
+
+    public function updateBlocklyConfig(int $projectId, ?string $config): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE projects SET blockly_config = ? WHERE project_id = ?"
+        );
+        return $stmt->execute([$config, $projectId]);
+    }
 }

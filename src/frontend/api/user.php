@@ -45,6 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $userModel->updateJulesApiKey($userId, trim($input['jules_api_key']));
     }
 
+    if (isset($input['blockly_config'])) {
+        $userModel->updateBlocklyConfig($userId, $input['blockly_config']);
+    }
+
     if (isset($input['telegram_bot_name']) || isset($input['telegram_bot_token']) || isset($input['telegram_webhook_secret'])) {
         $user = $userModel->findById($userId);
         $newBotToken = $input['telegram_bot_token'] ?? $user['telegram_bot_token'] ?? '';
@@ -113,6 +117,7 @@ $output = [
     'has_jules_key' => !empty($user['jules_api_key']),
     'jules_quota_usage' => isset($user['jules_quota_usage']) ? (int)$user['jules_quota_usage'] : null,
     'jules_quota_limit' => isset($user['jules_quota_limit']) ? (int)$user['jules_quota_limit'] : null,
+    'blockly_config' => $user['blockly_config'] ?? null,
     'github_accounts' => array_map(function($acc) {
         return [
             'github_account_id' => (int)$acc['github_account_id'],

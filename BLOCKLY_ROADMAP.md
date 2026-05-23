@@ -4,7 +4,7 @@
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| 1 | Database Schema & API | 🌑 |
+| 1 | Database Schema & API | ✅ |
 | 2 | UI Integration (Next-Gen) | 🌑 |
 | 3 | Custom Block Definitions | 🌑 |
 | 4 | JavaScript Execution Sandbox | 🌑 |
@@ -20,11 +20,11 @@
 - Implement hierarchical logic (Global vs. Project-specific).
 
 ## Phase 1: Database Schema & API
-- [ ] Add `blockly_config` (JSON) column to `users` table.
-- [ ] Add `blockly_config` (JSON) column to `projects` table.
-- [ ] Update `/api/user.php` to support getting/setting global Blockly config.
-- [ ] Update `/api/project.php` to support getting/setting local Blockly config.
-- [ ] Document new API fields in `api/openapi.yaml`.
+- [x] Add `blockly_config` (JSON) column to `users` table.
+- [x] Add `blockly_config` (JSON) column to `projects` table.
+- [x] Update `/api/user.php` to support getting/setting global Blockly config.
+- [x] Update `/api/project.php` to support getting/setting local Blockly config.
+- [x] Document new API fields in `api/openapi.yaml`.
 
 ## Phase 2: UI Integration (Next-Gen)
 - [ ] Install `blockly` and associated React wrappers in the `web/` project.
