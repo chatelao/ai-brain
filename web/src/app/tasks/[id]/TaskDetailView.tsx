@@ -26,7 +26,7 @@ export default function TaskDetailView({ id }: { id: string }) {
     const originalHref = link?.href;
 
     if (task?.status) {
-      let faviconPath = rel('/favicon.ico');
+      let faviconPath = rel('/favicon.svg');
       if (['ready', 'finished'].includes(task.status)) {
         faviconPath = rel('/favicon-success.svg');
       } else if (['failed_jules', 'failed_pr'].includes(task.status)) {
