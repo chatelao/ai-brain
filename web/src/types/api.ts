@@ -938,14 +938,16 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List project tasks (JSON)
-         * @description Returns a list of tasks for a specific project.
+         * List tasks (JSON)
+         * @description Returns a list of tasks, optionally filtered by project or status.
          */
         get: {
             parameters: {
-                query: {
-                    /** @description Project ID */
-                    id: number;
+                query?: {
+                    /** @description Project ID (optional) */
+                    id?: number;
+                    /** @description Filter criteria */
+                    filter?: "all_open" | "github_running" | "github_passed" | "github_failed" | "jules_analyzing" | "jules_executing" | "jules_failed" | "open_issues";
                 };
                 header?: never;
                 path?: never;
@@ -1566,6 +1568,152 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/notifications.php": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List notifications (JSON)
+         * @description Returns a list of notifications for the authenticated user.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @default list */
+                    action?: "list" | "unread_count";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A JSON list of notifications or unread count */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            status?: string;
+                            notifications?: components["schemas"]["Notification"][];
+                            unread_count?: number;
+                            settings?: Record<string, never>;
+                        };
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Perform notification action
+         * @description Marks notifications as read or clears all.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        action: "mark_read" | "mark_all_read" | "clear_all" | "test_broadcast";
+                        notification_id?: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Action performed successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sync-status.php": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get global sync status (JSON)
+         * @description Returns global status counts for GitHub checks and Jules agents.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description If 1, skip external API calls and return cached data. */
+                    fast?: 0 | 1;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Global status counts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SyncStatus"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin-users.php": {
         parameters: {
             query?: never;
@@ -1890,6 +2038,40 @@ export interface components {
              * @example 2023-10-27T10:00:00Z
              */
             created_at?: string;
+        };
+        Notification: {
+            notification_id?: number;
+            user_id?: number;
+            /** @description HTML formatted title */
+            title?: string;
+            /** @description HTML formatted message */
+            message?: string;
+            /** @description Plain text title */
+            title_plain?: string;
+            /** @description Plain text message */
+            message_plain?: string;
+            github_repo?: string | null;
+            /** @enum {integer} */
+            is_read?: 0 | 1;
+            /** Format: date-time */
+            created_at?: string;
+            data?: {
+                source_url?: string;
+            } | null;
+        };
+        SyncStatus: {
+            status?: string;
+            quota_usage?: number;
+            quota_limit?: number;
+            total_tasks?: number;
+            open_issues?: number;
+            completed_tasks?: number;
+            jules_analyzing?: number;
+            jules_executing?: number;
+            jules_failed?: number;
+            github_running?: number;
+            github_passed?: number;
+            github_failed?: number;
         };
         GitHubIssueEvent: {
             /** @example opened */

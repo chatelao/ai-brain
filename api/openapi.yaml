@@ -539,17 +539,24 @@ paths:
 
   /api/tasks.php:
     get:
-      summary: List project tasks (JSON)
-      description: Returns a list of tasks for a specific project.
+      summary: List tasks (JSON)
+      description: Returns a list of tasks, optionally filtered by project or status.
       security:
         - BearerAuth: []
       parameters:
         - name: id
           in: query
-          required: true
+          required: false
           schema:
             type: integer
-          description: Project ID
+          description: Project ID (optional)
+        - name: filter
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all_open, github_running, github_passed, github_failed, jules_analyzing, jules_executing, jules_failed, open_issues]
+          description: Filter criteria
       responses:
         '200':
           description: A JSON list of tasks
@@ -879,6 +886,89 @@ paths:
           description: Unauthorized
         '500':
           description: Internal server error
+
+  /api/notifications.php:
+    get:
+      summary: List notifications (JSON)
+      description: Returns a list of notifications for the authenticated user.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: action
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [list, unread_count]
+          default: list
+      responses:
+        '200':
+          description: A JSON list of notifications or unread count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  notifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  unread_count:
+                    type: integer
+                  settings:
+                    type: object
+        '401':
+          description: Unauthorized
+    post:
+      summary: Perform notification action
+      description: Marks notifications as read or clears all.
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [mark_read, mark_all_read, clear_all, test_broadcast]
+                notification_id:
+                  type: integer
+              required:
+                - action
+      responses:
+        '200':
+          description: Action performed successfully
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+
+  /api/sync-status.php:
+    get:
+      summary: Get global sync status (JSON)
+      description: Returns global status counts for GitHub checks and Jules agents.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: fast
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: If 1, skip external API calls and return cached data.
+      responses:
+        '200':
+          description: Global status counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncStatus'
+        '401':
+          description: Unauthorized
 
   /api/admin-users.php:
     get:
@@ -1324,6 +1414,69 @@ components:
           type: string
           format: date-time
           example: "2023-10-27T10:00:00Z"
+
+    Notification:
+      type: object
+      properties:
+        notification_id:
+          type: integer
+        user_id:
+          type: integer
+        title:
+          type: string
+          description: HTML formatted title
+        message:
+          type: string
+          description: HTML formatted message
+        title_plain:
+          type: string
+          description: Plain text title
+        message_plain:
+          type: string
+          description: Plain text message
+        github_repo:
+          type: string
+          nullable: true
+        is_read:
+          type: integer
+          enum: [0, 1]
+        created_at:
+          type: string
+          format: date-time
+        data:
+          type: object
+          nullable: true
+          properties:
+            source_url:
+              type: string
+
+    SyncStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        quota_usage:
+          type: integer
+        quota_limit:
+          type: integer
+        total_tasks:
+          type: integer
+        open_issues:
+          type: integer
+        completed_tasks:
+          type: integer
+        jules_analyzing:
+          type: integer
+        jules_executing:
+          type: integer
+        jules_failed:
+          type: integer
+        github_running:
+          type: integer
+        github_passed:
+          type: integer
+        github_failed:
+          type: integer
 
     GitHubIssueEvent:
       type: object

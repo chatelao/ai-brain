@@ -23,6 +23,8 @@ This section tracks the migration progress of legacy PHP views to the new React-
 | User Settings | `settings.php` | ✅ | 100.0% |
 | Webhook Logs | `logs.php` | ✅ | 100.0% |
 | Admin Dashboard | `admin/index.php` | ✅ | 100.0% |
+| Notifications | `notifications.php`| ✅ | 100.0% |
+| Global Tasks | `tasks.php` | ✅ | 100.0% |
 | **Total** | | | **100.0%** |
 
 ## Goals
@@ -89,8 +91,9 @@ The goal of Phase 3 is to launch the native mobile application and enhance the n
 - ⏳ **Milestone 3.1: React Native Shell**
     - ⏳ Initialize the Expo project and implement shared API clients.
     - ⏳ Build the unified Login flow (Google/GitHub).
-- ⏳ **Milestone 3.2: Native Oversight**
+- ✅ **Milestone 3.2: Native Oversight**
     - ✅ Implement the "Running Autorepeat Tasks" view for web.
+    - ✅ Implement the "Global Tasks" and "In-App Notifications" view for web.
     - ⏳ Implement the "Running Autorepeat Tasks" and "Project Grid" views for mobile.
 - ⏳ **Milestone 3.3: Push Notifications**
     - ⏳ Integrate with Firebase or Expo Notifications to deliver native alerts for `FAILED` and `READY` states.
