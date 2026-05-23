@@ -7,6 +7,7 @@ import ProjectCard from '@/components/ProjectCard';
 import TaskFilterBar from '@/components/TaskFilterBar';
 import Navbar from '@/components/Navbar';
 import LinkRepositoryModal from '@/components/LinkRepositoryModal';
+import AutorepeatTasks from '@/components/AutorepeatTasks';
 import { components } from '@/types/api';
 
 type Project = components['schemas']['Project'];
@@ -71,6 +72,8 @@ export default function Dashboard() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <AutorepeatTasks />
+
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Project Dashboard</h2>

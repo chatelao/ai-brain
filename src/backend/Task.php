@@ -125,7 +125,9 @@ class Task
 
     public function findByProjectId(int $projectId, bool $showAll = true): array
     {
-        $sql = "SELECT t1.* FROM tasks t1 WHERE t1.project_id = ?
+        $sql = "SELECT t1.*, p.github_repo FROM tasks t1
+                JOIN projects p ON t1.project_id = p.project_id
+                WHERE t1.project_id = ?
                 AND t1.issue_number > 0 AND t1.title != ''";
         $params = [$projectId];
 

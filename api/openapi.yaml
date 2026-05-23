@@ -564,6 +564,24 @@ paths:
         '404':
           description: Project not found
 
+  /api/autorepeat-tasks.php:
+    get:
+      summary: List running autorepeat tasks (JSON)
+      description: Returns a list of all active autorepeat tasks for the authenticated user.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: A JSON list of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized
+
   /api/task.php:
     get:
       summary: Get task details (JSON)
@@ -1080,6 +1098,9 @@ components:
         github_state:
           type: string
           example: "open"
+        github_repo:
+          type: string
+          example: "google/jules"
         created_at:
           type: string
           format: date-time

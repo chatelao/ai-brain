@@ -4,7 +4,6 @@ require_once __DIR__ . '/../../../vendor/autoload.php';
 
 use App\Database;
 use App\Auth;
-use App\Project;
 use App\Task;
 
 header('Content-Type: application/json');
@@ -29,26 +28,10 @@ if (!$userId) {
     exit;
 }
 
-$projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if (!$projectId) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Missing project ID']);
-    exit;
-}
-
 $db = new Database();
-$projectModel = new Project($db);
 $taskModel = new Task($db);
 
-// Verify project ownership
-$project = $projectModel->findById($projectId);
-if (!$project || (int)$project['user_id'] !== $userId) {
-    http_response_code(404);
-    echo json_encode(['error' => 'Project not found']);
-    exit;
-}
-
-$tasks = $taskModel->findByProjectId($projectId);
+$tasks = $taskModel->getRunningAutorepeatTasks($userId);
 
 // Map internal database fields to OpenAPI schema
 $output = array_map(function($task) {
@@ -72,7 +55,7 @@ $output = array_map(function($task) {
         'jules_url' => $task['jules_url'],
         'jules_status' => $task['jules_status'],
         'github_state' => $task['github_state'],
-        'github_repo' => $task['github_repo'] ?? '',
+        'github_repo' => $task['github_repo'],
         'created_at' => $task['created_at'],
         'last_synced_at' => $task['last_synced_at'],
         'autorepeat_remaining' => (int)($task['autorepeat_remaining'] ?? 0),
