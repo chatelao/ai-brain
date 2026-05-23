@@ -5,7 +5,7 @@
 | Phase | Description | Status |
 |-------|-------------|--------|
 | 1 | Database Schema & API | ✅ |
-| 2 | UI Integration (Next-Gen) | 🌑 |
+| 2 | UI Integration (Next-Gen) | 🏗️ |
 | 3 | Custom Block Definitions | 🌑 |
 | 4 | JavaScript Execution Sandbox | 🌑 |
 | 5 | Scoping & Inheritance | 🌑 |
@@ -27,9 +27,10 @@
 - [x] Document new API fields in `api/openapi.yaml`.
 
 ## Phase 2: UI Integration (Next-Gen)
-- [ ] Install `blockly` and associated React wrappers in the `web/` project.
-- [ ] Implement `BlocklyEditor` component with dual-pane (Blocks/JS) view.
-- [ ] Integrate `BlocklyEditor` into User Settings page.
+- [x] Install `blockly` and associated React wrappers in the `web/` project.
+- [x] Implement `BlocklyComponent` (base wrapper for Blockly injection).
+- [x] Implement `BlocklyEditor` component with dual-pane (Blocks/JS) view.
+- [x] Integrate `BlocklyEditor` into User Settings page.
 - [ ] Integrate `BlocklyEditor` into Project Settings page.
 - [ ] Implement persistence logic (saving to API on change/save).
 

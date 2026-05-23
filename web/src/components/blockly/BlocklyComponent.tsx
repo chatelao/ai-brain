@@ -1,0 +1,114 @@
+'use client';
+
+import React, { useEffect, useRef } from 'react';
+import * as Blockly from 'blockly';
+import { javascriptGenerator } from 'blockly/javascript';
+
+interface BlocklyComponentProps {
+  initialXml?: string;
+  toolboxConfig?: Blockly.utils.toolbox.ToolboxDefinition;
+  onXmlChange?: (xml: string) => void;
+  onJsChange?: (js: string) => void;
+  className?: string;
+}
+
+const BlocklyComponent: React.FC<BlocklyComponentProps> = ({
+  initialXml,
+  toolboxConfig,
+  onXmlChange,
+  onJsChange,
+  className,
+}) => {
+  const blocklyDiv = useRef<HTMLDivElement>(null);
+  const workspace = useRef<Blockly.WorkspaceSvg | null>(null);
+
+  // Load XML when initialXml changes (e.g. after data fetch)
+  useEffect(() => {
+    if (workspace.current && initialXml) {
+      workspace.current.clear();
+      try {
+        const dom = Blockly.utils.xml.textToDom(initialXml);
+        Blockly.Xml.appendDomToWorkspace(dom, workspace.current);
+      } catch (e) {
+        console.error('Failed to load updated XML', e);
+      }
+    }
+  }, [initialXml]);
+
+  useEffect(() => {
+    if (!blocklyDiv.current) return;
+
+    workspace.current = Blockly.inject(blocklyDiv.current, {
+      toolbox: toolboxConfig || {
+        kind: 'categoryToolbox',
+        contents: [
+          {
+            kind: 'category',
+            name: 'Logic',
+            colour: '%{BKY_LOGIC_HUE}',
+            contents: [
+              { kind: 'block', type: 'controls_if' },
+              { kind: 'block', type: 'logic_compare' },
+            ],
+          },
+          {
+            kind: 'category',
+            name: 'Loops',
+            colour: '%{BKY_LOOPS_HUE}',
+            contents: [
+              { kind: 'block', type: 'controls_repeat_ext' },
+            ],
+          },
+        ],
+      },
+    });
+
+    if (initialXml) {
+      try {
+        const dom = Blockly.utils.xml.textToDom(initialXml);
+        Blockly.Xml.appendDomToWorkspace(dom, workspace.current);
+      } catch (e) {
+        console.error('Failed to load initial XML', e);
+      }
+    }
+
+    const handleChange = () => {
+      if (!workspace.current) return;
+
+      if (onXmlChange) {
+        const xmlDom = Blockly.Xml.workspaceToDom(workspace.current);
+        const xmlText = Blockly.Xml.domToText(xmlDom);
+        onXmlChange(xmlText);
+      }
+
+      if (onJsChange) {
+        const code = javascriptGenerator.workspaceToCode(workspace.current);
+        onJsChange(code);
+      }
+    };
+
+    workspace.current.addChangeListener(handleChange);
+
+    // Initial code generation
+    handleChange();
+
+    const handleResize = () => {
+      if (workspace.current) {
+        Blockly.svgResize(workspace.current);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (workspace.current) {
+        workspace.current.dispose();
+      }
+    };
+  }, []);
+
+  return <div ref={blocklyDiv} className={className} style={{ height: '100%', width: '100%' }} />;
+};
+
+export default BlocklyComponent;
