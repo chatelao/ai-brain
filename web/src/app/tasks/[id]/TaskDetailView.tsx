@@ -8,6 +8,8 @@ import StatusBadge from '@/components/StatusBadge';
 import TaskStatusSquare from '@/components/TaskStatusSquare';
 import TaskSidebar from '@/components/TaskSidebar';
 import Navbar from '@/components/Navbar';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function TaskDetailView({ id }: { id: string }) {
   const { data: task, isLoading, error, performAction, isPerformingAction } = useTask(id);
@@ -105,8 +107,8 @@ export default function TaskDetailView({ id }: { id: string }) {
                   </span>
                 ))}
               </div>
-              <div className="prose prose-sm max-w-none text-gray-600 border-t pt-4 whitespace-pre-wrap">
-                {task.body}
+              <div className="markdown-body prose prose-sm max-w-none text-gray-600 border-t pt-4">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{task.body || ''}</ReactMarkdown>
               </div>
             </div>
 
@@ -150,8 +152,8 @@ export default function TaskDetailView({ id }: { id: string }) {
                     </span>
                   </div>
                   {task.pr_details.body && (
-                    <div className="prose prose-sm max-w-none text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-100 whitespace-pre-wrap">
-                      {task.pr_details.body}
+                    <div className="markdown-body prose prose-sm max-w-none text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{task.pr_details.body || ''}</ReactMarkdown>
                     </div>
                   )}
                 </div>
@@ -201,8 +203,8 @@ export default function TaskDetailView({ id }: { id: string }) {
                       )}
                     </div>
                     <div className="p-4">
-                      <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
-                        {msg.body}
+                      <div className="markdown-body prose prose-sm max-w-none text-gray-700">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.body || ''}</ReactMarkdown>
                       </div>
                     </div>
                   </div>

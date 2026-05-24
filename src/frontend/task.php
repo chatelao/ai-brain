@@ -224,7 +224,8 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task #<?= htmlspecialchars($task['issue_number'] ?? '') ?> - Agent Control</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
@@ -385,7 +386,7 @@ if ($prDetails && ($prDetails['state'] ?? '') === 'open') {
                                             <span>Head: <code class="bg-gray-100 px-1 rounded"><?= htmlspecialchars($prDetails['head']['ref'] ?? 'feature') ?></code></span>
                                         </div>
                                         <?php if (!empty($prDetails['body'])) : ?>
-                                            <div class="prose prose-sm max-w-none text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                            <div class="prose prose-sm max-w-none text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-100 markdown-body">
                                                 <?= $parsedown->text($taskModel->processGitHubImages($prDetails['body'])) ?>
                                             </div>
                                         <?php endif; ?>
