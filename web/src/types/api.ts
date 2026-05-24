@@ -2012,6 +2012,10 @@ export interface components {
             created_at?: string;
             /** @example johndoe_git */
             github_username?: string;
+            blockly_config?: {
+                xml?: string;
+                js?: string;
+            } | null;
             roadmap_data?: {
                 name?: string;
                 html_url?: string;
