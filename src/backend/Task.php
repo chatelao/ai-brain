@@ -270,19 +270,15 @@ class Task
              FROM tasks t
              JOIN projects p ON t.project_id = p.project_id
              WHERE p.user_id = ?
+             AND t.github_state = 'open'
+             AND (t.autorepeat_remaining > 0 OR t.github_data LIKE '%autorepeat%' OR t.github_data LIKE '%auto-repeat%')
              ORDER BY t.created_at DESC"
         );
         $stmt->execute([$userId]);
         $tasks = $stmt->fetchAll();
 
         return array_filter($tasks, function ($task) {
-            $githubData = json_decode($task['github_data'], true);
-            if (!$githubData) {
-                return false;
-            }
-
-            $isOpen = ($githubData['state'] ?? '') === 'open';
-            return $isOpen && $this->hasAutorepeatLabel($task);
+            return $task['autorepeat_remaining'] > 0 || $this->hasAutorepeatLabel($task);
         });
     }
 

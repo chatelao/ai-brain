@@ -7,8 +7,8 @@
 | 1 | Database Schema & API | ✅ |
 | 2 | UI Integration (Next-Gen) | ✅ |
 | 3 | Custom Block Definitions | ✅ |
-| 4 | JavaScript Execution Sandbox | 🏗️ |
-| 5 | Scoping & Inheritance | 🌑 |
+| 4 | JavaScript Execution Sandbox | ✅ |
+| 5 | Scoping & Inheritance | 🏗️ |
 | 6 | End-to-End Workflows | 🌑 |
 
 ## Goals
@@ -45,13 +45,17 @@
 - [x] Create `SandboxService.php` to interface with the JS runner.
 - [x] Implement `scripts/blockly-runner.js` skeleton using Node.js `vm` module.
 - [x] Implement proxy handlers for actions (`notify`, `merge`, `setLabel`, etc.) in the runner.
-- [x] Implement predicate handlers (`readLabel`, `isTaskReady`) in the runner.
+- [x] Implement proxy handlers for predicates (`readLabel`, `isTaskReady`) in the runner.
 - [x] Define the JSON interface for `event` and `task` data context.
 - [x] Implement resource limits (timeout) and basic error handling in the runner.
 - [x] Add unit tests for `blockly-runner.js` in the `test/` directory.
+- [x] Implement action dispatching logic in `SandboxService.php`.
+- [x] Add integration tests for `SandboxService` in `test/Integration/SandboxServiceTest.php`.
 
 ## Phase 5: Scoping & Inheritance
-- [ ] Update `WebhookHandler` to fetch and trigger `SandboxService` for both Global and Local logic.
+- [ ] Fetch Global Blockly config from `users` table in `WebhookHandler`.
+- [ ] Fetch Local Blockly config from `projects` table in `WebhookHandler`.
+- [ ] Implement sequential execution of Global then Local logic in `WebhookHandler`.
 - [ ] Implement precedence rules (Local overrides Global actions) during execution.
 - [ ] Add detailed execution logging to `task_logs` for auditability and debugging.
 - [ ] Implement a "Dry Run" mode for testing Blockly logic without performing actions.

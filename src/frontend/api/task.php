@@ -61,6 +61,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $count = isset($input['autorepeat_remaining']) ? (int)$input['autorepeat_remaining'] : 0;
                 $taskModel->updateAutorepeatRemaining($taskId, $count);
+
+                if ($count === 0 && !empty($project['github_token'])) {
+                    $githubService = new App\GitHubService(null, $project['github_token']);
+                    $githubService->removeLabel($project['github_repo'], $task['issue_number'], 'autorepeat');
+                    $githubService->removeLabel($project['github_repo'], $task['issue_number'], 'auto-repeat');
+                }
+
                 echo json_encode(['status' => 'success', 'message' => 'Auto-repeat updated']);
             } catch (Exception $e) {
                 http_response_code(500);
