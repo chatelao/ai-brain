@@ -59,7 +59,7 @@ const LinkRepositoryModal: React.FC<LinkRepositoryModalProps> = ({ isOpen, onClo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black bg-opacity-50">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <h3 className="text-lg font-bold text-gray-900">Link New Repository</h3>
