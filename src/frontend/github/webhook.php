@@ -11,6 +11,7 @@ use App\RateLimiter;
 use App\WebhookLogger;
 use App\NotificationService;
 use App\User;
+use App\SandboxService;
 
 $db = new Database();
 $rateLimiter = new RateLimiter($db);
@@ -137,7 +138,9 @@ try {
     $user = $userModel->findById($matchingProject['user_id']);
     $julesService = new JulesService(null, $user['jules_api_key'] ?? null);
 
-    if ($handler->handle($matchingProject, $data, $githubService, $notificationService, $julesService)) {
+    $sandboxService = new SandboxService($db, $githubService, $notificationService, $julesService);
+
+    if ($handler->handle($matchingProject, $data, $githubService, $notificationService, $julesService, $sandboxService, $githubEvent)) {
         $logger->log($matchingProject['user_id'], 'github/webhook.php', $payload, $headersStr, 200);
         http_response_code(200);
         echo 'OK';
