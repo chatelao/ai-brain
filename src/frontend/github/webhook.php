@@ -54,7 +54,7 @@ if (empty($githubEvent)) {
 }
 
 // Return 200 for unhandled events to keep webhook healthy on GitHub
-if (!in_array($githubEvent, ['issues', 'ping', 'check_suite', 'pull_request'])) {
+if (!in_array($githubEvent, ['issues', 'ping', 'check_suite', 'pull_request', 'issue_comment'])) {
     http_response_code(200);
     exit("Event $githubEvent skipped");
 }

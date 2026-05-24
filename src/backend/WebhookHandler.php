@@ -304,20 +304,45 @@ class WebhookHandler
         $isJulesComment = ($login === 'google-labs-jules[bot]' || $login === 'jules');
         $body = $comment['body'] ?? '';
 
-        if ($isJulesComment && stripos($body, 'on it') !== false) {
-            $sessionId = $taskModel->extractSessionId($body);
-            if ($sessionId) {
-                $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
-                if ($task) {
-                    $connection = $this->db->getConnection();
-                    $stmt = $connection->prepare("UPDATE tasks SET jules_session_id = ? WHERE task_id = ?");
-                    $stmt->execute([$sessionId, $task['task_id']]);
+        $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
 
-                    if ($githubService && $julesService) {
-                        $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $notificationService, (int)$task['task_id']);
-                    }
-                }
+        if ($isJulesComment) {
+            $sessionId = $taskModel->extractSessionId($body);
+            if ($sessionId && $task) {
+                $connection = $this->db->getConnection();
+                $stmt = $connection->prepare("UPDATE tasks SET jules_session_id = ? WHERE task_id = ?");
+                $stmt->execute([$sessionId, $task['task_id']]);
             }
+
+            // Always refresh status when Jules comments to capture state transitions immediately
+            if ($task && $githubService && $julesService) {
+                $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $notificationService, (int)$task['task_id']);
+            }
+        }
+
+        // Notify about the comment
+        if ($notificationService) {
+            $userName = $comment['user']['login'] ?? 'Unknown';
+            $title = ($isJulesComment ? "🤖 Jules" : "💬 $userName") . " commented on #" . $issue['number'];
+
+            $notificationData = [
+                'project_id' => $project['project_id'],
+                'issue_number' => $issue['number'],
+                'source_url' => $comment['html_url'] ?? $issue['html_url'],
+                'is_system' => $isJulesComment || !$this->isUserTriggered($event)
+            ];
+
+            if ($task) {
+                $notificationData['task_id'] = $task['task_id'];
+            }
+
+            $notificationService->notify(
+                $project['user_id'],
+                'github_comment',
+                $title,
+                $body,
+                $notificationData
+            );
         }
 
         return true;
