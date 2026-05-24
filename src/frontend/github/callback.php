@@ -64,7 +64,7 @@ if (isset($_GET['code']) && isset($_GET['state'])) {
                 $userModel->addGitHubAccount($user['user_id'], $githubData['access_token'], $githubData['github_username']);
 
                 $auth->login($user);
-                $redirectUrl = file_exists(__DIR__ . '/../web/index.html') ? '/web/' : '../index.php';
+                $redirectUrl = file_exists(__DIR__ . '/../web/index.html') ? '/web/' : '/index.php';
                 header('Location: ' . $redirectUrl);
                 exit;
             } else {

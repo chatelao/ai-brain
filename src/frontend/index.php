@@ -29,7 +29,8 @@ if (isset($_GET['legacy'])) {
 }
 
 // Next-Gen UI Redirection & Safeguard
-if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && file_exists(__DIR__ . '/web/index.html')) {
+$nextGenExists = file_exists(__DIR__ . '/web/index.html');
+if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && $nextGenExists) {
     $requestUri = $_SERVER['REQUEST_URI'] ?? '';
     $isWebPath = strpos($requestUri, '/web/') !== false;
 
@@ -74,6 +75,11 @@ if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && file_exists(__DIR__ . 
             exit;
         }
     }
+} elseif (strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') !== false && !$nextGenExists) {
+    // If we are in /web/ but Next-Gen UI is not installed, redirect back to root dashboard
+    // to avoid being stuck in a /web/ path that renders the legacy UI incorrectly.
+    header('Location: /index.php');
+    exit;
 }
 
 $githubAccounts = $user ? $userModel->getGitHubAccounts($user['user_id']) : [];

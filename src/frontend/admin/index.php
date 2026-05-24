@@ -16,11 +16,8 @@ if (!$auth->isLoggedIn()) {
     exit;
 }
 
-$currentUser = $userModel->findById($auth->getUserId());
-$user = $currentUser;
-
 // Default Redirection to Next-Gen UI
-if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false && file_exists(__DIR__ . '/../web/index.html')) {
+if ($auth->isLoggedIn() && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false && file_exists(__DIR__ . '/../web/index.html')) {
     header('Location: /web/admin/');
     exit;
 }
@@ -28,6 +25,9 @@ if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && strpos($_SERVER['REQUE
 if (!$auth->isAdmin()) {
     die("Access denied. Admin privileges required.");
 }
+
+$currentUser = $userModel->findById($auth->getUserId());
+$user = $currentUser;
 $taskModel = new Task($db);
 $allUsers = $userModel->getAllUsersWithProjectCount();
 
