@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import { useUser, useUpdateUser } from '@/hooks/useUser';
 import apiClient from '@/api/client';
 import { useRelativePath } from '@/hooks/useRelativePath';
+import Breadcrumbs from '@/components/Breadcrumbs';
 import BlocklyEditor from '@/components/blockly/BlocklyEditor';
 import TemplateManager from '@/components/TemplateManager';
 
@@ -125,6 +126,7 @@ export default function SettingsPage() {
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <Breadcrumbs items={[{ label: 'Settings' }]} />
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your AI keys, integrations, and notification preferences.</p>
