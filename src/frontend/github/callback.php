@@ -64,7 +64,8 @@ if (isset($_GET['code']) && isset($_GET['state'])) {
                 $userModel->addGitHubAccount($user['user_id'], $githubData['access_token'], $githubData['github_username']);
 
                 $auth->login($user);
-                header('Location: /web/');
+                $redirectUrl = file_exists(__DIR__ . '/../web/index.html') ? '/web/' : '/index.php';
+                header('Location: ' . $redirectUrl);
                 exit;
             } else {
                 throw new Exception("Failed to create or update user from GitHub data.");
