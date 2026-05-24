@@ -17,14 +17,20 @@ export const TaskSidebar: React.FC<TaskSidebarProps> = ({ task }) => {
         {/* GitHub Issue */}
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">GitHub Issue</span>
-          <a
-            href={`https://github.com/TODO_OWNER/TODO_REPO/issues/${task.issue_number}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-blue-600 hover:underline"
-          >
-            #{task.issue_number}
-          </a>
+          {task.github_repo && task.issue_number ? (
+            <a
+              href={`https://github.com/${task.github_repo}/issues/${task.issue_number}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-600 hover:underline"
+            >
+              #{task.issue_number}
+            </a>
+          ) : (
+            <span className="text-sm text-gray-400">
+              {task.issue_number ? `#${task.issue_number}` : 'None'}
+            </span>
+          )}
         </div>
 
         {/* Jules Session */}
