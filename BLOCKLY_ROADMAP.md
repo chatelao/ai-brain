@@ -31,8 +31,8 @@
 - [x] Implement `BlocklyComponent` (base wrapper for Blockly injection).
 - [x] Implement `BlocklyEditor` component with dual-pane (Blocks/JS) view.
 - [x] Integrate `BlocklyEditor` into User Settings page.
-- [ ] Integrate `BlocklyEditor` into Project Settings page.
-- [ ] Implement persistence logic (saving to API on change/save).
+- [x] Integrate `BlocklyEditor` into Project Settings page.
+- [x] Implement persistence logic (saving to API on change/save).
 
 ## Phase 3: Custom Block Definitions
 - [ ] Define the `OnEvent` trigger block.

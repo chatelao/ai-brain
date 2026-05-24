@@ -58,7 +58,11 @@ export const useProject = (id: string | number) => {
   });
 
   const updateSettingsMutation = useMutation({
-    mutationFn: async (data: { github_repo: string; github_account_id: number }) => {
+    mutationFn: async (data: {
+      github_repo?: string;
+      github_account_id?: number;
+      blockly_config?: components['schemas']['User']['blockly_config'];
+    }) => {
       const response = await apiClient.post(`project.php?id=${id}`, {
         action: 'update_settings',
         ...data,

@@ -119,8 +119,11 @@ class Project
         ]);
     }
 
-    public function updateBlocklyConfig(int $projectId, ?string $config): bool
+    public function updateBlocklyConfig(int $projectId, $config): bool
     {
+        if (is_array($config) || is_object($config)) {
+            $config = json_encode($config);
+        }
         $stmt = $this->db->getConnection()->prepare(
             "UPDATE projects SET blockly_config = ? WHERE project_id = ?"
         );

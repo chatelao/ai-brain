@@ -1134,8 +1134,7 @@ components:
           nullable: true
           example: 1000
         blockly_config:
-          type: string
-          nullable: true
+          $ref: '#/components/schemas/BlocklyConfig'
         github_accounts:
           type: array
           items:
@@ -1210,8 +1209,7 @@ components:
           type: string
           example: "johndoe_git"
         blockly_config:
-          type: string
-          nullable: true
+          $ref: '#/components/schemas/BlocklyConfig'
         roadmap_data:
           type: array
           nullable: true
@@ -1620,6 +1618,15 @@ components:
           type: integer
         telegram_connected:
           type: boolean
+
+    BlocklyConfig:
+      type: object
+      nullable: true
+      properties:
+        xml:
+          type: string
+        js:
+          type: string
 
     GitHubIssueEvent:
       type: object

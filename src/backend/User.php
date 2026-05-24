@@ -249,8 +249,11 @@ class User
         return $stmt->execute([$usage, $limit, date('Y-m-d H:i:s'), $userId]);
     }
 
-    public function updateBlocklyConfig(int $userId, ?string $config): bool
+    public function updateBlocklyConfig(int $userId, $config): bool
     {
+        if (is_array($config) || is_object($config)) {
+            $config = json_encode($config);
+        }
         $stmt = $this->db->getConnection()->prepare(
             "UPDATE users SET blockly_config = ? WHERE user_id = ?"
         );

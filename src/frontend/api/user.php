@@ -117,7 +117,7 @@ $output = [
     'has_jules_key' => !empty($user['jules_api_key']),
     'jules_quota_usage' => isset($user['jules_quota_usage']) ? (int)$user['jules_quota_usage'] : null,
     'jules_quota_limit' => isset($user['jules_quota_limit']) ? (int)$user['jules_quota_limit'] : null,
-    'blockly_config' => $user['blockly_config'] ?? null,
+    'blockly_config' => !empty($user['blockly_config']) ? json_decode($user['blockly_config'], true) : null,
     'github_accounts' => array_map(function($acc) {
         return [
             'github_account_id' => (int)$acc['github_account_id'],

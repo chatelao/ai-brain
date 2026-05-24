@@ -7,6 +7,7 @@ import { useProject } from '@/hooks/useProject';
 import { useUser } from '@/hooks/useUser';
 import { useRelativePath } from '@/hooks/useRelativePath';
 import Navbar from '@/components/Navbar';
+import BlocklyEditor from '@/components/blockly/BlocklyEditor';
 
 export default function ProjectSettingsView({ id }: { id: string }) {
   const { rel } = useRelativePath();
@@ -15,6 +16,7 @@ export default function ProjectSettingsView({ id }: { id: string }) {
   const { data: project, isLoading: projectLoading, error: projectError, updateSettings, isUpdatingSettings, updateNotifications, isUpdatingNotifications, deleteProject, isDeleting } = useProject(projectId);
   const { data: user } = useUser();
 
+  const [activeTab, setActiveTab] = useState<'general' | 'webhook' | 'automation' | 'danger'>('general');
   const [repo, setRepo] = useState('');
   const [accountId, setAccountId] = useState<number | ''>('');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -101,12 +103,35 @@ export default function ProjectSettingsView({ id }: { id: string }) {
             <ol className="flex items-center space-x-2 text-sm text-gray-500">
               <li><Link href={rel('/')} className="hover:text-gray-700">Dashboard</Link></li>
               <li><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"></path></svg></li>
-              <li><Link href={rel(`/projects/${id}`)} className="hover:text-gray-700 truncate max-w-[150px] inline-block">{project.github_repo}</Link></li>
+              <li><Link href={rel(`/projects/${id}`)} className="hover:text-gray-700 truncate max-w-[150px] inline-block">{project?.github_repo}</Link></li>
               <li><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"></path></svg></li>
               <li className="font-medium text-gray-900">Settings</li>
             </ol>
           </nav>
           <h1 className="text-2xl font-bold text-gray-900">Project Settings</h1>
+        </div>
+
+        <div className="mb-6 border-b border-gray-200">
+          <nav className="flex space-x-8" aria-label="Tabs">
+            {[
+              { id: 'general', label: 'General' },
+              { id: 'webhook', label: 'Webhook' },
+              { id: 'automation', label: 'Automation' },
+              { id: 'danger', label: 'Danger Zone' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
         </div>
 
         {successMessage && (
@@ -122,94 +147,124 @@ export default function ProjectSettingsView({ id }: { id: string }) {
         )}
 
         <div className="space-y-6">
-          <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">General Configuration</h3>
-            <form onSubmit={handleUpdateGeneral} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">GitHub Account</label>
-                  <select
-                    value={accountId}
-                    onChange={(e) => setAccountId(parseInt(e.target.value))}
-                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                    required
-                  >
-                    {githubAccounts.map((account) => (
-                      <option key={account.github_account_id} value={account.github_account_id}>
-                        {account.github_username}{' '}
-                        {recommendedId === account.github_account_id ? '(Recommended)' : ''}
-                      </option>
-                    ))}
-                  </select>
+          {activeTab === 'general' && (
+            <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">General Configuration</h3>
+              <form onSubmit={handleUpdateGeneral} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">GitHub Account</label>
+                    <select
+                      value={accountId}
+                      onChange={(e) => setAccountId(parseInt(e.target.value))}
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                      required
+                    >
+                      {githubAccounts.map((account) => (
+                        <option key={account.github_account_id} value={account.github_account_id}>
+                          {account.github_username}{' '}
+                          {recommendedId === account.github_account_id ? '(Recommended)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Repository (owner/repo)</label>
+                    <input
+                      type="text"
+                      value={repo}
+                      onChange={(e) => setRepo(e.target.value)}
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                      required
+                    />
+                  </div>
                 </div>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isUpdatingSettings}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    {isUpdatingSettings ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            </section>
+          )}
+
+          {activeTab === 'webhook' && (
+            <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Webhook Status</h3>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-green-100 text-green-800">
+                  Connected
+                </span>
+                <span className="text-sm text-gray-500">
+                  Webhook is active and receiving events.
+                </span>
+              </div>
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Repository (owner/repo)</label>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Payload URL</label>
                   <input
                     type="text"
-                    value={repo}
-                    onChange={(e) => setRepo(e.target.value)}
-                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                    required
+                    readOnly
+                    value={`${window.location.origin}/github/webhook.php?project_id=${projectId}`}
+                    className="w-full bg-gray-50 rounded-lg border-gray-200 text-sm text-gray-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Secret</label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={project?.webhook_secret || ''}
+                    className="w-full bg-gray-50 rounded-lg border-gray-200 text-sm text-gray-500"
                   />
                 </div>
               </div>
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={isUpdatingSettings}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                >
-                  {isUpdatingSettings ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </section>
+            </section>
+          )}
 
-          <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Webhook Status</h3>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-green-100 text-green-800">
-                Connected
-              </span>
-              <span className="text-sm text-gray-500">
-                Webhook is active and receiving events.
-              </span>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Payload URL</label>
-                <input
-                  type="text"
-                  readOnly
-                  value={`${window.location.origin}/github/webhook.php?project_id=${projectId}`}
-                  className="w-full bg-gray-50 rounded-lg border-gray-200 text-sm text-gray-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Secret</label>
-                <input
-                  type="text"
-                  readOnly
-                  value={project.webhook_secret || ''}
-                  className="w-full bg-gray-50 rounded-lg border-gray-200 text-sm text-gray-500"
-                />
-              </div>
-            </div>
-          </section>
+          {activeTab === 'automation' && (
+            <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Project Automation (Experimental)</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Define workflows specific to this project using Blockly.
+                These scripts are executed when events occur in this repository.
+              </p>
 
-          <section className="bg-white border border-red-200 rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-red-900 mb-2">Danger Zone</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Deleting a project will remove all associated tasks and logs from the dashboard. This action cannot be undone.
-            </p>
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete Project'}
-            </button>
-          </section>
+              <BlocklyEditor
+                initialXml={project?.blockly_config?.xml}
+                onSave={async (config) => {
+                  setSuccessMessage(null);
+                  setErrorMessage(null);
+                  try {
+                    await updateSettings({ blockly_config: config });
+                    setSuccessMessage('Automation workflow saved successfully.');
+                  } catch (err: any) {
+                    setErrorMessage(err.response?.data?.error || 'Failed to save workflow.');
+                  }
+                }}
+              />
+            </section>
+          )}
+
+          {activeTab === 'danger' && (
+            <section className="bg-white border border-red-200 rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-red-900 mb-2">Danger Zone</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Deleting a project will remove all associated tasks and logs from the dashboard. This action cannot be undone.
+              </p>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Project'}
+              </button>
+            </section>
+          )}
         </div>
       </main>
     </div>
