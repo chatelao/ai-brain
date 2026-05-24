@@ -20,14 +20,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, tasks = [] })
       <div className="flex justify-between items-start mb-2">
         <h3 className="text-lg font-bold text-gray-900 truncate pr-4">
           <Link
-            href={rel(`/projects/${project.id}`)}
+            href={rel(`/projects/?id=${project.id}`)}
             className="hover:text-blue-600 transition-colors"
           >
             {project.github_repo}
           </Link>
         </h3>
         <Link
-          href={rel(`/projects/${project.id}/settings`)}
+          href={rel(`/projects/?id=${project.id}&settings=true`)}
           className="text-gray-400 hover:text-gray-600 focus:outline-none p-1 rounded-md hover:bg-gray-100 transition-colors"
           title="Project Settings"
         >
@@ -52,7 +52,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, tasks = [] })
 
       <div className="mt-4 pt-4 border-t border-gray-100">
         <Link
-          href={rel(`/projects/${project.id}`)}
+          href={rel(`/projects/?id=${project.id}`)}
           className="text-blue-600 hover:text-blue-800 text-sm font-semibold inline-flex items-center group"
         >
           View Details

@@ -7,12 +7,29 @@ import { useRelativePath } from '@/hooks/useRelativePath';
 import Navbar from '@/components/Navbar';
 import StatusBadge from '@/components/StatusBadge';
 import Link from 'next/link';
+import TaskDetailView from './[id]/TaskDetailView';
+import { ReadonlyURLSearchParams } from 'next/navigation';
 
-function TasksList() {
+function TasksContent() {
   const searchParams = useSearchParams();
+  const taskId = searchParams.get('id');
+  const { rel } = useRelativePath();
+
+  if (taskId) {
+    return <TaskDetailView id={taskId} />;
+  }
+
+  return <TasksList rel={rel} searchParams={searchParams} />;
+}
+
+interface TasksListProps {
+  rel: (path: string) => string;
+  searchParams: ReadonlyURLSearchParams;
+}
+
+function TasksList({ rel, searchParams }: TasksListProps) {
   const filter = searchParams.get('filter') || 'all_open';
   const { data: tasks, isLoading } = useTasks(undefined, filter);
-  const { rel } = useRelativePath();
 
   const filterLabels: Record<string, string> = {
     all_open: 'All Open Tasks',
@@ -77,12 +94,12 @@ function TasksList() {
                 {tasks.map((task) => (
                   <tr key={task.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      <Link href={rel(`/projects/${task.project_id}`)} className="text-blue-600 hover:underline">
+                      <Link href={rel(`/projects/?id=${task.project_id}`)} className="text-blue-600 hover:underline">
                         {task.github_repo}
                       </Link>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      <Link href={rel(`/tasks/${task.id}`)} className="font-medium hover:underline block">
+                      <Link href={rel(`/tasks/?id=${task.id}`)} className="font-medium hover:underline block">
                         #{task.issue_number} - {task.title}
                       </Link>
                     </td>
@@ -105,7 +122,7 @@ export default function GlobalTasksPage() {
     <div className="min-h-screen bg-gray-50 pb-12">
       <Navbar />
       <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
-        <TasksList />
+        <TasksContent />
       </Suspense>
     </div>
   );

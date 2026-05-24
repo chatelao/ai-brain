@@ -95,15 +95,13 @@ export default function ProjectSettingsView({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      <Navbar />
-
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="mb-6">
           <nav className="flex mb-2" aria-label="Breadcrumb">
             <ol className="flex items-center space-x-2 text-sm text-gray-500">
               <li><Link href={rel('/')} className="hover:text-gray-700">Dashboard</Link></li>
               <li><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"></path></svg></li>
-              <li><Link href={rel(`/projects/${id}`)} className="hover:text-gray-700 truncate max-w-[150px] inline-block">{project?.github_repo}</Link></li>
+              <li><Link href={rel(`/projects/?id=${id}`)} className="hover:text-gray-700 truncate max-w-[150px] inline-block">{project?.github_repo}</Link></li>
               <li><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"></path></svg></li>
               <li className="font-medium text-gray-900">Settings</li>
             </ol>

@@ -38,7 +38,7 @@ export const AutorepeatTasks: React.FC = () => {
                   </a>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <Link href={rel(`/tasks/${task.id}`)} className="text-blue-600 hover:underline">
+                  <Link href={rel(`/tasks/?id=${task.id}`)} className="text-blue-600 hover:underline">
                     #{task.issue_number} - {task.title}
                   </Link>
                 </td>

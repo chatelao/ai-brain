@@ -36,10 +36,12 @@ if (($_COOKIE['prefer_legacy'] ?? '') !== '1' && $nextGenExists) {
 
     // 1. Deep Redirection Mapping (for both root and /web fallback)
     $mappedUrl = null;
-    if (strpos($requestUri, 'project.php') !== false && isset($_GET['id'])) {
-        $mappedUrl = '/web/projects/' . (int)$_GET['id'] . '/';
+    if (strpos($requestUri, 'project-settings.php') !== false && isset($_GET['id'])) {
+        $mappedUrl = '/web/projects/?id=' . (int)$_GET['id'] . '&settings=true';
+    } elseif (strpos($requestUri, 'project.php') !== false && isset($_GET['id'])) {
+        $mappedUrl = '/web/projects/?id=' . (int)$_GET['id'];
     } elseif (strpos($requestUri, 'task.php') !== false && isset($_GET['id'])) {
-        $mappedUrl = '/web/tasks/' . (int)$_GET['id'] . '/';
+        $mappedUrl = '/web/tasks/?id=' . (int)$_GET['id'];
     } elseif (strpos($requestUri, 'settings.php') !== false) {
         $mappedUrl = '/web/settings/';
     } elseif (strpos($requestUri, 'templates.php') !== false) {
