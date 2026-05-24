@@ -72,9 +72,6 @@ const NavbarContent = () => {
             <Link href={rel('/settings')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
               Settings
             </Link>
-            <Link href={rel('/templates')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
-              Templates
-            </Link>
             {user?.role === 'admin' && (
               <Link href={rel('/admin')} className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
                 Admin
