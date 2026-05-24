@@ -56,7 +56,39 @@ class TelegramWebhookHandler
             return $this->handleCleanup($chatId);
         }
 
+        if ($text === '/status') {
+            return $this->handleStatus($chatId);
+        }
+
         return false;
+    }
+
+    private function handleStatus(int $chatId): bool
+    {
+        $user = $this->userModel->findByTelegramChatId($chatId);
+        if (!$user) {
+            $this->telegramService->sendMessage($chatId, "Unauthorized. Please link your account.");
+            return false;
+        }
+
+        $taskModel = new Task($this->userModel->getDb());
+        $counts = $taskModel->getTaskCounts((int)$user['user_id']);
+
+        $text = "<b>Task Status Summary</b>\n\n";
+        $text .= "📝 <b>Open Issues:</b> " . ($counts['open_issues'] ?? 0) . "\n";
+        $text .= "✅ <b>Completed Tasks:</b> " . ($counts['completed_tasks'] ?? 0) . "\n\n";
+
+        $text .= "<b>Jules Status:</b>\n";
+        $text .= "🚧 Processing: " . (($counts['jules_analyzing'] ?? 0) + ($counts['jules_executing'] ?? 0)) . "\n";
+        $text .= "❌ Failed: " . ($counts['jules_failed'] ?? 0) . "\n\n";
+
+        $text .= "<b>GitHub Status:</b>\n";
+        $text .= "🔍 Running: " . ($counts['github_running'] ?? 0) . "\n";
+        $text .= "🚀 Passed: " . ($counts['github_passed'] ?? 0) . "\n";
+        $text .= "❌ Failed: " . ($counts['github_failed'] ?? 0) . "\n";
+
+        $this->telegramService->sendMessage($chatId, $text);
+        return true;
     }
 
     private function handleCallback(array $callbackQuery): bool
