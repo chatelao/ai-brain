@@ -40,6 +40,19 @@ class BlocklySequentialTest extends TestCase
         $this->pdo->exec("DROP TABLE IF EXISTS projects");
         $this->pdo->exec("DROP TABLE IF EXISTS users");
         $this->pdo->exec("DROP TABLE IF EXISTS user_github_accounts");
+        $this->pdo->exec("DROP TABLE IF EXISTS performance_logs");
+
+        $this->pdo->exec("CREATE TABLE performance_logs (
+            log_id $pk,
+            user_id INT,
+            category VARCHAR(50),
+            target VARCHAR(255),
+            duration FLOAT,
+            memory INT,
+            status_code INT,
+            error_message TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
 
         $this->pdo->exec("CREATE TABLE users (
             user_id $pk,
@@ -75,9 +88,13 @@ class BlocklySequentialTest extends TestCase
             UNIQUE(project_id, issue_number)
         )");
 
-        $this->pdo->exec("INSERT INTO users (user_id, name, email, blockly_config) VALUES (1, 'User 1', 'user1@example.com', '{\"js\": \"console.log(\\\"Global Executed\\\");\"}')");
+        $stmt = $this->pdo->prepare("INSERT INTO users (user_id, name, email, blockly_config) VALUES (?, ?, ?, ?)");
+        $stmt->execute([1, 'User 1', 'user1@example.com', json_encode(['js' => 'console.log("Global Executed");'])]);
+
         $this->pdo->exec("INSERT INTO user_github_accounts (github_account_id, user_id, github_username) VALUES (1, 1, 'user1')");
-        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_account_id, github_repo, blockly_config) VALUES (1, 1, 1, 'owner/repo', '{\"js\": \"console.log(\\\"Local Executed\\\");\"}')");
+
+        $stmt = $this->pdo->prepare("INSERT INTO projects (project_id, user_id, github_account_id, github_repo, blockly_config) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([1, 1, 1, 'owner/repo', json_encode(['js' => 'console.log("Local Executed");'])]);
     }
 
     public function testRunBlocklyAutomationsSequentialExecution()
