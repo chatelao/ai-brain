@@ -3,6 +3,10 @@
 import React, { useEffect, useRef } from 'react';
 import * as Blockly from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
+import { defineCustomBlocks } from './custom_blocks';
+
+// Initialize custom blocks
+defineCustomBlocks();
 
 interface BlocklyComponentProps {
   initialXml?: string;
@@ -42,6 +46,24 @@ const BlocklyComponent: React.FC<BlocklyComponentProps> = ({
       toolbox: toolboxConfig || {
         kind: 'categoryToolbox',
         contents: [
+          {
+            kind: 'category',
+            name: 'Events',
+            colour: '230',
+            contents: [
+              { kind: 'block', type: 'on_event' },
+            ],
+          },
+          {
+            kind: 'category',
+            name: 'Actions',
+            colour: '160',
+            contents: [
+              { kind: 'block', type: 'notify' },
+              { kind: 'block', type: 'merge' },
+              { kind: 'block', type: 'duplicate' },
+            ],
+          },
           {
             kind: 'category',
             name: 'Logic',
