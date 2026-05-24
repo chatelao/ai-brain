@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Navbar from '@/components/Navbar';
 import { useTemplates } from '@/hooks/useTemplates';
 import { components } from '@/types/api';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 type Template = components['schemas']['Template'];
 
@@ -39,6 +40,7 @@ export default function TemplatesPage() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <Breadcrumbs items={[{ label: 'Issue Templates' }]} />
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Issue Templates</h2>

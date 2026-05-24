@@ -8,6 +8,7 @@ import { useUser } from '@/hooks/useUser';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useRelativePath } from '@/hooks/useRelativePath';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 export default function AdminDashboard() {
   const { rel } = useRelativePath();
@@ -51,6 +52,7 @@ export default function AdminDashboard() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <Breadcrumbs items={[{ label: 'User Management' }]} />
         <div className="mb-8 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">User Management</h1>

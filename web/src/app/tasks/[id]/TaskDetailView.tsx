@@ -8,6 +8,7 @@ import StatusBadge from '@/components/StatusBadge';
 import TaskStatusSquare from '@/components/TaskStatusSquare';
 import TaskSidebar from '@/components/TaskSidebar';
 import Navbar from '@/components/Navbar';
+import Breadcrumbs from '@/components/Breadcrumbs';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -76,6 +77,12 @@ export default function TaskDetailView({ id }: { id: string }) {
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <Breadcrumbs
+          items={[
+            { label: task.github_repo || 'Project', href: `/projects/?id=${task.project_id}` },
+            { label: `#${task.issue_number} - ${task.title}` },
+          ]}
+        />
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-3 space-y-6 min-w-0">
             {/* Header */}

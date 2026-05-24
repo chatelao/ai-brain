@@ -6,6 +6,7 @@ import { usePerformanceLogs } from '@/hooks/usePerformanceLogs';
 import { useWebhookLogs } from '@/hooks/useWebhookLogs';
 import { useUser } from '@/hooks/useUser';
 import { components } from '@/types/api';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 type PerformanceLog = components['schemas']['PerformanceLog'];
 type WebhookLog = components['schemas']['WebhookLog'];
@@ -86,6 +87,7 @@ export default function LogsPage() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <Breadcrumbs items={[{ label: 'System Logs' }]} />
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">System Logs</h1>
           <p className="text-sm text-gray-500 mt-1">Monitor system performance and external integrations.</p>
