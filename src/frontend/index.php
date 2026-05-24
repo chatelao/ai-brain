@@ -30,7 +30,7 @@ if (isset($_GET['legacy'])) {
 
 // Next-Gen UI Redirection & Safeguard
 $nextGenExists = file_exists(__DIR__ . '/web/index.html');
-if ($user && ($_COOKIE['prefer_legacy'] ?? '') !== '1' && $nextGenExists) {
+if (($_COOKIE['prefer_legacy'] ?? '') !== '1' && $nextGenExists) {
     $requestUri = $_SERVER['REQUEST_URI'] ?? '';
     $isWebPath = strpos($requestUri, '/web/') !== false;
 
