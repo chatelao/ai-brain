@@ -5,9 +5,9 @@
 | Phase | Description | Status |
 |-------|-------------|--------|
 | 1 | Database Schema & API | ✅ |
-| 2 | UI Integration (Next-Gen) | 🏗️ |
-| 3 | Custom Block Definitions | 🌑 |
-| 4 | JavaScript Execution Sandbox | 🌑 |
+| 2 | UI Integration (Next-Gen) | ✅ |
+| 3 | Custom Block Definitions | ✅ |
+| 4 | JavaScript Execution Sandbox | 🏗️ |
 | 5 | Scoping & Inheritance | 🌑 |
 | 6 | End-to-End Workflows | 🌑 |
 
@@ -37,8 +37,8 @@
 ## Phase 3: Custom Block Definitions
 - [x] Define the `OnEvent` trigger block.
 - [x] Implement basic Action blocks (`Merge`, `Duplicate`, `Notify`).
-- [ ] Implement advanced Action blocks (`Set Label`, `Remove Label`, `Post Comment`, `Trigger Agent`).
-- [ ] Implement Logic/Predicate blocks (`Read Label`, `Is Task Ready`).
+- [x] Implement advanced Action blocks (`Set Label`, `Remove Label`, `Post Comment`, `Trigger Agent`).
+- [x] Implement Logic/Predicate blocks (`Read Label`, `Is Task Ready`).
 - [x] Configure `javascriptGenerator` to produce clean, proxy-aware JS code.
 
 ## Phase 4: JavaScript Execution Sandbox
