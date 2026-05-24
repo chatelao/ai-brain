@@ -121,6 +121,28 @@ export const defineCustomBlocks = () => {
     return `removeLabel("${text_label}");\n`;
   };
 
+  // rename_label action block
+  Blockly.Blocks['rename_label'] = {
+    init: function() {
+      this.appendDummyInput()
+          .appendField("Rename Label from")
+          .appendField(new Blockly.FieldTextInput("old-name"), "OLD")
+          .appendField("to")
+          .appendField(new Blockly.FieldTextInput("new-name"), "NEW");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(160);
+      this.setTooltip("Rename an existing label on the GitHub issue.");
+      this.setHelpUrl("");
+    }
+  };
+
+  javascriptGenerator.forBlock['rename_label'] = (block: Blockly.Block) => {
+    const text_old = block.getFieldValue('OLD');
+    const text_new = block.getFieldValue('NEW');
+    return `renameLabel("${text_old}", "${text_new}");\n`;
+  };
+
   // post_comment action block
   Blockly.Blocks['post_comment'] = {
     init: function() {
