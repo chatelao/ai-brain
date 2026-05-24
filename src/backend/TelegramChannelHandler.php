@@ -87,6 +87,39 @@ class TelegramChannelHandler implements NotificationChannelInterface
         }
     }
 
+    public function delete(array $notification): bool
+    {
+        $data = $notification['data'] ?? [];
+        if (is_string($data)) {
+            $data = json_decode($data, true) ?: [];
+        }
+
+        $chatId = $data['telegram_chat_id'] ?? null;
+        $messageId = $data['telegram_message_id'] ?? null;
+
+        if (!$chatId || !$messageId) {
+            return false;
+        }
+
+        $userId = $notification['user_id'];
+        $user = $this->userModel->findById($userId);
+        if (!$user) {
+            return false;
+        }
+
+        $botToken = $user['telegram_bot_token'] ?? '';
+        if (!$botToken) {
+            return false;
+        }
+
+        try {
+            return $this->telegramService->withToken($botToken)->deleteMessage((int)$chatId, (int)$messageId);
+        } catch (\Exception $e) {
+            error_log("Telegram Delete Error for user $userId: " . $e->getMessage());
+            return false;
+        }
+    }
+
     private function updateNotificationMetadata(int $notificationId, int $chatId, int $messageId): void
     {
         $db = $this->userModel->getDb()->getConnection();

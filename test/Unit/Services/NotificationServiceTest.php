@@ -189,10 +189,69 @@ class NotificationServiceTest extends TestCase
 
         $this->assertEquals(0, $notification['is_read']);
 
-        $this->notificationService->markAsRead($notification['notification_id']);
+        $this->notificationService->markAsRead($notification['notification_id'], false);
 
         $updatedNotification = $this->notificationService->getNotifications($userId)[0];
         $this->assertEquals(1, $updatedNotification['is_read']);
+    }
+
+    public function testMarkAsReadTriggersCleanup()
+    {
+        $userId = 1;
+        $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'test_channel', 1)");
+
+        $channel = $this->createMock(NotificationChannelInterface::class);
+        $this->notificationService->registerChannel('test_channel', $channel);
+
+        $this->notificationService->notify($userId, 'type', 'title', 'message');
+        $notification = $this->notificationService->getNotifications($userId)[0];
+
+        $channel->expects($this->once())
+            ->method('delete')
+            ->with($this->callback(function($n) use ($notification) {
+                return $n['notification_id'] == $notification['notification_id'];
+            }));
+
+        $this->notificationService->markAsRead($notification['notification_id'], true);
+    }
+
+    public function testMarkAllAsReadTriggersCleanup()
+    {
+        $userId = 1;
+        $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'test_channel', 1)");
+
+        $channel = $this->createMock(NotificationChannelInterface::class);
+        $this->notificationService->registerChannel('test_channel', $channel);
+
+        $this->notificationService->notify($userId, 'type1', 'title1', 'message1');
+        $this->notificationService->notify($userId, 'type2', 'title2', 'message2');
+
+        $channel->expects($this->exactly(2))->method('delete');
+
+        $this->notificationService->markAllAsRead($userId, true);
+    }
+
+    public function testCleanupReadNotifications()
+    {
+        $userId = 1;
+        $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'test_channel', 1)");
+
+        $channel = $this->createMock(NotificationChannelInterface::class);
+        $this->notificationService->registerChannel('test_channel', $channel);
+
+        $this->notificationService->notify($userId, 'type1', 'title1', 'message1');
+        $this->notificationService->notify($userId, 'type2', 'title2', 'message2');
+
+        $notifications = $this->notificationService->getNotifications($userId);
+        $this->notificationService->markAsRead($notifications[0]['notification_id'], false);
+
+        $channel->expects($this->once())
+            ->method('delete')
+            ->with($this->callback(function($n) use ($notifications) {
+                return $n['notification_id'] == $notifications[0]['notification_id'];
+            }));
+
+        $this->notificationService->cleanupReadNotifications($userId);
     }
 
     public function testDeleteAllNotifications()

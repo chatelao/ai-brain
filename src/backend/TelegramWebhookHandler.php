@@ -52,6 +52,10 @@ class TelegramWebhookHandler
             return true;
         }
 
+        if ($text === '/cleanup') {
+            return $this->handleCleanup($chatId);
+        }
+
         return false;
     }
 
@@ -109,7 +113,7 @@ class TelegramWebhookHandler
 
         if ($notificationId) {
             $notificationService = new NotificationService($this->userModel->getDb());
-            $notificationService->markAsRead($notificationId);
+            $notificationService->markAsRead($notificationId, false);
         }
 
         try {
@@ -173,6 +177,21 @@ class TelegramWebhookHandler
             $this->telegramService->sendMessage($chatId, "❌ Error: " . $e->getMessage());
         }
 
+        return true;
+    }
+
+    private function handleCleanup(int $chatId): bool
+    {
+        $user = $this->userModel->findByTelegramChatId($chatId);
+        if (!$user) {
+            $this->telegramService->sendMessage($chatId, "Unauthorized. Please link your account.");
+            return false;
+        }
+
+        $notificationService = new NotificationService($this->userModel->getDb());
+        $notificationService->cleanupReadNotifications((int)$user['user_id']);
+
+        $this->telegramService->sendMessage($chatId, "✅ Cleanup complete. Read notifications have been removed from Telegram.");
         return true;
     }
 
