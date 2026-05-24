@@ -383,6 +383,22 @@ class NotificationService
         }
     }
 
+    private function triggerCleanup(array $notification): void
+    {
+        $enabledChannels = $this->getEnabledChannels($notification['user_id']);
+
+        foreach ($enabledChannels as $channelName) {
+            if ($channelName === 'in_app') {
+                continue;
+            }
+
+            $channel = $this->getChannelInstance($channelName);
+            if ($channel) {
+                $channel->delete($notification);
+            }
+        }
+    }
+
     private function getEnabledChannels(int $userId): array
     {
         $settings = $this->getUserSettings($userId);
@@ -395,12 +411,44 @@ class NotificationService
         return $enabled;
     }
 
-    public function markAsRead(int $notificationId): bool
+    public function getNotificationById(int $notificationId): ?array
     {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT n.*, p.github_repo
+             FROM notifications n
+             LEFT JOIN projects p ON n.project_id = p.project_id
+             WHERE n.notification_id = ?"
+        );
+        $stmt->execute([$notificationId]);
+        $notification = $stmt->fetch();
+
+        if ($notification) {
+            if (isset($notification['data']) && is_string($notification['data'])) {
+                $notification['data'] = json_decode($notification['data'], true);
+            }
+            return $notification;
+        }
+
+        return null;
+    }
+
+    public function markAsRead(int $notificationId, bool $cleanup = true): bool
+    {
+        $notification = null;
+        if ($cleanup) {
+            $notification = $this->getNotificationById($notificationId);
+        }
+
         $stmt = $this->db->getConnection()->prepare(
             "UPDATE notifications SET is_read = 1 WHERE notification_id = ?"
         );
-        return $stmt->execute([$notificationId]);
+        $success = $stmt->execute([$notificationId]);
+
+        if ($success && $cleanup && $notification) {
+            $this->triggerCleanup($notification);
+        }
+
+        return $success;
     }
 
     public function getUnreadCount(int $userId): int
@@ -440,12 +488,48 @@ class NotificationService
         return $stmt->fetchAll();
     }
 
-    public function markAllAsRead(int $userId): bool
+    public function cleanupReadNotifications(int $userId): void
     {
+        $stmt = $this->db->getConnection()->prepare(
+            "SELECT * FROM notifications WHERE user_id = ? AND is_read = 1"
+        );
+        $stmt->execute([$userId]);
+        $notifications = $stmt->fetchAll();
+
+        foreach ($notifications as $notification) {
+            if (isset($notification['data']) && is_string($notification['data'])) {
+                $notification['data'] = json_decode($notification['data'], true);
+            }
+            $this->triggerCleanup($notification);
+        }
+    }
+
+    public function markAllAsRead(int $userId, bool $cleanup = true): bool
+    {
+        $notifications = [];
+        if ($cleanup) {
+            $stmt = $this->db->getConnection()->prepare(
+                "SELECT * FROM notifications WHERE user_id = ? AND is_read = 0"
+            );
+            $stmt->execute([$userId]);
+            $notifications = $stmt->fetchAll();
+        }
+
         $stmt = $this->db->getConnection()->prepare(
             "UPDATE notifications SET is_read = 1 WHERE user_id = ?"
         );
-        return $stmt->execute([$userId]);
+        $success = $stmt->execute([$userId]);
+
+        if ($success && $cleanup && !empty($notifications)) {
+            foreach ($notifications as $notification) {
+                if (isset($notification['data']) && is_string($notification['data'])) {
+                    $notification['data'] = json_decode($notification['data'], true);
+                }
+                $this->triggerCleanup($notification);
+            }
+        }
+
+        return $success;
     }
 
     public function deleteAllNotifications(int $userId): bool

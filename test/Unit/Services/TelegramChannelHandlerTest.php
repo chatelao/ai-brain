@@ -148,4 +148,47 @@ class TelegramChannelHandlerTest extends TestCase
         $result = $this->handler->send($notification);
         $this->assertTrue($result);
     }
+
+    public function testDeleteSuccess()
+    {
+        $notification = [
+            'user_id' => 1,
+            'data' => [
+                'telegram_chat_id' => 123456,
+                'telegram_message_id' => 789
+            ]
+        ];
+
+        $this->userModel->expects($this->once())
+            ->method('findById')
+            ->with(1)
+            ->willReturn(['user_id' => 1, 'telegram_bot_token' => 'fake-token']);
+
+        $mockService = $this->createMock(TelegramService::class);
+        $this->telegramService->expects($this->once())
+            ->method('withToken')
+            ->with('fake-token')
+            ->willReturn($mockService);
+
+        $mockService->expects($this->once())
+            ->method('deleteMessage')
+            ->with(123456, 789)
+            ->willReturn(true);
+
+        $result = $this->handler->delete($notification);
+        $this->assertTrue($result);
+    }
+
+    public function testDeleteMissingMetadata()
+    {
+        $notification = [
+            'user_id' => 1,
+            'data' => []
+        ];
+
+        $this->telegramService->expects($this->never())->method('withToken');
+
+        $result = $this->handler->delete($notification);
+        $this->assertFalse($result);
+    }
 }

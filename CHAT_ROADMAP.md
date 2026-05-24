@@ -59,5 +59,7 @@
 ## Phase 7: [UC-C4] Chat Cleanup
 - [x] Implement `deleteMessage` in `App\TelegramService`.
 - [x] Capture Telegram `message_id` and `chat_id` in `TelegramChannelHandler` and store in notification metadata.
-- [ ] Implement automatic message deletion when notification is marked as read.
-- [ ] Verify cleanup flow by marking a notification as read and checking Telegram.
+- [x] Implement `delete` method in `NotificationChannelInterface` and its handlers.
+- [x] Update `NotificationService` to support automatic and manual message cleanup.
+- [x] Implement `/cleanup` command in `TelegramWebhookHandler`.
+- [x] Verify cleanup flow by marking a notification as read and using manual command.
