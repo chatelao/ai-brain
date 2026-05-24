@@ -79,18 +79,22 @@ export default function TaskDetailView({ id }: { id: string }) {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3 space-y-6">
+          <div className="lg:col-span-3 space-y-6 min-w-0">
             {/* Header */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <TaskStatusSquare task={task} />
-                  <h2 className="text-2xl font-bold text-gray-900">
+                <div className="flex items-center space-x-3 min-w-0">
+                  <div className="flex-shrink-0">
+                    <TaskStatusSquare task={task} />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900 truncate">
                     <span className="text-gray-400 mr-2">#{task.issue_number}</span>
                     {task.title}
                   </h2>
                 </div>
-                <StatusBadge status={task.status} />
+                <div className="flex-shrink-0">
+                  <StatusBadge status={task.status} />
+                </div>
               </div>
               <div className="flex flex-wrap gap-2 mb-6">
                 {task.labels?.map((label, index) => (
@@ -300,7 +304,7 @@ export default function TaskDetailView({ id }: { id: string }) {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 min-w-0">
             <TaskSidebar task={task} />
           </div>
         </div>

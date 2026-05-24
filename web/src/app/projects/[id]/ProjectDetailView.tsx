@@ -95,15 +95,17 @@ export default function ProjectDetailView({ id }: { id: string }) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 min-w-0">
             <TaskFilterBar
               search={search}
               onSearchChange={setSearch}
               statusFilter={statusFilter}
               onStatusFilterChange={setStatusFilter}
+              searchLabel="Search Tasks"
+              searchPlaceholder="Search by title or issue number..."
             />
 
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -155,7 +157,7 @@ export default function ProjectDetailView({ id }: { id: string }) {
             </div>
           </div>
 
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-6 min-w-0">
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Roadmap</h3>
               {project.roadmap_data && project.roadmap_data.length > 0 ? (
