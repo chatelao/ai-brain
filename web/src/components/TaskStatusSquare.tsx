@@ -58,7 +58,7 @@ export const TaskStatusSquare: React.FC<TaskStatusSquareProps> = ({ task }) => {
   return (
     <div className="relative group">
       <Link
-        href={rel(`/tasks/${task.id}`)}
+        href={rel(`/tasks/?id=${task.id}`)}
         className={`block w-6 h-6 rounded shadow-sm transition-transform duration-200 hover:scale-125 hover:z-10 ${colorClass}`}
         aria-label={`Task #${task.issue_number}: ${label}`}
       />

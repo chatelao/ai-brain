@@ -57,8 +57,6 @@ export default function ProjectDetailView({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      <Navbar />
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
@@ -86,7 +84,7 @@ export default function ProjectDetailView({ id }: { id: string }) {
               {isSyncing ? 'Syncing...' : 'Sync Issues'}
             </button>
             <Link
-              href={rel(`/projects/${id}/settings`)}
+              href={rel(`/projects/?id=${id}&settings=true`)}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
             >
               Settings
@@ -130,7 +128,7 @@ export default function ProjectDetailView({ id }: { id: string }) {
                       <tr key={task.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex flex-col">
-                            <Link href={rel(`/tasks/${task.id}`)} className="text-sm font-bold text-blue-600 hover:underline">
+                            <Link href={rel(`/tasks/?id=${task.id}`)} className="text-sm font-bold text-blue-600 hover:underline">
                               #{task.issue_number} - {task.title}
                             </Link>
                             <span className="text-xs text-gray-500 mt-1 line-clamp-1">
@@ -143,7 +141,7 @@ export default function ProjectDetailView({ id }: { id: string }) {
                           <StatusBadge status={task.status} />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <Link href={rel(`/tasks/${task.id}`)} className="text-blue-600 hover:text-blue-900">
+                          <Link href={rel(`/tasks/?id=${task.id}`)} className="text-blue-600 hover:text-blue-900">
                             Details
                           </Link>
                         </td>

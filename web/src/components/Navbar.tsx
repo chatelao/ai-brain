@@ -1,27 +1,34 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
 import { useRelativePath } from '@/hooks/useRelativePath';
 import StatusIndicators from './StatusIndicators';
 import NotificationBell from './NotificationBell';
 
-const Navbar = () => {
+const NavbarContent = () => {
   const { data: user } = useUser();
   const { rel } = useRelativePath();
   const pathname = usePathname() || '/';
+  const searchParams = useSearchParams();
 
   const legacyUrl = useMemo(() => {
     // pathname example: /projects/13/ or /tasks/42/ or /
     const segments = pathname.split('/').filter(Boolean);
+    const queryId = searchParams.get('id');
 
-    if (segments[0] === 'projects' && segments[1]) {
-      return rel(`/project.php?id=${segments[1]}&legacy=1`);
+    if ((segments[0] === 'projects' && segments[1]) || (segments[0] === 'projects' && queryId)) {
+      const id = queryId || segments[1];
+      if (searchParams.get('settings') === 'true') {
+        return rel(`/project-settings.php?id=${id}&legacy=1`);
+      }
+      return rel(`/project.php?id=${id}&legacy=1`);
     }
-    if (segments[0] === 'tasks' && segments[1]) {
-      return rel(`/task.php?id=${segments[1]}&legacy=1`);
+    if ((segments[0] === 'tasks' && segments[1]) || (segments[0] === 'tasks' && queryId)) {
+      const id = queryId || segments[1];
+      return rel(`/task.php?id=${id}&legacy=1`);
     }
     if (segments[0] === 'settings') {
       return rel('/settings.php?legacy=1');
@@ -112,6 +119,20 @@ const Navbar = () => {
         </div>
       </div>
     </nav>
+  );
+};
+
+const Navbar = () => {
+  return (
+    <Suspense fallback={
+      <nav className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="text-xl font-bold text-gray-900">Agent Control</div>
+        </div>
+      </nav>
+    }>
+      <NavbarContent />
+    </Suspense>
   );
 };
 
