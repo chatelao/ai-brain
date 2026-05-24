@@ -35,10 +35,11 @@
 - [x] Implement persistence logic (saving to API on change/save).
 
 ## Phase 3: Custom Block Definitions
-- [ ] Define the `OnEvent` trigger block.
-- [ ] Implement Action blocks (Merge, Duplicate, Set Label, Notify).
-- [ ] Implement Logic/Predicate blocks (Check Label, Is Task Ready).
-- [ ] Configure `javascriptGenerator` to produce clean, proxy-aware JS code.
+- [x] Define the `OnEvent` trigger block.
+- [x] Implement basic Action blocks (`Merge`, `Duplicate`, `Notify`).
+- [ ] Implement advanced Action blocks (`Set Label`, `Remove Label`, `Post Comment`, `Trigger Agent`).
+- [ ] Implement Logic/Predicate blocks (`Read Label`, `Is Task Ready`).
+- [x] Configure `javascriptGenerator` to produce clean, proxy-aware JS code.
 
 ## Phase 4: JavaScript Execution Sandbox
 - [ ] Select and integrate a JS sandbox engine (e.g., PHP `v8js` or Node.js bridge).
