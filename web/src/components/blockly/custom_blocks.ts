@@ -82,4 +82,112 @@ export const defineCustomBlocks = () => {
   javascriptGenerator.forBlock['duplicate'] = () => {
     return `duplicate();\n`;
   };
+
+  // set_label action block
+  Blockly.Blocks['set_label'] = {
+    init: function() {
+      this.appendDummyInput()
+          .appendField("Set Label")
+          .appendField(new Blockly.FieldTextInput("label-name"), "LABEL");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(160);
+      this.setTooltip("Add a specific label to the GitHub issue.");
+      this.setHelpUrl("");
+    }
+  };
+
+  javascriptGenerator.forBlock['set_label'] = (block: Blockly.Block) => {
+    const text_label = block.getFieldValue('LABEL');
+    return `setLabel("${text_label}");\n`;
+  };
+
+  // remove_label action block
+  Blockly.Blocks['remove_label'] = {
+    init: function() {
+      this.appendDummyInput()
+          .appendField("Remove Label")
+          .appendField(new Blockly.FieldTextInput("label-name"), "LABEL");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(160);
+      this.setTooltip("Remove a specific label from the GitHub issue.");
+      this.setHelpUrl("");
+    }
+  };
+
+  javascriptGenerator.forBlock['remove_label'] = (block: Blockly.Block) => {
+    const text_label = block.getFieldValue('LABEL');
+    return `removeLabel("${text_label}");\n`;
+  };
+
+  // post_comment action block
+  Blockly.Blocks['post_comment'] = {
+    init: function() {
+      this.appendDummyInput()
+          .appendField("Post Comment")
+          .appendField(new Blockly.FieldTextInput("Comment body..."), "COMMENT");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(160);
+      this.setTooltip("Add a comment to the GitHub issue or Pull Request.");
+      this.setHelpUrl("");
+    }
+  };
+
+  javascriptGenerator.forBlock['post_comment'] = (block: Blockly.Block) => {
+    const text_comment = block.getFieldValue('COMMENT');
+    return `postComment("${text_comment}");\n`;
+  };
+
+  // trigger_agent action block
+  Blockly.Blocks['trigger_agent'] = {
+    init: function() {
+      this.appendDummyInput()
+          .appendField("Trigger Agent");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(160);
+      this.setTooltip("Manually start or retry a Jules session.");
+      this.setHelpUrl("");
+    }
+  };
+
+  javascriptGenerator.forBlock['trigger_agent'] = () => {
+    return `triggerAgent();\n`;
+  };
+
+  // read_label predicate block
+  Blockly.Blocks['read_label'] = {
+    init: function() {
+      this.appendDummyInput()
+          .appendField("Has Label")
+          .appendField(new Blockly.FieldTextInput("label-name"), "LABEL");
+      this.setOutput(true, "Boolean");
+      this.setColour(210);
+      this.setTooltip("Checks if a specific label exists on the GitHub issue.");
+      this.setHelpUrl("");
+    }
+  };
+
+  javascriptGenerator.forBlock['read_label'] = (block: Blockly.Block) => {
+    const text_label = block.getFieldValue('LABEL');
+    return [`readLabel("${text_label}")`, (javascriptGenerator as any).ORDER_FUNCTION_CALL];
+  };
+
+  // is_task_ready predicate block
+  Blockly.Blocks['is_task_ready'] = {
+    init: function() {
+      this.appendDummyInput()
+          .appendField("Is Task Ready");
+      this.setOutput(true, "Boolean");
+      this.setColour(210);
+      this.setTooltip("Checks if the current task is in READY status.");
+      this.setHelpUrl("");
+    }
+  };
+
+  javascriptGenerator.forBlock['is_task_ready'] = () => {
+    return [`isTaskReady()`, (javascriptGenerator as any).ORDER_FUNCTION_CALL];
+  };
 };

@@ -62,6 +62,19 @@ const BlocklyComponent: React.FC<BlocklyComponentProps> = ({
               { kind: 'block', type: 'notify' },
               { kind: 'block', type: 'merge' },
               { kind: 'block', type: 'duplicate' },
+              { kind: 'block', type: 'set_label' },
+              { kind: 'block', type: 'remove_label' },
+              { kind: 'block', type: 'post_comment' },
+              { kind: 'block', type: 'trigger_agent' },
+            ],
+          },
+          {
+            kind: 'category',
+            name: 'Conditions',
+            colour: '210',
+            contents: [
+              { kind: 'block', type: 'read_label' },
+              { kind: 'block', type: 'is_task_ready' },
             ],
           },
           {
@@ -71,6 +84,9 @@ const BlocklyComponent: React.FC<BlocklyComponentProps> = ({
             contents: [
               { kind: 'block', type: 'controls_if' },
               { kind: 'block', type: 'logic_compare' },
+              { kind: 'block', type: 'logic_operation' },
+              { kind: 'block', type: 'logic_negate' },
+              { kind: 'block', type: 'logic_boolean' },
             ],
           },
           {
