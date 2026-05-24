@@ -216,23 +216,56 @@ export default function TaskDetailView({ id }: { id: string }) {
 
             {/* Interaction Panel */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <h3 className="text-lg font-bold text-gray-900">Actions</h3>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Auto-Repeat</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={autorepeatCount}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value) || 0;
-                        setAutorepeatCount(val);
-                        performAction({ action: 'update_autorepeat', autorepeat_remaining: val });
-                      }}
-                      className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    />
+                <div className="flex items-center">
+                  <div className={`flex flex-col p-3 rounded-lg border transition-colors ${autorepeatCount > 0 ? 'bg-pink-50 border-pink-200' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="flex items-center justify-between gap-4 mb-2">
+                      <span className={`text-xs font-bold uppercase tracking-wider ${autorepeatCount > 0 ? 'text-pink-700' : 'text-gray-500'}`}>
+                        Auto-Repeat {autorepeatCount > 0 ? 'Active' : 'Disabled'}
+                      </span>
+                      <button
+                        onClick={() => {
+                          const nextCount = autorepeatCount > 0 ? 0 : 5;
+                          setAutorepeatCount(nextCount);
+                          performAction({ action: 'update_autorepeat', autorepeat_remaining: nextCount });
+                        }}
+                        className={`relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${autorepeatCount > 0 ? 'bg-pink-500' : 'bg-gray-200'}`}
+                        title={autorepeatCount > 0 ? 'Stop Auto-Repeat' : 'Start Auto-Repeat'}
+                      >
+                        <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${autorepeatCount > 0 ? 'translate-x-5' : 'translate-x-0'}`} />
+                      </button>
+                    </div>
+                    {autorepeatCount > 0 ? (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[10px] text-pink-600 font-bold uppercase">Remaining Cycles:</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={autorepeatCount}
+                          onChange={(e) => {
+                            const val = Math.max(0, parseInt(e.target.value) || 0);
+                            setAutorepeatCount(val);
+                            performAction({ action: 'update_autorepeat', autorepeat_remaining: val });
+                          }}
+                          className="w-12 px-1 py-0.5 text-xs border border-pink-300 rounded bg-white text-pink-900 focus:ring-pink-500 focus:border-pink-500"
+                        />
+                        <button
+                          onClick={() => {
+                            setAutorepeatCount(0);
+                            performAction({ action: 'update_autorepeat', autorepeat_remaining: 0 });
+                          }}
+                          className="text-[10px] bg-pink-600 text-white px-2 py-1 rounded hover:bg-pink-700 transition-colors uppercase font-bold shadow-sm"
+                        >
+                          Stop
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-[10px] text-gray-500 max-w-[180px]">
+                        Task will automatically merge and duplicate when it reaches <b>Ready</b> status.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

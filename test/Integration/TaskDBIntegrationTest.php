@@ -26,6 +26,13 @@ class TaskDBIntegrationTest extends TestCase
         $pk = $driver === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
         $timestamp = $driver === 'sqlite' ? 'DATETIME DEFAULT CURRENT_TIMESTAMP' : 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP';
 
+        $this->pdo->exec("DROP TABLE IF EXISTS projects");
+        $this->pdo->exec("CREATE TABLE projects (
+            project_id $pk,
+            user_id INT NOT NULL,
+            github_repo VARCHAR(255) NOT NULL
+        )");
+
         $this->pdo->exec("CREATE TABLE tasks (
             task_id $pk,
             user_id INT NOT NULL,
@@ -49,6 +56,8 @@ class TaskDBIntegrationTest extends TestCase
 
     public function testCreateAndFindTask()
     {
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'test/repo')");
+
         $data = [
             'user_id' => 1,
             'project_id' => 1,
@@ -71,6 +80,8 @@ class TaskDBIntegrationTest extends TestCase
 
     public function testUpdateStatus()
     {
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'test/repo')");
+
         $data = [
             'user_id' => 1,
             'project_id' => 1,
