@@ -64,6 +64,7 @@ const BlocklyComponent: React.FC<BlocklyComponentProps> = ({
               { kind: 'block', type: 'duplicate' },
               { kind: 'block', type: 'set_label' },
               { kind: 'block', type: 'remove_label' },
+              { kind: 'block', type: 'rename_label' },
               { kind: 'block', type: 'post_comment' },
               { kind: 'block', type: 'trigger_agent' },
             ],

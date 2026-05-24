@@ -103,13 +103,13 @@ export default function ProjectDetailView({ id }: { id: string }) {
               searchPlaceholder="Search by title or issue number..."
             />
 
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+              <table className="w-full divide-y divide-gray-200 table-fixed lg:table-auto">
                 <thead className="bg-gray-50">
                   <tr>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issue</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th scope="col" className="w-32 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" className="w-24 px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -128,12 +128,12 @@ export default function ProjectDetailView({ id }: { id: string }) {
                   ) : (
                     filteredTasks.map((task) => (
                       <tr key={task.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col">
-                            <Link href={rel(`/tasks/?id=${task.id}`)} className="text-sm font-bold text-blue-600 hover:underline">
+                        <td className="px-6 py-4 min-w-0">
+                          <div className="flex flex-col min-w-0">
+                            <Link href={rel(`/tasks/?id=${task.id}`)} className="text-sm font-bold text-blue-600 hover:underline break-words">
                               #{task.issue_number} - {task.title}
                             </Link>
-                            <span className="text-xs text-gray-500 mt-1 line-clamp-1">
+                            <span className="text-xs text-gray-500 mt-1 line-clamp-1 break-words">
                               {task.body?.substring(0, 100)}
                               {(task.body?.length ?? 0) > 100 ? '...' : ''}
                             </span>

@@ -6,12 +6,13 @@ import { useUser, useUpdateUser } from '@/hooks/useUser';
 import apiClient from '@/api/client';
 import { useRelativePath } from '@/hooks/useRelativePath';
 import BlocklyEditor from '@/components/blockly/BlocklyEditor';
+import TemplateManager from '@/components/TemplateManager';
 
 export default function SettingsPage() {
   const { rel } = useRelativePath();
   const { data: user, isLoading } = useUser();
   const updateUser = useUpdateUser();
-  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'automation'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'automation' | 'templates'>('general');
   const [testStatus, setTestStatus] = useState<{ status: 'success' | 'error'; message: string } | null>(null);
   const [isTesting, setIsTesting] = useState(false);
 
@@ -160,6 +161,16 @@ export default function SettingsPage() {
               }`}
             >
               Automation
+            </button>
+            <button
+              onClick={() => setActiveTab('templates')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'templates'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Templates
             </button>
           </nav>
         </div>
@@ -328,6 +339,10 @@ export default function SettingsPage() {
               />
             </section>
           </div>
+        )}
+
+        {activeTab === 'templates' && (
+          <TemplateManager />
         )}
 
         {activeTab === 'notifications' && (

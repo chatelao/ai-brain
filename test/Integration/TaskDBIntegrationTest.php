@@ -22,6 +22,7 @@ class TaskDBIntegrationTest extends TestCase
         $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
 
         $this->pdo->exec("DROP TABLE IF EXISTS tasks");
+        $this->pdo->exec("DROP TABLE IF EXISTS projects");
 
         $pk = $driver === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INT AUTO_INCREMENT PRIMARY KEY';
         $timestamp = $driver === 'sqlite' ? 'DATETIME DEFAULT CURRENT_TIMESTAMP' : 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP';

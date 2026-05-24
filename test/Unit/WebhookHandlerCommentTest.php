@@ -43,11 +43,13 @@ class WebhookHandlerCommentTest extends TestCase
             'repository' => ['full_name' => 'owner/repo'],
             'action' => 'created',
             'issue' => [
-                'number' => 123
+                'number' => 123,
+                'html_url' => 'https://github.com/owner/repo/issues/123'
             ],
             'comment' => [
                 'user' => ['login' => 'google-labs-jules[bot]'],
-                'body' => 'Jules is [on it](https://jules.google.com/sessions/s123). When finished, you will see another comment.'
+                'body' => 'Jules is [on it](https://jules.google.com/sessions/s123). When finished, you will see another comment.',
+                'html_url' => 'https://github.com/owner/repo/issues/123#issuecomment-1'
             ]
         ];
 
@@ -79,15 +81,25 @@ class WebhookHandlerCommentTest extends TestCase
         // Mock refreshJulesStatus
         $this->taskModel->expects($this->once())
             ->method('refreshJulesStatus')
-            ->with(10, $this->githubService, $this->julesService, null, 456);
+            ->with(10, $this->githubService, $this->julesService, $this->notificationService, 456);
 
-        // We need to inject the mock taskModel into the handler.
-        // Since the handler creates Task internally, we might need to adjust the test or the handler.
-        // Looking at WebhookHandler::handle, it does: $taskModel = new Task($this->db);
-        // This is hard to mock without refactoring.
-        // Let's use a partial mock or reflection if needed, but wait, Task is just a wrapper around DB.
+        // Mock NotificationService
+        $this->notificationService->expects($this->once())
+            ->method('notify')
+            ->with(
+                10,
+                'github_comment',
+                '🤖 Jules commented on #123',
+                $event['comment']['body'],
+                $this->callback(function($data) {
+                    return $data['project_id'] === 1 &&
+                           $data['issue_number'] === 123 &&
+                           $data['task_id'] === 456 &&
+                           $data['is_system'] === true;
+                })
+            );
 
-        // Let's test the private handleIssueComment method using reflection to be sure.
+        // Let's test the private handleIssueComment method using reflection
         $reflection = new \ReflectionClass(WebhookHandler::class);
         $method = $reflection->getMethod('handleIssueComment');
         $method->setAccessible(true);
@@ -98,7 +110,7 @@ class WebhookHandlerCommentTest extends TestCase
             $this->taskModel,
             $this->githubService,
             $this->julesService,
-            null
+            $this->notificationService
         ]);
 
         $this->assertTrue($result);
@@ -106,16 +118,53 @@ class WebhookHandlerCommentTest extends TestCase
 
     public function testHandleIssueCommentNotJules()
     {
-        $project = ['project_id' => 1];
+        $project = [
+            'project_id' => 1,
+            'user_id' => 10,
+            'github_repo' => 'owner/repo'
+        ];
         $event = [
-            'issue' => ['number' => 123],
+            'issue' => [
+                'number' => 123,
+                'html_url' => 'https://github.com/owner/repo/issues/123'
+            ],
             'comment' => [
                 'user' => ['login' => 'someone-else'],
-                'body' => 'on it'
-            ]
+                'body' => 'This is a comment',
+                'html_url' => 'https://github.com/owner/repo/issues/123#issuecomment-2'
+            ],
+            'sender' => ['type' => 'User']
         ];
 
+        $task = [
+            'task_id' => 456,
+            'project_id' => 1,
+            'issue_number' => 123
+        ];
+
+        $this->taskModel->expects($this->once())
+            ->method('findByIssueNumber')
+            ->with(1, 123)
+            ->willReturn($task);
+
         $this->taskModel->expects($this->never())->method('extractSessionId');
+        $this->taskModel->expects($this->never())->method('refreshJulesStatus');
+
+        // Mock NotificationService
+        $this->notificationService->expects($this->once())
+            ->method('notify')
+            ->with(
+                10,
+                'github_comment',
+                '💬 someone-else commented on #123',
+                'This is a comment',
+                $this->callback(function($data) {
+                    return $data['project_id'] === 1 &&
+                           $data['issue_number'] === 123 &&
+                           $data['task_id'] === 456 &&
+                           $data['is_system'] === false;
+                })
+            );
 
         $reflection = new \ReflectionClass(WebhookHandler::class);
         $method = $reflection->getMethod('handleIssueComment');
@@ -127,7 +176,7 @@ class WebhookHandlerCommentTest extends TestCase
             $this->taskModel,
             $this->githubService,
             $this->julesService,
-            null
+            $this->notificationService
         ]);
 
         $this->assertTrue($result);
