@@ -62,7 +62,7 @@ export const TaskStatusSquare: React.FC<TaskStatusSquareProps> = ({ task }) => {
         className={`block w-6 h-6 rounded shadow-sm transition-transform duration-200 hover:scale-125 hover:z-10 ${colorClass}`}
         aria-label={`Task #${task.issue_number}: ${label}`}
       />
-      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">
+      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-lg">
         #{task.issue_number}: {emoji} {label} - {task.title}
       </div>
     </div>
