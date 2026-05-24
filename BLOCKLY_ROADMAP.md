@@ -42,16 +42,17 @@
 - [x] Configure `javascriptGenerator` to produce clean, proxy-aware JS code.
 
 ## Phase 4: JavaScript Execution Sandbox
-- [ ] Select and integrate a JS sandbox engine (e.g., PHP `v8js` or Node.js bridge).
-- [ ] Implement the `SandboxService` to initialize and run JS logic.
-- [ ] Define and inject API proxy functions into the sandbox context.
+- [ ] Create `SandboxService.php` to interface with the JS runner.
+- [ ] Implement `scripts/blockly-runner.js` using Node.js `vm` module for secure execution.
+- [ ] Define the interface for passing `event` and `task` data context to the runner.
+- [ ] Implement proxy handlers for actions (`notify`, `merge`, `setLabel`, etc.) in the runner.
 - [ ] Implement resource limits (timeout, memory) for script execution.
 
 ## Phase 5: Scoping & Inheritance
-- [ ] Update `WebhookHandler` to fetch and execute Global logic.
-- [ ] Update `WebhookHandler` to fetch and execute Local logic.
-- [ ] Implement precedence rules (Local overrides Global actions).
-- [ ] Add logging for Blockly execution (success, failure, actions taken).
+- [ ] Update `WebhookHandler` to fetch and trigger `SandboxService` for both Global and Local logic.
+- [ ] Implement precedence rules (Local overrides Global actions) during execution.
+- [ ] Add detailed execution logging to `task_logs` for auditability and debugging.
+- [ ] Implement a "Dry Run" mode for testing Blockly logic without performing actions.
 
 ## Phase 6: End-to-End Workflows
 - [ ] Test "Auto-Merge on CI Success" workflow.
