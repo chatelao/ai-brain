@@ -63,3 +63,6 @@
 - [x] Update `NotificationService` to support automatic and manual message cleanup.
 - [x] Implement `/cleanup` command in `TelegramWebhookHandler`.
 - [x] Verify cleanup flow by marking a notification as read and using manual command.
+
+## Phase 8: Advanced Interactions
+- [x] Implement `/status` command to pull current task summary.
