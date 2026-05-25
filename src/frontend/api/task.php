@@ -150,6 +150,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             break;
 
+        case 'duplicate':
+            try {
+                $githubToken = $project['github_token'] ?? null;
+                if (!$githubToken) {
+                    throw new Exception("GitHub token not found for this project.");
+                }
+
+                $githubService = new App\GitHubService(null, $githubToken);
+                $githubData = json_decode($task['github_data'] ?? '{}', true);
+                $labels = $githubData['labels'] ?? [];
+
+                $labelNames = array_filter(
+                    array_map(fn($l) => $l['name'], $labels),
+                    fn($name) => strtolower($name) !== 'autorepeat' && strtolower($name) !== 'auto-repeat' && !str_starts_with(strtolower($name), 'autorepeat:')
+                );
+
+                // Ensure 'Jules' label is present to trigger the agent for the new issue
+                $hasJules = false;
+                foreach ($labelNames as $ln) {
+                    if (strtolower($ln) === 'jules') {
+                        $hasJules = true;
+                        break;
+                    }
+                }
+                if (!$hasJules) {
+                    $labelNames[] = 'Jules';
+                }
+
+                $newIssue = $githubService->createIssue($project['github_repo'], $task['title'], $task['body'] ?? null, array_values($labelNames));
+
+                if (!empty($newIssue['number'])) {
+                    $taskModel->upsert($userId, $project['project_id'], $newIssue);
+
+                    $notificationService = new App\NotificationService($db);
+                    $notificationService->notify($userId, 'github_issue', "🔁 Task Duplicated: #" . $task['issue_number'], "Task \"" . $task['title'] . "\" was manually duplicated. A new issue #" . $newIssue['number'] . " has been created.", [
+                        'task_id' => $taskId,
+                        'project_id' => $project['project_id'],
+                        'status' => App\Task::STATUS_CREATED,
+                        'source_url' => $newIssue['html_url'] ?? '',
+                        'is_system' => false
+                    ]);
+
+                    echo json_encode(['status' => 'success', 'message' => 'Task duplicated successfully', 'new_issue_number' => $newIssue['number']]);
+                } else {
+                    throw new Exception("Failed to create new issue on GitHub.");
+                }
+            } catch (Exception $e) {
+                http_response_code(500);
+                echo json_encode(['error' => 'Failed to duplicate task: ' . $e->getMessage()]);
+            }
+            break;
+
         default:
             http_response_code(400);
             echo json_encode(['error' => 'Invalid or missing action']);
