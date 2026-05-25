@@ -53,9 +53,9 @@
 - [x] Add integration tests for `SandboxService` in `test/Integration/SandboxServiceTest.php`.
 
 ## Phase 5: Scoping & Inheritance
-- [ ] Fetch Global Blockly config from `users` table in `WebhookHandler`.
-- [ ] Fetch Local Blockly config from `projects` table in `WebhookHandler`.
-- [ ] Implement sequential execution of Global then Local logic in `WebhookHandler`.
+- [x] Fetch Global Blockly config from `users` table in `WebhookHandler`.
+- [x] Fetch Local Blockly config from `projects` table in `WebhookHandler`.
+- [x] Implement sequential execution of Global then Local logic in `WebhookHandler`.
 - [ ] Implement precedence rules (Local overrides Global actions) during execution.
 - [ ] Add detailed execution logging to `task_logs` for auditability and debugging.
 - [ ] Implement a "Dry Run" mode for testing Blockly logic without performing actions.

@@ -21,7 +21,7 @@ class WebhookHandler
         return ($event['sender']['type'] ?? '') === 'User';
     }
 
-    public function handle(array $project, array $event, ?GitHubService $githubService = null, ?NotificationService $notificationService = null, ?JulesService $julesService = null): bool
+    public function handle(array $project, array $event, ?GitHubService $githubService = null, ?NotificationService $notificationService = null, ?JulesService $julesService = null, ?SandboxService $sandboxService = null, string $githubEvent = ''): bool
     {
         if (empty($event['repository'])) {
             return false;
@@ -44,15 +44,15 @@ class WebhookHandler
         $effectiveNotifService = $notificationService;
 
         if ($comment && $issue) {
-            return $this->handleIssueComment($project, $event, $taskModel, $githubService, $julesService, $effectiveNotifService);
+            return $this->handleIssueComment($project, $event, $taskModel, $githubService, $julesService, $effectiveNotifService, $sandboxService, $githubEvent);
         }
 
         if ($pullRequest) {
-            return $this->handlePullRequest($project, $event, $effectiveNotifService, $githubService);
+            return $this->handlePullRequest($project, $event, $effectiveNotifService, $githubService, $sandboxService, $githubEvent);
         }
 
         if ($checkSuite) {
-            return $this->handleCheckSuite($project, $event, $taskModel, $effectiveNotifService);
+            return $this->handleCheckSuite($project, $event, $taskModel, $effectiveNotifService, $sandboxService, $githubEvent);
         }
 
         if (!$issue) {
@@ -82,6 +82,10 @@ class WebhookHandler
 
         if ($result && $task && $julesService && $githubService) {
             $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $effectiveNotifService, (int)$task['task_id']);
+        }
+
+        if ($result && $task) {
+            $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
         }
 
         if ($result && $task && $effectiveNotifService) {
@@ -235,7 +239,7 @@ class WebhookHandler
         }
     }
 
-    private function handlePullRequest(array $project, array $event, ?NotificationService $notificationService, ?GitHubService $githubService = null): bool
+    private function handlePullRequest(array $project, array $event, ?NotificationService $notificationService, ?GitHubService $githubService = null, ?SandboxService $sandboxService = null, string $githubEvent = ''): bool
     {
         $action = $event['action'] ?? '';
         $pr = $event['pull_request'] ?? null;
@@ -276,6 +280,8 @@ class WebhookHandler
             $taskModel = new Task($this->db);
             $task = $taskModel->findByPrUrl($pr['html_url']);
             if ($task && $task['issue_number']) {
+                $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
+
                 $githubData = json_decode($task['github_data'] ?? '{}', true);
                 if ($githubData) {
                     // Normalize event for maybeDuplicateTask
@@ -286,12 +292,18 @@ class WebhookHandler
                     $this->maybeDuplicateTask($project, $pseudoEvent, $githubService, $notificationService);
                 }
             }
+        } elseif ($action !== 'closed') {
+            $taskModel = new Task($this->db);
+            $task = $taskModel->findByPrUrl($pr['html_url']);
+            if ($task) {
+                $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
+            }
         }
 
         return true;
     }
 
-    private function handleIssueComment(array $project, array $event, Task $taskModel, ?GitHubService $githubService, ?JulesService $julesService, ?NotificationService $notificationService): bool
+    private function handleIssueComment(array $project, array $event, Task $taskModel, ?GitHubService $githubService, ?JulesService $julesService, ?NotificationService $notificationService, ?SandboxService $sandboxService = null, string $githubEvent = ''): bool
     {
         $issue = $event['issue'] ?? null;
         $comment = $event['comment'] ?? null;
@@ -305,6 +317,10 @@ class WebhookHandler
         $body = $comment['body'] ?? '';
 
         $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
+
+        if ($task) {
+            $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
+        }
 
         if ($isJulesComment) {
             $sessionId = $taskModel->extractSessionId($body);
@@ -348,7 +364,7 @@ class WebhookHandler
         return true;
     }
 
-    private function handleCheckSuite(array $project, array $event, Task $taskModel, ?NotificationService $notificationService): bool
+    private function handleCheckSuite(array $project, array $event, Task $taskModel, ?NotificationService $notificationService, ?SandboxService $sandboxService = null, string $githubEvent = ''): bool
     {
         $action = $event['action'] ?? '';
         $checkSuite = $event['check_suite'] ?? null;
@@ -379,6 +395,8 @@ class WebhookHandler
             if (!$task) {
                 continue;
             }
+
+            $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
 
             $newStatus = $taskModel->resolveStatus($task, null, $checkSuite);
 
@@ -415,5 +433,37 @@ class WebhookHandler
         }
 
         return true;
+    }
+
+    private function runBlocklyAutomations(array $project, array $event, string $githubEvent, ?int $taskId, ?SandboxService $sandboxService): void
+    {
+        if (!$sandboxService || !$taskId) {
+            return;
+        }
+
+        $userId = (int)$project['user_id'];
+        $userModel = new User($this->db);
+        $user = $userModel->findById($userId);
+
+        $eventContext = [
+            'type' => $githubEvent,
+            'payload' => $event
+        ];
+
+        // 1. Run Global Automations (User level)
+        if (!empty($user['blockly_config'])) {
+            $config = json_decode($user['blockly_config'], true);
+            if (!empty($config['js'])) {
+                $sandboxService->execute($userId, $taskId, $config['js'], $eventContext);
+            }
+        }
+
+        // 2. Run Local Automations (Project level)
+        if (!empty($project['blockly_config'])) {
+            $config = json_decode($project['blockly_config'], true);
+            if (!empty($config['js'])) {
+                $sandboxService->execute($userId, $taskId, $config['js'], $eventContext);
+            }
+        }
     }
 }
