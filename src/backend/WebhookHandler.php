@@ -52,7 +52,7 @@ class WebhookHandler
         }
 
         if ($checkSuite) {
-            return $this->handleCheckSuite($project, $event, $taskModel, $effectiveNotifService, $sandboxService, $githubEvent);
+            return $this->handleCheckSuite($project, $event, $taskModel, $effectiveNotifService, $githubService, $sandboxService, $githubEvent);
         }
 
         if (!$issue) {
@@ -269,10 +269,21 @@ class WebhookHandler
             ]);
         }
 
+        // Sync task data (including labels) during PR events
+        $taskModel = new Task($this->db);
+        $task = $taskModel->findByPrUrl($pr['html_url']);
+        if ($task && $githubService && !empty($project['github_repo'])) {
+            try {
+                $issue = $githubService->getIssue($project['github_repo'], $task['issue_number']);
+                $taskModel->upsert($project['user_id'], $project['project_id'], $issue);
+                $task = $taskModel->findById($task['task_id']); // Refresh local task object
+            } catch (\Exception $e) {
+                // Ignore sync errors during PR events
+            }
+        }
+
         // Handle auto-repeat if PR is merged
         if ($action === 'closed' && ($pr['merged'] ?? false) && $githubService) {
-            $taskModel = new Task($this->db);
-            $task = $taskModel->findByPrUrl($pr['html_url']);
             if ($task && $task['issue_number']) {
                 $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
 
@@ -287,8 +298,6 @@ class WebhookHandler
                 }
             }
         } elseif ($action !== 'closed') {
-            $taskModel = new Task($this->db);
-            $task = $taskModel->findByPrUrl($pr['html_url']);
             if ($task) {
                 $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
             }
@@ -358,7 +367,7 @@ class WebhookHandler
         return true;
     }
 
-    private function handleCheckSuite(array $project, array $event, Task $taskModel, ?NotificationService $notificationService, ?SandboxService $sandboxService = null, string $githubEvent = ''): bool
+    private function handleCheckSuite(array $project, array $event, Task $taskModel, ?NotificationService $notificationService, ?GitHubService $githubService = null, ?SandboxService $sandboxService = null, string $githubEvent = ''): bool
     {
         $action = $event['action'] ?? '';
         $checkSuite = $event['check_suite'] ?? null;
@@ -392,7 +401,25 @@ class WebhookHandler
 
             $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
 
-            $newStatus = $taskModel->resolveStatus($task, null, $checkSuite);
+            // Fetch latest PR and Check Suites for a complete view
+            $prData = null;
+            $checkSuitesData = null;
+            if ($githubService) {
+                try {
+                    $prNumber = $githubService->extractPrNumber($task['pr_url'] ?? '');
+                    if ($prNumber) {
+                        $prData = $githubService->getPullRequest($project['github_repo'], $prNumber);
+                        if (!empty($prData['head']['sha'])) {
+                            $checkSuitesData = $githubService->getCheckSuites($project['github_repo'], $prData['head']['sha']);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Logger::getInstance($this->db)->log($project['user_id'], $task['task_id'], "Error fetching PR status in handleCheckSuite: " . $e->getMessage(), 'error');
+                }
+            }
+
+            // Fallback to the single check suite from the event if API fetch fails or is not available
+            $newStatus = $taskModel->resolveStatus($task, $prData, $checkSuitesData ?: $checkSuite);
 
             if ($newStatus !== $task['status']) {
                 $taskModel->updateStatus($task['task_id'], $newStatus);
@@ -423,6 +450,10 @@ class WebhookHandler
                         'is_system' => true // Check suite events are always system-driven
                     ], $actions);
                 }
+            } elseif ($newStatus === Task::STATUS_READY && ($task['autorepeat_remaining'] ?? 0) > 0 && $githubService) {
+                // Even if status didn't change (still READY), attempt auto-merge if it's an autorepeat task
+                // This handles cases where a previous merge attempt might have failed but is now possible.
+                $this->autoMergeAndDuplicate($project, array_merge($task, ['status' => $newStatus]), $githubService, $notificationService);
             }
         }
 
