@@ -429,4 +429,40 @@ class GitHubService
         }
         return null;
     }
+
+    /**
+     * @throws Exception
+     */
+    public function updateAutorepeatLabels(string $repo, int $issueNumber, int $count): void
+    {
+        $issue = $this->getIssue($repo, $issueNumber);
+        $labels = $issue['labels'] ?? [];
+        $currentLabelNames = array_map(fn($l) => $l['name'], $labels);
+
+        $newLabels = [];
+        $labelsToRemove = [];
+
+        // Identify existing autorepeat labels to remove
+        foreach ($currentLabelNames as $name) {
+            $lowerName = strtolower($name);
+            if ($lowerName === 'autorepeat' || $lowerName === 'auto-repeat' || str_starts_with($lowerName, 'autorepeat:')) {
+                $labelsToRemove[] = $name;
+            }
+        }
+
+        if ($count > 0) {
+            $newLabels[] = 'autorepeat';
+            $newLabels[] = 'autorepeat: ' . $count;
+        }
+
+        // Remove old labels
+        foreach ($labelsToRemove as $labelName) {
+            $this->removeLabel($repo, $issueNumber, $labelName);
+        }
+
+        // Add new labels
+        foreach ($newLabels as $labelName) {
+            $this->addLabel($repo, $issueNumber, $labelName);
+        }
+    }
 }

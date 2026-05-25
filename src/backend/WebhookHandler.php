@@ -124,8 +124,9 @@ class WebhookHandler
         }
 
         try {
-            // 1. Add autorepeat label if requested
-            $githubService->addLabel($project['github_repo'], $task['issue_number'], 'autorepeat');
+            // 1. Update autorepeat labels if requested
+            $count = $task['autorepeat_remaining'] ?? 0;
+            $githubService->updateAutorepeatLabels($project['github_repo'], $task['issue_number'], $count);
 
             // 2. Merge PR
             $githubService->mergePullRequest($project['github_repo'], $prNumber, "Merged automatically via Auto-Repeat: " . $task['title']);
@@ -174,19 +175,11 @@ class WebhookHandler
             return;
         }
 
-        $autorepeatLabelName = '';
         $labels = $issue['labels'] ?? [];
-        foreach ($labels as $label) {
-            $name = strtolower($label['name'] ?? '');
-            if ($name === 'autorepeat' || $name === 'auto-repeat') {
-                $autorepeatLabelName = $label['name'];
-                break;
-            }
-        }
 
         $labelNames = array_filter(
             array_map(fn($l) => $l['name'], $labels),
-            fn($name) => strtolower($name) !== 'autorepeat' && strtolower($name) !== 'auto-repeat'
+            fn($name) => strtolower($name) !== 'autorepeat' && strtolower($name) !== 'auto-repeat' && !str_starts_with(strtolower($name), 'autorepeat:')
         );
 
         // Ensure 'Jules' label is present to trigger the agent for the new issue
@@ -222,10 +215,11 @@ class WebhookHandler
                 $newAutorepeatRemaining = max(0, ($task['autorepeat_remaining'] ?? 0) - 1);
                 if ($newAutorepeatRemaining > 0) {
                     $taskModel->upsert($project['user_id'], $project['project_id'], $newIssue, $newAutorepeatRemaining);
+                    $githubService->updateAutorepeatLabels($repo, $newIssue['number'], $newAutorepeatRemaining);
                 }
             }
 
-            $githubService->removeLabel($repo, $issue['number'], $autorepeatLabelName);
+            $githubService->updateAutorepeatLabels($repo, $issue['number'], 0);
 
             if ($notificationService) {
                 $notificationService->notify($project['user_id'], 'github_issue', "🔁 Auto-Repeat: #" . $issue['number'], "Task \"" . $issue['title'] . "\" was merged/closed with Auto-Repeat. A new issue has been created.", [

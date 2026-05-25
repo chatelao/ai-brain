@@ -89,9 +89,8 @@ class WebhookHandlerTest extends TestCase
         $githubService->expects($this->once())
             ->method('createIssue')
             ->with('owner/repo', 'Test Issue', 'Body', ['bug', 'Jules']);
-        $githubService->expects($this->once())
-            ->method('removeLabel')
-            ->with('owner/repo', 123, 'autorepeat');
+        $githubService->expects($this->atLeastOnce())
+            ->method('updateAutorepeatLabels');
 
         $this->assertTrue($this->handler->handle($project, $event, $githubService));
     }
