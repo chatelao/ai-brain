@@ -437,6 +437,17 @@ class Task
         // Try to extract from labels if not explicitly provided
         $labelCount = isset($issue['labels']) ? $this->extractAutorepeatRemainingFromLabels($issue['labels']) : null;
 
+        // If no count is found but the label is present, default to 5
+        if ($labelCount === null && isset($issue['labels'])) {
+            foreach ($issue['labels'] as $label) {
+                $name = strtolower($label['name'] ?? '');
+                if ($name === 'autorepeat' || $name === 'auto-repeat') {
+                    $labelCount = 5;
+                    break;
+                }
+            }
+        }
+
         // Final value to use in the INSERT part
         $insertAutorepeatRemaining = $autorepeatRemaining ?? $labelCount ?? 0;
 
@@ -480,9 +491,9 @@ class Task
         return $stmt->execute([
             $userId,
             $projectId,
-            $issue['number'],
-            $issue['title'],
-            $issue['body'],
+            $issue['number'] ?? 0,
+            $issue['title'] ?? '',
+            $issue['body'] ?? '',
             json_encode($issue),
             $status,
             $issue['state'] ?? 'open',
@@ -637,7 +648,7 @@ class Task
     {
         foreach ($labels as $label) {
             $name = strtolower($label['name'] ?? '');
-            if (preg_match('/^autorepeat:\s*(\d+)$/', $name, $matches)) {
+            if (preg_match('/^auto-?repeat:\s*(\d+)$/', $name, $matches)) {
                 return (int)$matches[1];
             }
         }
@@ -873,6 +884,14 @@ class Task
                     // Fetch fresh issue to get latest body and possibly PR info
                     $issue = $githubService->getIssue($task['github_repo'], $task['issue_number']);
 
+                    // Sync labels and metadata
+                    $this->upsert($userId, $task['project_id'], $issue);
+                    // Refresh task data after upsert to get updated autorepeat_remaining etc.
+                    $freshTask = $this->findById($task['task_id']);
+                    if ($freshTask) {
+                        $task = array_merge($task, $freshTask);
+                    }
+
                     if (!$sessionId) {
                         $sessionId = $this->extractSessionId($issue['body'] ?? '');
                     }
@@ -1018,6 +1037,17 @@ class Task
                     ], $actions);
                 }
             } else {
+                // If status didn't change but it's READY, still check for auto-merge
+                // This covers cases where a previous auto-merge might have been skipped or failed.
+                if ($mappedStatus === self::STATUS_READY && ($task['autorepeat_remaining'] ?? 0) > 0) {
+                    $webhookHandler = new WebhookHandler($this->db);
+                    $projectModel = new Project($this->db);
+                    $project = $projectModel->findById($task['project_id']);
+                    if ($project) {
+                        $webhookHandler->autoMergeAndDuplicate($project, $task, $githubService, $notificationService);
+                    }
+                }
+
                 // Still update last_synced_at even if no sessionId or apiKey to avoid constant retries
                 $updateStmt = $this->db->getConnection()->prepare(
                     "UPDATE tasks SET last_synced_at = ? WHERE task_id = ?"
