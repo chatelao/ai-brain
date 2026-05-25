@@ -295,24 +295,28 @@ export default function TaskDetailView({ id }: { id: string }) {
                     </button>
                   </>
                 )}
-                {(task.status === 'ready' || task.status === 'implemented') && task.github_state === 'open' && (
-                  <>
-                    <button
-                      onClick={() => performAction({ action: 'merge_close' })}
-                      disabled={isPerformingAction}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
-                    >
-                      Merge PR
-                    </button>
-                    <button
-                      onClick={() => performAction({ action: 'merge_close_duplicate' })}
-                      disabled={isPerformingAction}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-                    >
-                      Merge, Close & Duplicate
-                    </button>
-                  </>
-                )}
+                {task.pr_url &&
+                  task.pr_details?.state === 'open' &&
+                  task.pr_details?.mergeable_state === 'clean' &&
+                  !task.pr_details?.draft &&
+                  task.github_state === 'open' && (
+                    <>
+                      <button
+                        onClick={() => performAction({ action: 'merge_close' })}
+                        disabled={isPerformingAction}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors shadow-sm"
+                      >
+                        Merge & Close
+                      </button>
+                      <button
+                        onClick={() => performAction({ action: 'merge_close_duplicate' })}
+                        disabled={isPerformingAction}
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                      >
+                        Merge, Close & Duplicate
+                      </button>
+                    </>
+                  )}
               </div>
             </div>
 

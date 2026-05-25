@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useProject } from '@/hooks/useProject';
 import { useRelativePath } from '@/hooks/useRelativePath';
 import { useTasks } from '@/hooks/useTasks';
+import { useTaskActions } from '@/hooks/useTaskActions';
 import { useTemplates } from '@/hooks/useTemplates';
 import StatusBadge from '@/components/StatusBadge';
 import TaskFilterBar from '@/components/TaskFilterBar';
@@ -20,6 +21,7 @@ export default function ProjectDetailView({ id }: { id: string }) {
   const { data: project, isLoading: projectLoading, error: projectError, syncIssues, isSyncing, createFromTemplate, isCreatingFromTemplate, createFromRoadmap, isCreatingFromRoadmap } = useProject(projectId);
   const { data: tasks, isLoading: tasksLoading } = useTasks(projectId);
   const { data: templates } = useTemplates();
+  const { performAction, isPerformingAction, performingActionId } = useTaskActions();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
@@ -138,9 +140,33 @@ export default function ProjectDetailView({ id }: { id: string }) {
                           <StatusBadge status={task.status} />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <Link href={rel(`/tasks/?id=${task.id}`)} className="text-blue-600 hover:text-blue-900">
-                            Details
-                          </Link>
+                          <div className="flex flex-col items-end space-y-2">
+                            {task.pr_url &&
+                              task.pr_details?.state === 'open' &&
+                              task.pr_details?.mergeable_state === 'clean' &&
+                              !task.pr_details?.draft &&
+                              task.github_state === 'open' && (
+                                <>
+                                  <button
+                                    onClick={() => task.id && performAction({ id: task.id, action: 'merge_close' })}
+                                    disabled={isPerformingAction && performingActionId === task.id}
+                                    className="text-white bg-purple-600 hover:bg-purple-700 font-medium rounded text-xs px-2 py-1 disabled:opacity-50 transition-colors w-full"
+                                  >
+                                    Merge & Close
+                                  </button>
+                                  <button
+                                    onClick={() => task.id && performAction({ id: task.id, action: 'merge_close_duplicate' })}
+                                    disabled={isPerformingAction && performingActionId === task.id}
+                                    className="text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded text-xs px-2 py-1 disabled:opacity-50 transition-colors w-full"
+                                  >
+                                    Merge & Duplicate
+                                  </button>
+                                </>
+                              )}
+                            <Link href={rel(`/tasks/?id=${task.id}`)} className="text-blue-600 hover:text-blue-900">
+                              Details
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))
