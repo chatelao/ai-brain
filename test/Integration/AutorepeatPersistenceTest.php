@@ -103,4 +103,43 @@ class AutorepeatPersistenceTest extends TestCase
         $task = $this->taskModel->findByIssueNumber(1, 456);
         $this->assertEquals(0, $task['autorepeat_remaining'], "Autorepeat remaining should default to 0 for new tasks");
     }
+
+    public function testUpsertExtractsCountFromLabels()
+    {
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'test/repo')");
+
+        $issue = [
+            'number' => 789,
+            'title' => 'Labeled Issue',
+            'body' => 'Body',
+            'state' => 'open',
+            'labels' => [
+                ['name' => 'bug'],
+                ['name' => 'autorepeat: 7']
+            ]
+        ];
+
+        // Upsert should find 'autorepeat: 7'
+        $this->taskModel->upsert(1, 1, $issue);
+
+        $task = $this->taskModel->findByIssueNumber(1, 789);
+        $this->assertEquals(7, $task['autorepeat_remaining'], "Autorepeat remaining should be extracted from labels");
+    }
+
+    public function testHasAutorepeatLabelSupportsNewFormat()
+    {
+        $task = [
+            'github_data' => json_encode([
+                'labels' => [['name' => 'autorepeat: 3']]
+            ])
+        ];
+        $this->assertTrue($this->taskModel->hasAutorepeatLabel($task));
+
+        $task2 = [
+            'github_data' => json_encode([
+                'labels' => [['name' => 'autorepeat']]
+            ])
+        ];
+        $this->assertTrue($this->taskModel->hasAutorepeatLabel($task2));
+    }
 }

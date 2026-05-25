@@ -434,7 +434,14 @@ class Task
         $connection = $this->db->getConnection();
         $driver = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
 
-        $finalAutorepeatRemaining = $autorepeatRemaining ?? 0;
+        // Try to extract from labels if not explicitly provided
+        $labelCount = isset($issue['labels']) ? $this->extractAutorepeatRemainingFromLabels($issue['labels']) : null;
+
+        // Final value to use in the INSERT part
+        $insertAutorepeatRemaining = $autorepeatRemaining ?? $labelCount ?? 0;
+
+        // Determine if we should update the existing value
+        $shouldUpdateAutorepeat = ($autorepeatRemaining !== null || $labelCount !== null);
 
         if ($driver === 'sqlite') {
             $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state, autorepeat_remaining)
@@ -444,7 +451,7 @@ class Task
                         body = excluded.body,
                         github_data = excluded.github_data,
                         github_state = excluded.github_state,
-                        autorepeat_remaining = " . ($autorepeatRemaining !== null ? "excluded.autorepeat_remaining" : "tasks.autorepeat_remaining") . ",
+                        autorepeat_remaining = " . ($shouldUpdateAutorepeat ? "excluded.autorepeat_remaining" : "tasks.autorepeat_remaining") . ",
                         status = CASE
                             WHEN excluded.github_state = 'closed' THEN 'finished'
                             WHEN status = 'pending' THEN 'created'
@@ -458,7 +465,7 @@ class Task
                         body = VALUES(body),
                         github_data = VALUES(github_data),
                         github_state = VALUES(github_state),
-                        autorepeat_remaining = " . ($autorepeatRemaining !== null ? "VALUES(autorepeat_remaining)" : "autorepeat_remaining") . ",
+                        autorepeat_remaining = " . ($shouldUpdateAutorepeat ? "VALUES(autorepeat_remaining)" : "autorepeat_remaining") . ",
                         status = CASE
                             WHEN VALUES(github_state) = 'closed' THEN 'finished'
                             WHEN status = 'pending' THEN 'created'
@@ -479,7 +486,7 @@ class Task
             json_encode($issue),
             $status,
             $issue['state'] ?? 'open',
-            $finalAutorepeatRemaining
+            $insertAutorepeatRemaining
         ]);
     }
 
@@ -619,11 +626,22 @@ class Task
         $labels = $githubData['labels'] ?? [];
         foreach ($labels as $label) {
             $name = strtolower($label['name'] ?? '');
-            if ($name === 'autorepeat' || $name === 'auto-repeat') {
+            if ($name === 'autorepeat' || $name === 'auto-repeat' || str_starts_with($name, 'autorepeat:')) {
                 return true;
             }
         }
         return false;
+    }
+
+    public function extractAutorepeatRemainingFromLabels(array $labels): ?int
+    {
+        foreach ($labels as $label) {
+            $name = strtolower($label['name'] ?? '');
+            if (preg_match('/^autorepeat:\s*(\d+)$/', $name, $matches)) {
+                return (int)$matches[1];
+            }
+        }
+        return null;
     }
 
     /**
