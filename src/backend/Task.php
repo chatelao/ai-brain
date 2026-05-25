@@ -429,10 +429,12 @@ class Task
         $this->deleteByIssueNumbersNotIn($projectId, $issueNumbers);
     }
 
-    public function upsert(int $userId, int $projectId, array $issue, int $autorepeatRemaining = 0): bool
+    public function upsert(int $userId, int $projectId, array $issue, ?int $autorepeatRemaining = null): bool
     {
         $connection = $this->db->getConnection();
         $driver = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+        $finalAutorepeatRemaining = $autorepeatRemaining ?? 0;
 
         if ($driver === 'sqlite') {
             $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state, autorepeat_remaining)
@@ -442,7 +444,7 @@ class Task
                         body = excluded.body,
                         github_data = excluded.github_data,
                         github_state = excluded.github_state,
-                        autorepeat_remaining = excluded.autorepeat_remaining,
+                        autorepeat_remaining = " . ($autorepeatRemaining !== null ? "excluded.autorepeat_remaining" : "tasks.autorepeat_remaining") . ",
                         status = CASE
                             WHEN excluded.github_state = 'closed' THEN 'finished'
                             WHEN status = 'pending' THEN 'created'
@@ -456,7 +458,7 @@ class Task
                         body = VALUES(body),
                         github_data = VALUES(github_data),
                         github_state = VALUES(github_state),
-                        autorepeat_remaining = VALUES(autorepeat_remaining),
+                        autorepeat_remaining = " . ($autorepeatRemaining !== null ? "VALUES(autorepeat_remaining)" : "autorepeat_remaining") . ",
                         status = CASE
                             WHEN VALUES(github_state) = 'closed' THEN 'finished'
                             WHEN status = 'pending' THEN 'created'
@@ -477,7 +479,7 @@ class Task
             json_encode($issue),
             $status,
             $issue['state'] ?? 'open',
-            $autorepeatRemaining
+            $finalAutorepeatRemaining
         ]);
     }
 
