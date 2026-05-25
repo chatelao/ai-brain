@@ -191,6 +191,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             break;
 
+        case 'create_github_issue':
+            $title = trim($input['title'] ?? '');
+            $body = trim($input['body'] ?? '');
+            $labels = $input['labels'] ?? ['Jules'];
+            if (empty($title)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Title is required']);
+                exit;
+            }
+            try {
+                $githubToken = $project['github_token'] ?? null;
+                if (!$githubToken) {
+                    throw new Exception("GitHub token not found for this project.");
+                }
+
+                $githubService = new GitHubService(null, $githubToken);
+                $githubService->createIssue($project['github_repo'], $title, $body, (array)$labels);
+
+                echo json_encode(['status' => 'success', 'message' => 'GitHub issue created']);
+            } catch (Exception $e) {
+                http_response_code(500);
+                echo json_encode(['error' => 'Error creating issue: ' . $e->getMessage()]);
+            }
+            break;
+
         default:
             http_response_code(400);
             echo json_encode(['error' => 'Invalid or missing action']);

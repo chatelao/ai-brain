@@ -468,7 +468,18 @@ paths:
               properties:
                 action:
                   type: string
-                  enum: [sync_issues, create_from_template, create_from_roadmap, update_settings, update_notifications]
+                  enum: [sync_issues, create_from_template, create_from_roadmap, update_settings, update_notifications, create_github_issue]
+                title:
+                  type: string
+                  description: Required for 'create_github_issue'
+                body:
+                  type: string
+                  description: Optional for 'create_github_issue'
+                labels:
+                  type: array
+                  items:
+                    type: string
+                  description: Optional labels for 'create_github_issue'
                 template_id:
                   type: integer
                   description: Required for 'create_from_template'

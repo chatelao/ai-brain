@@ -8,8 +8,8 @@ import { useTasks } from '@/hooks/useTasks';
 import { useTemplates } from '@/hooks/useTemplates';
 import StatusBadge from '@/components/StatusBadge';
 import TaskFilterBar from '@/components/TaskFilterBar';
-import Navbar from '@/components/Navbar';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import CreateIssueModal from '@/components/CreateIssueModal';
 import { components } from '@/types/api';
 
 type TaskStatus = components['schemas']['Task']['status'];
@@ -17,12 +17,13 @@ type TaskStatus = components['schemas']['Task']['status'];
 export default function ProjectDetailView({ id }: { id: string }) {
   const { rel } = useRelativePath();
   const projectId = parseInt(id);
-  const { data: project, isLoading: projectLoading, error: projectError, syncIssues, isSyncing, createFromTemplate, isCreatingFromTemplate, createFromRoadmap, isCreatingFromRoadmap } = useProject(projectId);
+  const { data: project, isLoading: projectLoading, error: projectError, syncIssues, isSyncing, createFromTemplate, isCreatingFromTemplate, createFromRoadmap, isCreatingFromRoadmap, createGithubIssue, isCreatingGithubIssue } = useProject(projectId);
   const { data: tasks, isLoading: tasksLoading } = useTasks(projectId);
   const { data: templates } = useTemplates();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const filteredTasks = useMemo(() => {
     if (!tasks) return [];
@@ -78,6 +79,15 @@ export default function ProjectDetailView({ id }: { id: string }) {
               </svg>
               {isSyncing ? 'Syncing...' : 'Sync Issues'}
             </button>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Create Issue
+            </button>
             <Link
               href={rel(`/projects/?id=${id}&settings=true`)}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
@@ -86,6 +96,13 @@ export default function ProjectDetailView({ id }: { id: string }) {
             </Link>
           </div>
         </div>
+
+        <CreateIssueModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSubmit={(title, body) => createGithubIssue({ title, body })}
+          isSubmitting={isCreatingGithubIssue}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-3 min-w-0">

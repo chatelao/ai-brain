@@ -44,6 +44,20 @@ export const useProject = (id: string | number) => {
     },
   });
 
+  const createGithubIssueMutation = useMutation({
+    mutationFn: async ({ title, body }: { title: string; body?: string }) => {
+      const response = await apiClient.post(`project.php?id=${id}`, {
+        action: 'create_github_issue',
+        title,
+        body,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', id] });
+    },
+  });
+
   const createFromRoadmapMutation = useMutation({
     mutationFn: async (roadmapName: string) => {
       const response = await apiClient.post(`project.php?id=${id}`, {
@@ -105,6 +119,8 @@ export const useProject = (id: string | number) => {
     syncError: syncMutation.error,
     createFromTemplate: createFromTemplateMutation.mutateAsync,
     isCreatingFromTemplate: createFromTemplateMutation.isPending,
+    createGithubIssue: createGithubIssueMutation.mutateAsync,
+    isCreatingGithubIssue: createGithubIssueMutation.isPending,
     createFromRoadmap: createFromRoadmapMutation.mutateAsync,
     isCreatingFromRoadmap: createFromRoadmapMutation.isPending,
     updateSettings: updateSettingsMutation.mutateAsync,

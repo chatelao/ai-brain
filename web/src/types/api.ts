@@ -809,7 +809,13 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        action: "sync_issues" | "create_from_template" | "create_from_roadmap" | "update_settings" | "update_notifications";
+                        action: "sync_issues" | "create_from_template" | "create_from_roadmap" | "update_settings" | "update_notifications" | "create_github_issue";
+                        /** @description Required for 'create_github_issue' */
+                        title?: string;
+                        /** @description Optional for 'create_github_issue' */
+                        body?: string;
+                        /** @description Optional labels for 'create_github_issue' */
+                        labels?: string[];
                         /** @description Required for 'create_from_template' */
                         template_id?: number;
                         /** @description Parameter values for the template */
