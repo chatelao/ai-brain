@@ -60,6 +60,8 @@ $output = array_map(function($task) {
         ];
     }, $githubData['labels'] ?? []);
 
+    $prDetails = !empty($task['github_pr_data']) ? json_decode($task['github_pr_data'], true) : null;
+
     return [
         'id' => (int)$task['task_id'],
         'project_id' => (int)$task['project_id'],
@@ -76,7 +78,14 @@ $output = array_map(function($task) {
         'created_at' => $task['created_at'],
         'last_synced_at' => $task['last_synced_at'],
         'autorepeat_remaining' => (int)($task['autorepeat_remaining'] ?? 0),
-        'labels' => $labels
+        'labels' => $labels,
+        'pr_details' => $prDetails ? [
+            'title' => $prDetails['title'] ?? '',
+            'state' => $prDetails['state'] ?? '',
+            'merged' => $prDetails['merged'] ?? false,
+            'mergeable_state' => $prDetails['mergeable_state'] ?? null,
+            'draft' => $prDetails['draft'] ?? null
+        ] : null,
     ];
 }, $tasks);
 
