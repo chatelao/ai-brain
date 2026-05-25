@@ -762,16 +762,24 @@ class Task
         return null;
     }
 
-    public function extractPrUrl(string $text, ?string $repo = null): ?string
+    public function extractPrUrl(string $text, ?string $repo = null, ?int $excludeIssueNumber = null): ?string
     {
         // Full URL
-        if (preg_match('/https?:\/\/github\.com\/([^\/]+\/[^\/]+)\/pull\/(\d+)/i', $text, $matches)) {
-            return $matches[0];
+        if (preg_match_all('/https?:\/\/github\.com\/([^\/]+\/[^\/]+)\/pull\/(\d+)/i', $text, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                if ($excludeIssueNumber === null || (int)$match[2] !== $excludeIssueNumber) {
+                    return $match[0];
+                }
+            }
         }
 
         // Relative reference like #123 or pull/#123
-        if ($repo && preg_match('/(?:pull\/|#)(\d+)/i', $text, $matches)) {
-            return "https://github.com/$repo/pull/{$matches[1]}";
+        if ($repo && preg_match_all('/(?:pull\/|#)(\d+)/i', $text, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                if ($excludeIssueNumber === null || (int)$match[1] !== $excludeIssueNumber) {
+                    return "https://github.com/$repo/pull/{$match[1]}";
+                }
+            }
         }
 
         return null;
@@ -824,12 +832,12 @@ class Task
             $sql .= " AND t.project_id = ?";
             $params[] = $projectId;
             $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
-            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ? OR t.status = 'pending')
+            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ? OR t.status = 'pending' OR (t.autorepeat_remaining > 0 AND t.github_state = 'open'))
                       AND (t.status NOT IN ('" . self::STATUS_FINISHED . "', 'completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))";
             $params[] = $fiveMinutesAgo;
         } else {
             $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
-            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ? OR t.status = 'pending')
+            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ? OR t.status = 'pending' OR (t.autorepeat_remaining > 0 AND t.github_state = 'open'))
                       AND (t.status NOT IN ('" . self::STATUS_FINISHED . "', 'completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))";
             $params[] = $fiveMinutesAgo;
         }
@@ -855,6 +863,7 @@ class Task
         }
 
         foreach ($tasks as $task) {
+            $pr = null;
             $githubData = json_decode($task['github_data'] ?? '{}', true);
             $assignee = $githubData['assignee']['login'] ?? '';
             $labels = $githubData['labels'] ?? [];
@@ -879,6 +888,11 @@ class Task
             $sessionId = $task['jules_session_id'];
             $prUrl = $task['pr_url'];
 
+            // If prUrl points to the issue itself, ignore it
+            if ($prUrl && $githubService->extractPrNumber($prUrl) === (int)$task['issue_number']) {
+                $prUrl = null;
+            }
+
             if (!$sessionId || !$prUrl) {
                 try {
                     // Fetch fresh issue to get latest body and possibly PR info
@@ -897,7 +911,7 @@ class Task
                     }
 
                     if (!$prUrl) {
-                        $prUrl = $this->extractPrUrl($issue['body'] ?? '', $task['github_repo']);
+                        $prUrl = $this->extractPrUrl($issue['body'] ?? '', $task['github_repo'], (int)$task['issue_number']);
                     }
 
                     $comments = $githubService->getIssueComments($task['github_repo'], $task['issue_number']);
@@ -923,7 +937,7 @@ class Task
                             $prUrl = $issue['pull_request']['html_url'];
                         } else {
                             foreach (array_reverse($comments) as $comment) {
-                                $prUrl = $this->extractPrUrl($comment['body'] ?? '', $task['github_repo']);
+                                $prUrl = $this->extractPrUrl($comment['body'] ?? '', $task['github_repo'], (int)$task['issue_number']);
                                 if ($prUrl) break;
                             }
                         }
