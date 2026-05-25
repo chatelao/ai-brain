@@ -436,6 +436,8 @@ class WebhookHandler
         }
 
         $userId = (int)$project['user_id'];
+        Logger::getInstance($this->db)->log($userId, $taskId, "Starting Blockly automation sequence for task #$taskId", 'info');
+
         $userModel = new User($this->db);
         $user = $userModel->findById($userId);
 
@@ -448,7 +450,7 @@ class WebhookHandler
         if (!empty($user['blockly_config'])) {
             $config = json_decode($user['blockly_config'], true);
             if (!empty($config['js'])) {
-                $sandboxService->execute($userId, $taskId, $config['js'], $eventContext);
+                $sandboxService->execute($userId, $taskId, $config['js'], $eventContext, 'Global');
             }
         }
 
@@ -456,7 +458,7 @@ class WebhookHandler
         if (!empty($project['blockly_config'])) {
             $config = json_decode($project['blockly_config'], true);
             if (!empty($config['js'])) {
-                $sandboxService->execute($userId, $taskId, $config['js'], $eventContext);
+                $sandboxService->execute($userId, $taskId, $config['js'], $eventContext, 'Local');
             }
         }
     }

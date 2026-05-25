@@ -175,9 +175,9 @@ class SandboxServiceTest extends TestCase
         $logs = $stmt->fetchAll(PDO::FETCH_COLUMN);
         $this->assertContains('Blockly Log: Starting execution', $logs);
 
-        $stmt = $this->pdo->query("SELECT message FROM task_logs WHERE task_id = 1 AND message LIKE 'Blockly Action:%'");
+        $stmt = $this->pdo->query("SELECT message FROM task_logs WHERE task_id = 1 AND message LIKE 'Blockly Action [unknown]:%'");
         $actions = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        $this->assertContains('Blockly Action: Added label \'automated\'', $actions);
+        $this->assertContains('Blockly Action [unknown]: Added label \'automated\'', $actions);
     }
 
     public function testExecuteWithTaskReady()
@@ -206,9 +206,9 @@ class SandboxServiceTest extends TestCase
 
         $this->assertTrue($result);
 
-        $stmt = $this->pdo->query("SELECT message FROM task_logs WHERE task_id = 1 AND message LIKE 'Blockly Action:%'");
+        $stmt = $this->pdo->query("SELECT message FROM task_logs WHERE task_id = 1 AND message LIKE 'Blockly Action [unknown]:%'");
         $actions = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        $this->assertContains('Blockly Action: Merged PR #42', $actions);
+        $this->assertContains('Blockly Action [unknown]: Merged PR #42', $actions);
     }
 
     public function testExecuteScriptWithError()

@@ -57,8 +57,8 @@
 - [x] Fetch Local Blockly config from `projects` table in `WebhookHandler`.
 - [x] Implement sequential execution of Global then Local logic in `WebhookHandler`.
 - [ ] Implement precedence rules (Local overrides Global actions) during execution.
-- [ ] Add detailed execution logging to `task_logs` for auditability and debugging.
-- [ ] Implement a "Dry Run" mode for testing Blockly logic without performing actions.
+- [x] Add detailed execution logging to `task_logs` for auditability and debugging.
+- [x] Implement a "Dry Run" mode for testing Blockly logic without performing actions.
 
 ## Phase 6: End-to-End Workflows
 - [ ] Test "Auto-Merge on CI Success" workflow.
