@@ -17,7 +17,7 @@ export const useTask = (id: number | string | undefined) => {
   });
 
   const taskActionMutation = useMutation({
-    mutationFn: async ({ action, autorepeat_remaining }: { action: 'trigger_agent' | 'merge_close' | 'merge_close_duplicate' | 'update_autorepeat', autorepeat_remaining?: number }) => {
+    mutationFn: async ({ action, autorepeat_remaining }: { action: 'trigger_agent' | 'merge_close' | 'merge_close_duplicate' | 'update_autorepeat' | 'duplicate', autorepeat_remaining?: number }) => {
       const response = await apiClient.post(`task.php?id=${id}`, { action, autorepeat_remaining });
       return response.data;
     },

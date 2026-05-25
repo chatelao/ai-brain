@@ -11,7 +11,7 @@ export const useTaskActions = () => {
       autorepeat_remaining,
     }: {
       id: number | string;
-      action: 'trigger_agent' | 'merge_close' | 'merge_close_duplicate' | 'update_autorepeat';
+      action: 'trigger_agent' | 'merge_close' | 'merge_close_duplicate' | 'update_autorepeat' | 'duplicate';
       autorepeat_remaining?: number;
     }) => {
       const response = await apiClient.post(`task.php?id=${id}`, { action, autorepeat_remaining });
