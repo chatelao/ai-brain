@@ -89,6 +89,7 @@ class BlocklyWorkflowPhase6Test extends TestCase
             jules_status VARCHAR(50),
             jules_url TEXT,
             autorepeat_remaining INT DEFAULT 0,
+            github_repo VARCHAR(255),
             last_synced_at DATETIME,
             created_at $timestamp,
             updated_at $timestamp,
@@ -170,6 +171,7 @@ class BlocklyWorkflowPhase6Test extends TestCase
         // Task is already in CHECKING status, with a PR URL
         $this->pdo->prepare("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, status, pr_url, github_data)
                           VALUES (1, 1, 1, 101, 'Fix Bug', 'checking', 'https://github.com/owner/repo/pull/42', '{\"labels\":[]}')")->execute();
+        $this->pdo->exec("UPDATE tasks SET github_repo = 'owner/repo' WHERE task_id = 1");
 
         $project = [
             'project_id' => 1,
@@ -254,6 +256,7 @@ class BlocklyWorkflowPhase6Test extends TestCase
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo, github_account_id) VALUES (1, 1, 'owner/repo', 1)");
         $this->pdo->prepare("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, status, github_data)
                           VALUES (1, 1, 1, 101, 'Broken Task', 'created', '{\"labels\":[]}')")->execute();
+        $this->pdo->exec("UPDATE tasks SET github_repo = 'owner/repo' WHERE task_id = 1");
 
         $project = [
             'project_id' => 1,

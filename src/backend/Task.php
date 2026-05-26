@@ -314,7 +314,10 @@ class Task
     public function findByPrUrl(string $prUrl): ?array
     {
         $stmt = $this->db->getConnection()->prepare(
-            "SELECT * FROM tasks WHERE pr_url = ?"
+            "SELECT t.*, p.github_repo
+             FROM tasks t
+             JOIN projects p ON t.project_id = p.project_id
+             WHERE t.pr_url = ?"
         );
         $stmt->execute([$prUrl]);
         $task = $stmt->fetch();
@@ -324,7 +327,10 @@ class Task
     public function findByIssueNumber(int $projectId, int $issueNumber): ?array
     {
         $stmt = $this->db->getConnection()->prepare(
-            "SELECT * FROM tasks WHERE project_id = ? AND issue_number = ?"
+            "SELECT t.*, p.github_repo
+             FROM tasks t
+             JOIN projects p ON t.project_id = p.project_id
+             WHERE t.project_id = ? AND t.issue_number = ?"
         );
         $stmt->execute([$projectId, $issueNumber]);
         $task = $stmt->fetch();

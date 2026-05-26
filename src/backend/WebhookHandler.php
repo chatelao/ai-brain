@@ -100,8 +100,8 @@ class WebhookHandler
             $notificationData = [
                 'task_id' => $task['task_id'],
                 'project_id' => $project['project_id'],
-                'issue_number' => $issue['number'],
-                'source_url' => $issue['html_url'],
+                'issue_number' => $issue['number'] ?? 0,
+                'source_url' => $issue['html_url'] ?? '',
                 'is_system' => !$this->isUserTriggered($event)
             ];
 
