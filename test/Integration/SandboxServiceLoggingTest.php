@@ -117,7 +117,7 @@ class SandboxServiceLoggingTest extends TestCase
 
         $result = $this->sandboxService->execute(1, 1, $jsCode, [], 'Global');
 
-        $this->assertTrue($result);
+        $this->assertTrue($result['success']);
 
         // Verify start log
         $stmt = $this->pdo->query("SELECT message FROM task_logs WHERE task_id = 1 AND message LIKE 'Executing [Global] Blockly automation%'");
@@ -146,7 +146,7 @@ class SandboxServiceLoggingTest extends TestCase
 
         $result = $this->sandboxService->execute(1, 1, $jsCode, [], 'Local', true);
 
-        $this->assertTrue($result);
+        $this->assertTrue($result['success']);
 
         // Verify start log mentions DRY RUN
         $stmt = $this->pdo->query("SELECT message FROM task_logs WHERE task_id = 1 AND message LIKE 'Executing [Local] Blockly automation (DRY RUN)%'");

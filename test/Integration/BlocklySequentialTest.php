@@ -103,9 +103,13 @@ class BlocklySequentialTest extends TestCase
 
         $calls = [];
         $sandboxService->method('execute')
-            ->willReturnCallback(function($userId, $taskId, $jsCode) use (&$calls) {
-                $calls[] = $jsCode;
-                return true;
+            ->willReturnCallback(function($userId, $taskId, $jsCode, $context, $source, $dryRun, $ignoredEvents = []) use (&$calls) {
+                $calls[] = [
+                    'code' => $jsCode,
+                    'source' => $source,
+                    'ignoredEvents' => $ignoredEvents
+                ];
+                return ['success' => true, 'handledEvents' => ($source === 'Local' ? ['TEST_EVENT'] : [])];
             });
 
         $project = [
@@ -124,8 +128,17 @@ class BlocklySequentialTest extends TestCase
 
         $dbUser = $this->pdo->query("SELECT * FROM users WHERE user_id = 1")->fetch();
 
-        $this->assertCount(2, $calls, "Should have 2 calls (global and local). User blockly_config in DB: " . $dbUser['blockly_config'] . " UserID from Project: " . $project['user_id'] . " UserID from DB row: " . $dbUser['user_id']);
-        $this->assertEquals('console.log("Global Executed");', $calls[0]);
-        $this->assertEquals('console.log("Local Executed");', $calls[1]);
+        $this->assertCount(2, $calls, "Should have 2 calls (global and local).");
+
+        // 1. Local call
+        $this->assertEquals('Local', $calls[0]['source']);
+        $this->assertEquals('console.log("Local Executed");', $calls[0]['code']);
+        $this->assertEmpty($calls[0]['ignoredEvents']);
+
+        // 2. Global call
+        $this->assertEquals('Global', $calls[1]['source']);
+        $this->assertEquals('console.log("Global Executed");', $calls[1]['code']);
+        // Verify it received the handledEvents from Local
+        $this->assertEquals(['TEST_EVENT'], $calls[1]['ignoredEvents']);
     }
 }
