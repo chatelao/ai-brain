@@ -170,7 +170,38 @@ class SandboxService
                         break;
 
                     case 'duplicate':
-                        $logger->log($userId, $taskId, "Blockly Action [$source]: " . ($dryRun ? "(DRY RUN) Would have requested duplication" : "Duplication requested (logged)"), 'info');
+                        $logger->log($userId, $taskId, "Blockly Action [$source]: " . ($dryRun ? "(DRY RUN) Would have duplicated issue" : "Duplicating issue"), 'info');
+                        if (!$dryRun && $this->githubService) {
+                            $githubData = json_decode($task['github_data'] ?? '{}', true);
+                            $labels = $githubData['labels'] ?? [];
+
+                            $labelNames = array_filter(
+                                array_map(fn($l) => $l['name'], $labels),
+                                fn($name) => strtolower($name) !== 'autorepeat' && strtolower($name) !== 'auto-repeat' && !str_starts_with(strtolower($name), 'autorepeat:')
+                            );
+
+                            // Ensure 'Jules' label is present to trigger the agent for the new issue
+                            $hasJules = false;
+                            foreach ($labelNames as $ln) {
+                                if (strtolower($ln) === 'jules') {
+                                    $hasJules = true;
+                                    break;
+                                }
+                            }
+                            if (!$hasJules) {
+                                $labelNames[] = 'Jules';
+                            }
+
+                            $newIssue = $this->githubService->createIssue($project['github_repo'], $task['title'], $task['body'] ?? null, array_values($labelNames));
+
+                            if (!empty($newIssue['number'])) {
+                                $taskModel = new Task($this->db);
+                                $taskModel->upsert($userId, (int)$project['project_id'], $newIssue);
+                                $logger->log($userId, $taskId, "Blockly Action [$source]: Successfully duplicated task to #" . $newIssue['number'], 'info');
+                            } else {
+                                throw new \Exception("Failed to create duplicate issue on GitHub.");
+                            }
+                        }
                         break;
 
                     case 'setLabel':

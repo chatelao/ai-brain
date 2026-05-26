@@ -57,7 +57,7 @@
 - [x] Fetch Local Blockly config from `projects` table in `WebhookHandler`.
 - [x] Implement sequential execution of Global then Local logic in `WebhookHandler`.
 - [x] Implement precedence rules (Local overrides Global actions) during execution.
-- [x] Implement event mapping (e.g., mapping raw `issues` event to `ISSUE_LABELED`).
+- [x] Implement event mapping (e.g., mapping raw `issues` event to `ISSUE_LABELED`, `ISSUE_OPENED`, `ISSUE_REOPENED`, `COMMENT_CREATED`).
 - [x] Add detailed execution logging to `task_logs` for auditability and debugging.
 - [x] Implement a "Dry Run" mode for testing Blockly logic without performing actions.
 
@@ -66,10 +66,10 @@
   - [ ] Create a project with auto-merge blockly script.
   - [ ] Trigger check_suite completed event via mock.
   - [ ] Verify PR is merged on GitHub.
-- [ ] Test "Auto-Repeat on Issue Closed" workflow.
-  - [ ] Create a project with auto-repeat blockly script.
-  - [ ] Trigger issues closed event via mock.
-  - [ ] Verify new issue is created on GitHub.
+- [x] Test "Auto-Repeat on Issue Closed" workflow (via `duplicate()` action).
+  - [x] Create a project with auto-repeat blockly script.
+  - [x] Trigger issues closed event via mock.
+  - [x] Verify new issue is created on GitHub.
 - [ ] Test "Custom Telegram Notification on Agent Error" workflow.
   - [ ] Create a global blockly script for AGENT_ERROR.
   - [ ] Simulate agent failure.

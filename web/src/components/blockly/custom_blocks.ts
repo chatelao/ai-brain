@@ -8,8 +8,11 @@ export const defineCustomBlocks = () => {
       this.appendDummyInput()
           .appendField("On Event")
           .appendField(new Blockly.FieldDropdown([
+            ["Issue Opened", "ISSUE_OPENED"],
             ["Issue Labeled", "ISSUE_LABELED"],
+            ["Issue Reopened", "ISSUE_REOPENED"],
             ["Issue Closed", "ISSUE_CLOSED"],
+            ["Comment Created", "COMMENT_CREATED"],
             ["PR Created", "PR_CREATED"],
             ["PR Merged", "PR_MERGED"],
             ["Checks Completed", "CHECKS_COMPLETED"],

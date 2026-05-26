@@ -8,6 +8,7 @@ use App\SandboxService;
 use App\GitHubService;
 use App\NotificationService;
 use App\Logger;
+use App\Task;
 use PDO;
 use Tests\TestDatabaseTrait;
 
@@ -69,6 +70,8 @@ class SandboxServiceTest extends TestCase
             github_data TEXT,
             pr_url VARCHAR(255),
             jules_session_id VARCHAR(255),
+            github_repo VARCHAR(255),
+            autorepeat_remaining INT DEFAULT 0,
             created_at $timestamp,
             updated_at $timestamp,
             UNIQUE(project_id, issue_number)
@@ -137,9 +140,9 @@ class SandboxServiceTest extends TestCase
     public function testExecuteSuccessfulScript()
     {
         // Seed data
-        $this->pdo->exec("INSERT INTO user_github_accounts (github_account_id, user_id, github_username) VALUES (1, 1, 'testuser')");
+        $this->pdo->exec("INSERT INTO user_github_accounts (github_account_id, user_id, github_username, github_token) VALUES (1, 1, 'testuser', 'token')");
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo, github_account_id) VALUES (1, 1, 'owner/repo', 1)");
-        $this->pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, github_data, status) VALUES (1, 1, 1, 101, 'Test Task', '{\"labels\":[]}', 'created')");
+        $this->pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, github_data, status, github_repo) VALUES (1, 1, 1, 101, 'Test Task', '{\"labels\":[]}', 'created', 'owner/repo')");
 
         $jsCode = "
             console.log('Starting execution');
@@ -183,9 +186,9 @@ class SandboxServiceTest extends TestCase
     public function testExecuteWithTaskReady()
     {
         // Seed data with ready status and PR URL
-        $this->pdo->exec("INSERT INTO user_github_accounts (github_account_id, user_id, github_username) VALUES (1, 1, 'testuser')");
+        $this->pdo->exec("INSERT INTO user_github_accounts (github_account_id, user_id, github_username, github_token) VALUES (1, 1, 'testuser', 'token')");
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo, github_account_id) VALUES (1, 1, 'owner/repo', 1)");
-        $this->pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, github_data, status, pr_url) VALUES (1, 1, 1, 101, 'Test Task', '{\"labels\":[]}', 'ready', 'https://github.com/owner/repo/pull/42')");
+        $this->pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, github_data, status, pr_url, github_repo) VALUES (1, 1, 1, 101, 'Test Task', '{\"labels\":[]}', 'ready', 'https://github.com/owner/repo/pull/42', 'owner/repo')");
 
         $jsCode = "
             if (isTaskReady()) {
@@ -213,10 +216,8 @@ class SandboxServiceTest extends TestCase
 
     public function testExecuteScriptWithError()
     {
-        $this->pdo->exec("INSERT INTO user_github_accounts (github_account_id, user_id, github_username) VALUES (1, 1, 'testuser')");
+        $this->pdo->exec("INSERT INTO user_github_accounts (github_account_id, user_id, github_username, github_token) VALUES (1, 1, 'testuser', 'token')");
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo, github_account_id) VALUES (1, 1, 'owner/repo', 1)");
-        // Add dummy github_repo to tasks for getTargetUrl in Logger
-        $this->pdo->exec("ALTER TABLE tasks ADD COLUMN github_repo VARCHAR(255)");
         $this->pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, github_data, github_repo) VALUES (1, 1, 1, 101, 'Test Task', '{\"labels\":[]}', 'owner/repo')");
 
         $jsCode = "throw new Error('Boom!');";
@@ -229,5 +230,46 @@ class SandboxServiceTest extends TestCase
         $errorLogs = $stmt->fetchAll(PDO::FETCH_COLUMN);
         $this->assertNotEmpty($errorLogs);
         $this->assertStringContainsString('Boom!', $errorLogs[0]);
+    }
+
+    public function testExecuteDuplicateAction()
+    {
+        // Seed data
+        $this->pdo->exec("INSERT INTO user_github_accounts (github_account_id, user_id, github_username, github_token) VALUES (1, 1, 'testuser', 'token')");
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo, github_account_id) VALUES (1, 1, 'owner/repo', 1)");
+        $this->pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, body, github_data, status, github_repo)
+                          VALUES (1, 1, 1, 101, 'Test Task', 'Original Body', '{\"labels\":[{\"name\":\"bug\"}, {\"name\":\"autorepeat\"}]}', 'created', 'owner/repo')");
+
+        $jsCode = "duplicate();";
+
+        // Expect GitHub createIssue call
+        $this->githubService->expects($this->once())
+            ->method('createIssue')
+            ->with(
+                'owner/repo',
+                'Test Task',
+                'Original Body',
+                $this->callback(function($labels) {
+                    return in_array('bug', $labels) && in_array('Jules', $labels) && !in_array('autorepeat', $labels);
+                })
+            )
+            ->willReturn([
+                'number' => 102,
+                'title' => 'Test Task',
+                'body' => 'Original Body',
+                'state' => 'open'
+            ]);
+
+        $result = $this->sandboxService->execute(1, 1, $jsCode);
+
+        $this->assertTrue($result['success']);
+
+        // Verify database has the new task
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM tasks WHERE issue_number = 102 AND project_id = 1");
+        $this->assertEquals(1, $stmt->fetchColumn());
+
+        // Verify logs
+        $stmt = $this->pdo->query("SELECT message FROM task_logs WHERE task_id = 1 AND message LIKE '%Successfully duplicated task to #102%'");
+        $this->assertNotEmpty($stmt->fetchColumn());
     }
 }
