@@ -24,9 +24,10 @@ class SandboxService
      * @param array $eventContext Additional event metadata.
      * @param string $source The source of the automation (e.g., 'Global', 'Local').
      * @param bool $dryRun Whether to perform a dry run without side effects.
-     * @return bool True if execution was successful.
+     * @param array $ignoredEvents List of event types to ignore.
+     * @return array Results including 'success' (bool) and 'handledEvents' (array).
      */
-    public function execute(int $userId, int $taskId, string $jsCode, array $eventContext = [], string $source = 'unknown', bool $dryRun = false): bool
+    public function execute(int $userId, int $taskId, string $jsCode, array $eventContext = [], string $source = 'unknown', bool $dryRun = false, array $ignoredEvents = []): array
     {
         $logger = Logger::getInstance($this->db);
         $taskModel = new Task($this->db);
@@ -37,13 +38,13 @@ class SandboxService
         $task = $taskModel->findById($taskId);
         if (!$task) {
             $logger->log($userId, $taskId, "SandboxService: Task not found.", 'error');
-            return false;
+            return ['success' => false, 'handledEvents' => []];
         }
 
         $project = $projectModel->findById($task['project_id']);
         if (!$project) {
             $logger->log($userId, $taskId, "SandboxService: Project not found.", 'error');
-            return false;
+            return ['success' => false, 'handledEvents' => []];
         }
 
         // Prepare context for the runner
@@ -65,7 +66,8 @@ class SandboxService
 
         $payload = json_encode([
             'code' => $jsCode,
-            'context' => $context
+            'context' => $context,
+            'ignoredEvents' => $ignoredEvents
         ]);
 
         $runnerPath = __DIR__ . '/../../scripts/blockly-runner.js';
@@ -91,14 +93,16 @@ class SandboxService
 
             if ($returnValue !== 0) {
                 $logger->log($userId, $taskId, "SandboxService: Runner exited with error ($returnValue): $error", 'error');
-                return false;
+                return ['success' => false, 'handledEvents' => []];
             }
 
             $result = json_decode($output, true);
-            if (!$result) {
+            if ($result === null) {
                 $logger->log($userId, $taskId, "SandboxService: Failed to parse runner output: $output", 'error');
-                return false;
+                return ['success' => false, 'handledEvents' => []];
             }
+
+            $handledEvents = $result['handledEvents'] ?? [];
 
             // Log runner internal logs
             if (!empty($result['logs'])) {
@@ -109,15 +113,19 @@ class SandboxService
 
             if (!$result['success']) {
                 $logger->log($userId, $taskId, "SandboxService: Execution failed: " . ($result['error'] ?? 'Unknown error'), 'error');
-                return false;
+                return ['success' => false, 'handledEvents' => $handledEvents];
             }
 
             // Dispatch actions
-            return $this->dispatchActions($userId, $taskId, $project, $task, $result['actions'] ?? [], $source, $dryRun);
+            $dispatchSuccess = $this->dispatchActions($userId, $taskId, $project, $task, $result['actions'] ?? [], $source, $dryRun);
+            return [
+                'success' => $dispatchSuccess,
+                'handledEvents' => $handledEvents
+            ];
         }
 
         $logger->log($userId, $taskId, "SandboxService: Failed to start runner process.", 'error');
-        return false;
+        return ['success' => false, 'handledEvents' => []];
     }
 
     /**

@@ -460,6 +460,27 @@ class WebhookHandler
         return true;
     }
 
+    private function mapToBlocklyEvent(string $githubEvent, array $payload): ?string
+    {
+        $action = $payload['action'] ?? '';
+
+        switch ($githubEvent) {
+            case 'issues':
+                if ($action === 'labeled') return 'ISSUE_LABELED';
+                if ($action === 'closed') return 'ISSUE_CLOSED';
+                break;
+            case 'pull_request':
+                if ($action === 'opened') return 'PR_CREATED';
+                if ($action === 'closed' && ($payload['pull_request']['merged'] ?? false)) return 'PR_MERGED';
+                break;
+            case 'check_suite':
+                if ($action === 'completed' || empty($action)) return 'CHECKS_COMPLETED';
+                break;
+        }
+
+        return null;
+    }
+
     private function runBlocklyAutomations(array $project, array $event, string $githubEvent, ?int $taskId, ?SandboxService $sandboxService): void
     {
         if (!$sandboxService || !$taskId) {
@@ -472,24 +493,29 @@ class WebhookHandler
         $userModel = new User($this->db);
         $user = $userModel->findById($userId);
 
+        $blocklyEvent = $this->mapToBlocklyEvent($githubEvent, $event);
         $eventContext = [
-            'type' => $githubEvent,
+            'type' => $blocklyEvent ?: $githubEvent, // Fallback to raw github event if not mapped
+            'github_event' => $githubEvent,
             'payload' => $event
         ];
 
-        // 1. Run Global Automations (User level)
-        if (!empty($user['blockly_config'])) {
-            $config = json_decode($user['blockly_config'], true);
-            if (!empty($config['js'])) {
-                $sandboxService->execute($userId, $taskId, $config['js'], $eventContext, 'Global');
-            }
-        }
+        $handledEvents = [];
 
-        // 2. Run Local Automations (Project level)
+        // 1. Run Local Automations (Project level) first to allow precedence
         if (!empty($project['blockly_config'])) {
             $config = json_decode($project['blockly_config'], true);
             if (!empty($config['js'])) {
-                $sandboxService->execute($userId, $taskId, $config['js'], $eventContext, 'Local');
+                $result = $sandboxService->execute($userId, $taskId, $config['js'], $eventContext, 'Local');
+                $handledEvents = $result['handledEvents'] ?? [];
+            }
+        }
+
+        // 2. Run Global Automations (User level), suppressing events already handled by Local
+        if (!empty($user['blockly_config'])) {
+            $config = json_decode($user['blockly_config'], true);
+            if (!empty($config['js'])) {
+                $sandboxService->execute($userId, $taskId, $config['js'], $eventContext, 'Global', false, $handledEvents);
             }
         }
     }

@@ -17,13 +17,13 @@ process.stdin.on('data', chunk => {
 process.stdin.on('end', () => {
     try {
         const input = JSON.parse(inputData);
-        const { code, context } = input;
+        const { code, context, ignoredEvents } = input;
 
         if (!code) {
             throw new Error('No code provided for execution.');
         }
 
-        const result = executeSandbox(code, context || {});
+        const result = executeSandbox(code, context || {}, ignoredEvents || []);
         console.log(JSON.stringify(result));
     } catch (err) {
         console.log(JSON.stringify({
@@ -36,9 +36,10 @@ process.stdin.on('end', () => {
     }
 });
 
-function executeSandbox(code, context) {
+function executeSandbox(code, context, ignoredEvents = []) {
     const actions = [];
     const logs = [];
+    const handledEvents = [];
 
     // Helper to log within the sandbox
     const sandboxLog = (msg) => logs.push(String(msg));
@@ -47,7 +48,13 @@ function executeSandbox(code, context) {
     const sandbox = {
         // Core Event Trigger
         onEvent: (eventType, callback) => {
+            if (ignoredEvents.includes(eventType)) {
+                sandboxLog(`Event ${eventType} is ignored (suppressed by Local automation).`);
+                return;
+            }
+
             if (context.event && context.event.type === eventType) {
+                handledEvents.push(eventType);
                 try {
                     callback(context.event);
                 } catch (e) {
@@ -120,14 +127,16 @@ function executeSandbox(code, context) {
         return {
             success: true,
             actions,
-            logs
+            logs,
+            handledEvents
         };
     } catch (err) {
         return {
             success: false,
             error: err.message,
             actions,
-            logs
+            logs,
+            handledEvents
         };
     }
 }
