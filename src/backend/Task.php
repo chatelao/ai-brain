@@ -28,7 +28,7 @@ class Task
     {
     }
 
-    public function resolveStatus(array $task, ?array $prData = null, ?array $checkSuitesData = null): string
+    public function resolveStatus(array $task, ?array $prData = null, ?array $checkSuitesData = null, ?array $commitStatusesData = null): string
     {
         $githubState = $task['github_state'] ?? 'open';
         if ($githubState === 'closed') {
@@ -49,7 +49,7 @@ class Task
             // Check results from check suites
             // Handle both webhook (singular 'check_suite') and API (array 'check_suites')
             $suites = [];
-            $suitesProvided = ($checkSuitesData !== null);
+            $checksProvided = ($checkSuitesData !== null || $commitStatusesData !== null);
 
             if ($checkSuitesData) {
                 if (isset($checkSuitesData['check_suites'])) {
@@ -61,45 +61,64 @@ class Task
                 }
             }
 
-            if (!empty($suites)) {
-                $failed = false;
-                $running = false;
-                $success = true;
+            $failed = false;
+            $running = false;
+            $hasAnyChecks = false;
 
+            if (!empty($suites)) {
+                $hasAnyChecks = true;
                 foreach ($suites as $suite) {
                     $status = $suite['status'] ?? '';
                     $conclusion = $suite['conclusion'] ?? '';
 
                     if ($status !== 'completed' && $status !== 'skipped') {
                         $running = true;
-                        $success = false;
                     } elseif (in_array($conclusion, ['failure', 'timed_out', 'cancelled', 'action_required', 'startup_failure'])) {
                         $failed = true;
-                        $success = false;
                     } elseif ($conclusion === 'success' || $conclusion === 'neutral' || $conclusion === 'skipped' || $conclusion === 'stale') {
-                        // Keep success = true (or whatever it is)
+                        // Success
                     } elseif (empty($conclusion)) {
-                        // Completed but no conclusion yet? Treat as still running/checking to avoid false failure
                         $running = true;
-                        $success = false;
                     } else {
-                        // Any other completed conclusion (including unknown ones) is considered a failure for safety
                         $failed = true;
-                        $success = false;
                     }
                 }
+            }
 
-                if ($failed) {
-                    return self::STATUS_FAILED_PR;
+            // Check legacy commit statuses
+            if ($commitStatusesData) {
+                // If it's a combined status object
+                if (isset($commitStatusesData['statuses'])) {
+                    $statuses = $commitStatusesData['statuses'];
+                    if (!empty($statuses)) {
+                        $hasAnyChecks = true;
+                        foreach ($statuses as $status) {
+                            $state = $status['state'] ?? '';
+                            if ($state === 'pending') {
+                                $running = true;
+                            } elseif ($state === 'failure' || $state === 'error') {
+                                $failed = true;
+                            }
+                        }
+                    }
                 }
-                if ($success) {
-                    return self::STATUS_READY;
+            }
+
+            if ($failed) {
+                return self::STATUS_FAILED_PR;
+            }
+            if ($hasAnyChecks && !$running) {
+                return self::STATUS_READY;
+            }
+
+            if ($running || $julesStatus === 'finished' || $julesStatus === 'completed') {
+                if ($julesStatus === 'finished' || $julesStatus === 'completed') {
+                    // If Jules finished and checks were provided but NONE found, keep it as implemented for manual confirmation
+                    if ($checksProvided && !$hasAnyChecks) {
+                        return self::STATUS_IMPLEMENTED;
+                    }
                 }
-                if ($running || $julesStatus === 'finished' || $julesStatus === 'completed') {
-                    return self::STATUS_CHECKING;
-                }
-            } elseif ($julesStatus === 'finished' || $julesStatus === 'completed') {
-                return $suitesProvided ? self::STATUS_READY : self::STATUS_CHECKING;
+                return self::STATUS_CHECKING;
             }
         }
 
@@ -974,6 +993,7 @@ class Task
 
             // Also check PR checks if we have a PR
             $checkSuites = null;
+            $commitStatuses = null;
             if ($prUrl) {
                 try {
                     $prNumber = $githubService->extractPrNumber($prUrl);
@@ -982,6 +1002,7 @@ class Task
                         $sha = $pr['head']['sha'] ?? null;
                         if ($sha) {
                             $checkSuites = $githubService->getCheckSuites($task['github_repo'], $sha);
+                            $commitStatuses = $githubService->getCombinedStatus($task['github_repo'], $sha);
                         } else {
                             Logger::getInstance($this->db)->log($userId, $task['task_id'], "Could not find head SHA for PR $prUrl", 'warning');
                         }
@@ -993,7 +1014,7 @@ class Task
 
             $tempTask = $task;
             $tempTask['jules_status'] = $julesStatus;
-            $mappedStatus = $this->resolveStatus($tempTask, $pr ?? null, $checkSuites);
+            $mappedStatus = $this->resolveStatus($tempTask, $pr ?? null, $checkSuites, $commitStatuses);
 
             if ($mappedStatus !== $task['status'] || $julesStatus !== $task['jules_status']) {
                 $updateStmt = $this->db->getConnection()->prepare(

@@ -22,6 +22,25 @@ class GitHubService
     /**
      * @throws Exception
      */
+    public function getCombinedStatus(string $repo, string $ref): array
+    {
+        $parts = explode('/', $repo);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid repository name: $repo");
+        }
+
+        [$username, $repository] = $parts;
+
+        return $this->apiCall(
+            'GitHub API',
+            "GET combined_status $repo/commits/$ref/status",
+            fn() => $this->client->api('repo')->statuses()->combined($username, $repository, $ref)
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
     public function getRepository(string $repo): array
     {
         $parts = explode('/', $repo);
@@ -412,7 +431,7 @@ class GitHubService
                 'secret' => $secret,
                 'insecure_ssl' => '0'
             ],
-            'events' => ['issues', 'check_suite', 'issue_comment'],
+            'events' => ['issues', 'check_suite', 'issue_comment', 'status', 'check_run', 'pull_request'],
             'active' => true,
         ]);
     }
