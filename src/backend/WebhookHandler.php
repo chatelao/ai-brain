@@ -31,10 +31,12 @@ class WebhookHandler
         $issue = $event['issue'] ?? null;
         $pullRequest = $event['pull_request'] ?? null;
         $checkSuite = $event['check_suite'] ?? null;
+        $checkRun = $event['check_run'] ?? null;
+        $status = $event['status'] ?? null;
         $comment = $event['comment'] ?? null;
 
         // Skip events without an action, except for check_suite which might have different triggers
-        if (empty($action) && !$checkSuite) {
+        if (empty($action) && !$checkSuite && !$checkRun && !$status) {
             return true;
         }
 
@@ -51,7 +53,7 @@ class WebhookHandler
             return $this->handlePullRequest($project, $event, $effectiveNotifService, $githubService, $sandboxService, $githubEvent);
         }
 
-        if ($checkSuite) {
+        if ($checkSuite || $checkRun || $status) {
             return $this->handleCheckSuite($project, $event, $taskModel, $effectiveNotifService, $githubService, $sandboxService, $githubEvent);
         }
 
@@ -124,6 +126,17 @@ class WebhookHandler
         }
 
         try {
+            $logger = Logger::getInstance($this->db);
+            $pr = $githubService->getPullRequest($project['github_repo'], $prNumber);
+            $mergeableState = $pr['mergeable_state'] ?? 'unknown';
+
+            if ($mergeableState !== 'clean' && $mergeableState !== 'unstable' && $mergeableState !== 'has_hooks') {
+                $logger->log($project['user_id'], $task['task_id'], "Auto-merge skipped: PR #$prNumber is in state '$mergeableState'", 'warning');
+                return;
+            }
+
+            $logger->log($project['user_id'], $task['task_id'], "Auto-merging PR #$prNumber (state: $mergeableState)...", 'info');
+
             // 1. Update autorepeat labels if requested
             $count = $task['autorepeat_remaining'] ?? 0;
             $githubService->updateAutorepeatLabels($project['github_repo'], $task['issue_number'], $count);
@@ -139,7 +152,7 @@ class WebhookHandler
             $taskModel->markAsMerged($task['task_id']);
 
         } catch (\Exception $e) {
-            Logger::getInstance($this->db)->log($project['user_id'], $task['task_id'], "Auto-merge failed: " . $e->getMessage(), 'error');
+            Logger::getInstance($this->db)->log($project['user_id'], $task['task_id'], "Auto-merge failed for PR #$prNumber: " . $e->getMessage(), 'error');
         }
     }
 
@@ -276,6 +289,14 @@ class WebhookHandler
             try {
                 $issue = $githubService->getIssue($project['github_repo'], $task['issue_number']);
                 $taskModel->upsert($project['user_id'], $project['project_id'], $issue);
+
+                $userModel = new User($this->db);
+                $user = $userModel->findById($project['user_id']);
+                $julesService = new JulesService(null, $user['jules_api_key'] ?? null);
+
+                // Call refreshJulesStatus to ensure status is updated and auto-merge is attempted
+                $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $notificationService, (int)$task['task_id']);
+
                 $task = $taskModel->findById($task['task_id']); // Refresh local task object
             } catch (\Exception $e) {
                 // Ignore sync errors during PR events
@@ -418,8 +439,25 @@ class WebhookHandler
                 }
             }
 
+            // Fetch combined status as well
+            $commitStatusesData = null;
+            if ($githubService) {
+                try {
+                    $prNumber = $githubService->extractPrNumber($task['pr_url'] ?? '');
+                    if ($prNumber) {
+                        $prData = $prData ?: $githubService->getPullRequest($project['github_repo'], $prNumber);
+                        $sha = $prData['head']['sha'] ?? null;
+                        if ($sha) {
+                            $commitStatusesData = $githubService->getCombinedStatus($project['github_repo'], $sha);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Ignore commit status fetch errors
+                }
+            }
+
             // Fallback to the single check suite from the event if API fetch fails or is not available
-            $newStatus = $taskModel->resolveStatus($task, $prData, $checkSuitesData ?: $checkSuite);
+            $newStatus = $taskModel->resolveStatus($task, $prData, $checkSuitesData ?: $checkSuite, $commitStatusesData);
 
             if ($newStatus !== $task['status']) {
                 $taskModel->updateStatus($task['task_id'], $newStatus);
