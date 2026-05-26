@@ -56,7 +56,8 @@ class SandboxService
                 'issue_number' => (int)$task['issue_number'],
                 'title' => $task['title'],
                 'status' => $task['status'],
-                'labels' => json_decode($task['github_data'], true)['labels'] ?? []
+                'labels' => json_decode($task['github_data'], true)['labels'] ?? [],
+                'pr_data' => json_decode($task['github_pr_data'] ?? '{}', true)
             ],
             'project' => [
                 'project_id' => (int)$project['project_id'],

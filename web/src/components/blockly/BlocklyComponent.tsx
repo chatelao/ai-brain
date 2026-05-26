@@ -76,6 +76,8 @@ const BlocklyComponent: React.FC<BlocklyComponentProps> = ({
             contents: [
               { kind: 'block', type: 'read_label' },
               { kind: 'block', type: 'is_task_ready' },
+              { kind: 'block', type: 'get_task_status' },
+              { kind: 'block', type: 'is_pr_draft' },
             ],
           },
           {

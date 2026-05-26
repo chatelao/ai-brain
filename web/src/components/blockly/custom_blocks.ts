@@ -16,7 +16,8 @@ export const defineCustomBlocks = () => {
             ["PR Created", "PR_CREATED"],
             ["PR Merged", "PR_MERGED"],
             ["Checks Completed", "CHECKS_COMPLETED"],
-            ["Agent Error", "AGENT_ERROR"]
+            ["Agent Error", "AGENT_ERROR"],
+            ["Status Changed", "STATUS_CHANGED"]
           ]), "EVENT");
       this.appendStatementInput("STACK")
           .setCheck(null)
@@ -214,5 +215,37 @@ export const defineCustomBlocks = () => {
 
   javascriptGenerator.forBlock['is_task_ready'] = () => {
     return [`isTaskReady()`, (javascriptGenerator as any).ORDER_FUNCTION_CALL];
+  };
+
+  // get_task_status expression block
+  Blockly.Blocks['get_task_status'] = {
+    init: function() {
+      this.appendDummyInput()
+          .appendField("Current Task Status");
+      this.setOutput(true, "String");
+      this.setColour(210);
+      this.setTooltip("Returns the current status of the task (e.g., 'ready', 'checking', 'failed_jules').");
+      this.setHelpUrl("");
+    }
+  };
+
+  javascriptGenerator.forBlock['get_task_status'] = () => {
+    return [`getTaskStatus()`, (javascriptGenerator as any).ORDER_FUNCTION_CALL];
+  };
+
+  // is_pr_draft predicate block
+  Blockly.Blocks['is_pr_draft'] = {
+    init: function() {
+      this.appendDummyInput()
+          .appendField("Is PR a Draft");
+      this.setOutput(true, "Boolean");
+      this.setColour(210);
+      this.setTooltip("Checks if the Pull Request associated with the current task is a draft.");
+      this.setHelpUrl("");
+    }
+  };
+
+  javascriptGenerator.forBlock['is_pr_draft'] = () => {
+    return [`isPrDraft()`, (javascriptGenerator as any).ORDER_FUNCTION_CALL];
   };
 };
