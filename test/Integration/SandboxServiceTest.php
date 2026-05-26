@@ -168,7 +168,7 @@ class SandboxServiceTest extends TestCase
 
         $result = $this->sandboxService->execute(1, 1, $jsCode);
 
-        $this->assertTrue($result);
+        $this->assertTrue($result['success']);
 
         // Verify logs
         $stmt = $this->pdo->query("SELECT message FROM task_logs WHERE task_id = 1 AND message LIKE 'Blockly Log:%'");
@@ -204,7 +204,7 @@ class SandboxServiceTest extends TestCase
 
         $result = $this->sandboxService->execute(1, 1, $jsCode);
 
-        $this->assertTrue($result);
+        $this->assertTrue($result['success']);
 
         $stmt = $this->pdo->query("SELECT message FROM task_logs WHERE task_id = 1 AND message LIKE 'Blockly Action [unknown]:%'");
         $actions = $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -223,7 +223,7 @@ class SandboxServiceTest extends TestCase
 
         $result = $this->sandboxService->execute(1, 1, $jsCode);
 
-        $this->assertFalse($result);
+        $this->assertFalse($result['success']);
 
         $stmt = $this->pdo->query("SELECT message FROM task_logs WHERE task_id = 1 AND level = 'error'");
         $errorLogs = $stmt->fetchAll(PDO::FETCH_COLUMN);

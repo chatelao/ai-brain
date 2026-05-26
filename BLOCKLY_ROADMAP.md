@@ -56,12 +56,22 @@
 - [x] Fetch Global Blockly config from `users` table in `WebhookHandler`.
 - [x] Fetch Local Blockly config from `projects` table in `WebhookHandler`.
 - [x] Implement sequential execution of Global then Local logic in `WebhookHandler`.
-- [ ] Implement precedence rules (Local overrides Global actions) during execution.
+- [x] Implement precedence rules (Local overrides Global actions) during execution.
+- [x] Implement event mapping (e.g., mapping raw `issues` event to `ISSUE_LABELED`).
 - [x] Add detailed execution logging to `task_logs` for auditability and debugging.
 - [x] Implement a "Dry Run" mode for testing Blockly logic without performing actions.
 
 ## Phase 6: End-to-End Workflows
 - [ ] Test "Auto-Merge on CI Success" workflow.
+  - [ ] Create a project with auto-merge blockly script.
+  - [ ] Trigger check_suite completed event via mock.
+  - [ ] Verify PR is merged on GitHub.
 - [ ] Test "Auto-Repeat on Issue Closed" workflow.
+  - [ ] Create a project with auto-repeat blockly script.
+  - [ ] Trigger issues closed event via mock.
+  - [ ] Verify new issue is created on GitHub.
 - [ ] Test "Custom Telegram Notification on Agent Error" workflow.
+  - [ ] Create a global blockly script for AGENT_ERROR.
+  - [ ] Simulate agent failure.
+  - [ ] Verify Telegram notification is sent.
 - [ ] Verify that manual JS edits correctly sync back to Blockly (where possible).
