@@ -2032,6 +2032,7 @@ export interface components {
              * @example 2023-10-27T10:05:00Z
              */
             roadmap_updated_at?: string | null;
+            notification_settings?: Record<string, boolean>;
         };
         Task: {
             /** @example 42 */
