@@ -506,6 +506,11 @@ class WebhookHandler
             case 'issues':
                 if ($action === 'labeled') return 'ISSUE_LABELED';
                 if ($action === 'closed') return 'ISSUE_CLOSED';
+                if ($action === 'opened') return 'ISSUE_OPENED';
+                if ($action === 'reopened') return 'ISSUE_REOPENED';
+                break;
+            case 'issue_comment':
+                if ($action === 'created') return 'COMMENT_CREATED';
                 break;
             case 'pull_request':
                 if ($action === 'opened') return 'PR_CREATED';
