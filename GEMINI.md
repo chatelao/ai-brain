@@ -23,6 +23,7 @@ This document provides a structured index of the application's conceptual and te
 - `/src/`: The source code of the project
 - `/test/`: All tools, configurations & test cases
 - `/build/`: Only temporary place for compilation, may be cached by Github
+- Github Pages: Publish results like API-documentation and Playwright screenshots of each page
 
 # `*_CONCEPT.md` handling
 - The `*_CONCEPT.md` add the business and use cases to the top Goal this file.
