@@ -988,8 +988,8 @@ class Task
                 if ($julesData) {
                     $julesStatus = $julesData['status'];
                     $julesUrl = $julesData['url'] ?? $julesUrl;
-            } else {
-                Logger::getInstance($this->db)->log($userId, $task['task_id'], "refreshJulesStatus: fetchSessionStatus returned null for session $sessionId", 'warning');
+                } else {
+                    Logger::getInstance($this->db)->log($userId, $task['task_id'], "refreshJulesStatus: fetchSessionStatus returned null for session $sessionId", 'warning');
                 }
             }
 

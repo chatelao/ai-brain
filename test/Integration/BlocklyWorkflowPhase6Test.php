@@ -36,7 +36,8 @@ class BlocklyWorkflowPhase6Test extends TestCase
         // Reset tables
         $tables = [
             'task_logs', 'tasks', 'projects', 'users', 'user_github_accounts',
-            'notifications'
+            'notifications', 'task_notification_settings', 'user_event_notification_settings',
+            'project_status_notification_settings', 'user_notification_settings'
         ];
         foreach ($tables as $table) {
             $this->pdo->exec("DROP TABLE IF EXISTS $table");

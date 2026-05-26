@@ -87,7 +87,7 @@ class WebhookHandler
 
             // Re-fetch task to get updated status
             $task = $taskModel->findByIssueNumber((int)$project['project_id'], (int)$issue['number']);
-            if ($task && $task['status'] === Task::STATUS_FAILED_JULES) {
+            if ($task && ($task['status'] ?? '') === Task::STATUS_FAILED_JULES) {
                 $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService, 'AGENT_ERROR');
             }
         }
