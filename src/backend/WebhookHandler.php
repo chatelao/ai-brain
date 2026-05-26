@@ -79,6 +79,9 @@ class WebhookHandler
             return true;
         }
 
+        $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
+        $oldStatus = $task['status'] ?? null;
+
         $result = $taskModel->upsert($project['user_id'], $project['project_id'], $issue);
         $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
 
@@ -87,6 +90,11 @@ class WebhookHandler
 
             // Re-fetch task to get updated status
             $task = $taskModel->findByIssueNumber((int)$project['project_id'], (int)$issue['number']);
+
+            if ($task && $oldStatus !== null && $task['status'] !== $oldStatus) {
+                $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService, 'STATUS_CHANGED');
+            }
+
             if ($task && ($task['status'] ?? '') === Task::STATUS_FAILED_JULES) {
                 $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService, 'AGENT_ERROR');
             }
@@ -472,6 +480,8 @@ class WebhookHandler
             if ($newStatus !== $task['status']) {
                 $taskModel->updateStatus($task['task_id'], $newStatus);
                 $task['status'] = $newStatus; // Update local object for Blockly
+
+                $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService, 'STATUS_CHANGED');
 
                 if ($notificationService) {
                     $title = $newStatus === Task::STATUS_FAILED_PR ? "❌ PR Failed: #" . $task['issue_number'] : "✅ PR Fixed: #" . $task['issue_number'];

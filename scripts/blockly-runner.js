@@ -100,6 +100,12 @@ function executeSandbox(code, context, ignoredEvents = []) {
         isTaskReady: () => {
             return context.task?.status === 'ready';
         },
+        getTaskStatus: () => {
+            return context.task?.status || 'unknown';
+        },
+        isPrDraft: () => {
+            return !!(context.task?.pr_data?.draft);
+        },
 
         // Allow basic JS utilities
         console: {

@@ -8,8 +8,9 @@
 | 2 | UI Integration (Next-Gen) | ✅ |
 | 3 | Custom Block Definitions | ✅ |
 | 4 | JavaScript Execution Sandbox | ✅ |
-| 5 | Scoping & Inheritance | 🏗️ |
-| 6 | End-to-End Workflows | 🌑 |
+| 5 | Scoping & Inheritance | ✅ |
+| 6 | End-to-End Workflows | ✅ |
+| 7 | Advanced Features & Refinement | 🏗️ |
 
 ## Goals
 
@@ -74,4 +75,9 @@
   - [x] Create a global blockly script for AGENT_ERROR.
   - [x] Simulate agent failure.
   - [x] Verify Telegram notification is sent.
-- [ ] Verify that manual JS edits correctly sync back to Blockly (where possible).
+- [x] Verify that manual JS edits correctly sync back to Blockly (where possible).
+
+## Phase 7: Advanced Features & Refinement
+- [ ] Implement `get_task_status()` expression block.
+- [ ] Implement `is_pr_draft()` expression block.
+- [ ] Implement `STATUS_CHANGED` trigger for Jules/Task status updates.
