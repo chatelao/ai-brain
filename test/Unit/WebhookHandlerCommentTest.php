@@ -65,7 +65,7 @@ class WebhookHandlerCommentTest extends TestCase
             ->with($event['comment']['body'])
             ->willReturn('s123');
 
-        $this->taskModel->expects($this->once())
+        $this->taskModel->expects($this->exactly(2))
             ->method('findByIssueNumber')
             ->with(1, 123)
             ->willReturn($task);

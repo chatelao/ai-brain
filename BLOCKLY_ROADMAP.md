@@ -62,16 +62,16 @@
 - [x] Implement a "Dry Run" mode for testing Blockly logic without performing actions.
 
 ## Phase 6: End-to-End Workflows
-- [ ] Test "Auto-Merge on CI Success" workflow.
-  - [ ] Create a project with auto-merge blockly script.
-  - [ ] Trigger check_suite completed event via mock.
-  - [ ] Verify PR is merged on GitHub.
+- [x] Test "Auto-Merge on CI Success" workflow.
+  - [x] Create a project with auto-merge blockly script.
+  - [x] Trigger check_suite completed event via mock.
+  - [x] Verify PR is merged on GitHub.
 - [x] Test "Auto-Repeat on Issue Closed" workflow (via `duplicate()` action).
   - [x] Create a project with auto-repeat blockly script.
   - [x] Trigger issues closed event via mock.
   - [x] Verify new issue is created on GitHub.
-- [ ] Test "Custom Telegram Notification on Agent Error" workflow.
-  - [ ] Create a global blockly script for AGENT_ERROR.
-  - [ ] Simulate agent failure.
-  - [ ] Verify Telegram notification is sent.
+- [x] Test "Custom Telegram Notification on Agent Error" workflow.
+  - [x] Create a global blockly script for AGENT_ERROR.
+  - [x] Simulate agent failure.
+  - [x] Verify Telegram notification is sent.
 - [ ] Verify that manual JS edits correctly sync back to Blockly (where possible).

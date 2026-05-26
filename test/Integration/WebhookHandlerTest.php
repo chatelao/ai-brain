@@ -18,6 +18,12 @@ class WebhookHandlerTest extends TestCase
         $this->pdo = new PDO('sqlite::memory:');
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+        $this->pdo->exec("CREATE TABLE projects (
+            project_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INT NOT NULL,
+            github_repo VARCHAR(255) NOT NULL
+        )");
+
         $this->pdo->exec("CREATE TABLE tasks (
             task_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INT NOT NULL,
@@ -53,7 +59,9 @@ class WebhookHandlerTest extends TestCase
 
     public function testHandleIssueOpened()
     {
-        $project = ['user_id' => 1, 'project_id' => 1];
+        $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'owner/repo')");
+
         $event = [
             'action' => 'opened',
             'issue' => [
@@ -81,7 +89,9 @@ class WebhookHandlerTest extends TestCase
 
     public function testHandleAutorepeat()
     {
-        $project = ['user_id' => 1, 'project_id' => 1];
+        $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'owner/repo')");
+
         $event = [
             'action' => 'closed',
             'issue' => [
@@ -112,7 +122,9 @@ class WebhookHandlerTest extends TestCase
     public function testHandleAutorepeatWithoutNotificationService()
     {
         // Simulate human-triggered merge (sender.type === 'User')
-        $project = ['user_id' => 1, 'project_id' => 1];
+        $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'owner/repo')");
+
         $prUrl = 'https://github.com/owner/repo/pull/123';
 
         // Pre-seed task
@@ -153,7 +165,9 @@ class WebhookHandlerTest extends TestCase
 
     public function testHandleCheckSuiteInProgress()
     {
-        $project = ['user_id' => 1, 'project_id' => 1];
+        $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'owner/repo')");
+
         $prUrl = 'https://github.com/owner/repo/pull/123';
 
         // Pre-seed task

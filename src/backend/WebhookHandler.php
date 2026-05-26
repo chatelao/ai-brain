@@ -84,6 +84,12 @@ class WebhookHandler
 
         if ($result && $task && $julesService && $githubService) {
             $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $effectiveNotifService, (int)$task['task_id']);
+
+            // Re-fetch task to get updated status
+            $task = $taskModel->findByIssueNumber((int)$project['project_id'], (int)$issue['number']);
+            if ($task && ($task['status'] ?? '') === Task::STATUS_FAILED_JULES) {
+                $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService, 'AGENT_ERROR');
+            }
         }
 
         if ($result && $task) {
@@ -94,8 +100,8 @@ class WebhookHandler
             $notificationData = [
                 'task_id' => $task['task_id'],
                 'project_id' => $project['project_id'],
-                'issue_number' => $issue['number'],
-                'source_url' => $issue['html_url'],
+                'issue_number' => $issue['number'] ?? 0,
+                'source_url' => $issue['html_url'] ?? '',
                 'is_system' => !$this->isUserTriggered($event)
             ];
 
@@ -342,10 +348,6 @@ class WebhookHandler
 
         $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
 
-        if ($task) {
-            $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
-        }
-
         if ($isJulesComment) {
             $sessionId = $taskModel->extractSessionId($body);
             if ($sessionId && $task) {
@@ -357,7 +359,17 @@ class WebhookHandler
             // Always refresh status when Jules comments to capture state transitions immediately
             if ($task && $githubService && $julesService) {
                 $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $notificationService, (int)$task['task_id']);
+
+                // Re-fetch task to get updated status
+                $task = $taskModel->findByIssueNumber((int)$project['project_id'], (int)$issue['number']);
+                if ($task && ($task['status'] ?? '') === Task::STATUS_FAILED_JULES) {
+                    $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService, 'AGENT_ERROR');
+                }
             }
+        }
+
+        if ($task) {
+            $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
         }
 
         // Notify about the comment
@@ -420,8 +432,6 @@ class WebhookHandler
                 continue;
             }
 
-            $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
-
             // Fetch latest PR and Check Suites for a complete view
             $prData = null;
             $checkSuitesData = null;
@@ -461,6 +471,7 @@ class WebhookHandler
 
             if ($newStatus !== $task['status']) {
                 $taskModel->updateStatus($task['task_id'], $newStatus);
+                $task['status'] = $newStatus; // Update local object for Blockly
 
                 if ($notificationService) {
                     $title = $newStatus === Task::STATUS_FAILED_PR ? "❌ PR Failed: #" . $task['issue_number'] : "✅ PR Fixed: #" . $task['issue_number'];
@@ -493,6 +504,8 @@ class WebhookHandler
                 // This handles cases where a previous merge attempt might have failed but is now possible.
                 $this->autoMergeAndDuplicate($project, array_merge($task, ['status' => $newStatus]), $githubService, $notificationService);
             }
+
+            $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
         }
 
         return true;
@@ -517,6 +530,8 @@ class WebhookHandler
                 if ($action === 'closed' && ($payload['pull_request']['merged'] ?? false)) return 'PR_MERGED';
                 break;
             case 'check_suite':
+            case 'check_run':
+            case 'status':
                 if ($action === 'completed' || empty($action)) return 'CHECKS_COMPLETED';
                 break;
         }
@@ -524,7 +539,7 @@ class WebhookHandler
         return null;
     }
 
-    private function runBlocklyAutomations(array $project, array $event, string $githubEvent, ?int $taskId, ?SandboxService $sandboxService): void
+    private function runBlocklyAutomations(array $project, array $event, string $githubEvent, ?int $taskId, ?SandboxService $sandboxService, ?string $overrideEvent = null): void
     {
         if (!$sandboxService || !$taskId) {
             return;
@@ -536,7 +551,7 @@ class WebhookHandler
         $userModel = new User($this->db);
         $user = $userModel->findById($userId);
 
-        $blocklyEvent = $this->mapToBlocklyEvent($githubEvent, $event);
+        $blocklyEvent = $overrideEvent ?: $this->mapToBlocklyEvent($githubEvent, $event);
         $eventContext = [
             'type' => $blocklyEvent ?: $githubEvent, // Fallback to raw github event if not mapped
             'github_event' => $githubEvent,

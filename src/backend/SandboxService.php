@@ -41,9 +41,9 @@ class SandboxService
             return ['success' => false, 'handledEvents' => []];
         }
 
-        $project = $projectModel->findById($task['project_id']);
+        $project = $projectModel->findById((int)$task['project_id']);
         if (!$project) {
-            $logger->log($userId, $taskId, "SandboxService: Project not found.", 'error');
+            $logger->log($userId, $taskId, "SandboxService: Project not found (Project ID: " . $task['project_id'] . ").", 'error');
             return ['success' => false, 'handledEvents' => []];
         }
 
