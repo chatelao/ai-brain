@@ -10,6 +10,30 @@ import Navbar from '@/components/Navbar';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import BlocklyEditor from '@/components/blockly/BlocklyEditor';
 
+const statusGrouping = {
+  'CREATED': {
+    'created': 'Waiting for Agent'
+  },
+  'PROCESSING': {
+    'analyzing': 'Analyzing',
+    'planning': 'Planning',
+    'executing': 'Executing',
+    'verifying': 'Verifying',
+    'implemented': 'Implemented',
+    'checking': 'Checking'
+  },
+  'READY': {
+    'ready': 'Ready'
+  },
+  'FINISHED': {
+    'finished': 'Finished'
+  },
+  'FAILED': {
+    'failed_jules': 'Jules Failed',
+    'failed_pr': 'PR Failed'
+  }
+};
+
 export default function ProjectSettingsView({ id }: { id: string }) {
   const { rel } = useRelativePath();
   const router = useRouter();
@@ -17,7 +41,7 @@ export default function ProjectSettingsView({ id }: { id: string }) {
   const { data: project, isLoading: projectLoading, error: projectError, updateSettings, isUpdatingSettings, updateNotifications, isUpdatingNotifications, deleteProject, isDeleting } = useProject(projectId);
   const { data: user } = useUser();
 
-  const [activeTab, setActiveTab] = useState<'general' | 'webhook' | 'automation' | 'danger'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'webhook' | 'automation' | 'danger'>('general');
   const [repo, setRepo] = useState('');
   const [accountId, setAccountId] = useState<number | ''>('');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -111,6 +135,7 @@ export default function ProjectSettingsView({ id }: { id: string }) {
           <nav className="flex space-x-8" aria-label="Tabs">
             {[
               { id: 'general', label: 'General' },
+              { id: 'notifications', label: 'Notifications' },
               { id: 'webhook', label: 'Webhook' },
               { id: 'automation', label: 'Automation' },
               { id: 'danger', label: 'Danger Zone' },
@@ -143,6 +168,52 @@ export default function ProjectSettingsView({ id }: { id: string }) {
         )}
 
         <div className="space-y-6">
+          {activeTab === 'notifications' && (
+            <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Project State Subscriptions</h3>
+              <p className="text-sm text-gray-500 mb-6">Choose which status changes trigger a notification for this project.</p>
+
+              <div className="space-y-8">
+                {(Object.entries(statusGrouping) as [string, Record<string, string>][]).map(([group, statuses]) => (
+                  <div key={group} className="border-t border-gray-100 pt-4 first:border-0 first:pt-0">
+                    <h4 className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">{group}</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {Object.entries(statuses).map(([id, label]) => (
+                        <div key={id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                          <span className="text-xs font-medium text-gray-600">{label}</span>
+                          <button
+                            onClick={async () => {
+                              if (!project?.notification_settings) return;
+                              const newSettings = {
+                                ...project.notification_settings,
+                                [id]: !project.notification_settings[id],
+                              };
+                              try {
+                                await updateNotifications(newSettings);
+                              } catch (err: any) {
+                                setErrorMessage(err.response?.data?.error || 'Failed to update notification settings.');
+                              }
+                            }}
+                            disabled={isUpdatingNotifications}
+                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                              project?.notification_settings?.[id] ? 'bg-blue-600' : 'bg-gray-200'
+                            }`}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                project?.notification_settings?.[id] ? 'translate-x-4' : 'translate-x-0'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {activeTab === 'general' && (
             <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">General Configuration</h3>

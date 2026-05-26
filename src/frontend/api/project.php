@@ -224,6 +224,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+$notificationService = new NotificationService($db);
+
 // Map internal database fields to OpenAPI schema
 echo json_encode([
     'id' => (int)$project['project_id'],
@@ -235,5 +237,6 @@ echo json_encode([
     'github_username' => $project['github_username'],
     'blockly_config' => !empty($project['blockly_config']) ? json_decode($project['blockly_config'], true) : null,
     'roadmap_data' => $project['roadmap_data'] ? json_decode($project['roadmap_data'], true) : null,
-    'roadmap_updated_at' => $project['roadmap_updated_at']
+    'roadmap_updated_at' => $project['roadmap_updated_at'],
+    'notification_settings' => $notificationService->getStatusSettings($projectId)
 ]);
