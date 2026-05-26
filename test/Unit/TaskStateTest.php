@@ -53,7 +53,8 @@ class TaskStateTest extends TestCase
         $task = ['github_state' => 'open', 'jules_status' => 'finished', 'pr_url' => 'https://github.com/owner/repo/pull/1'];
         // empty array means data was fetched and there are no check suites
         $checkSuitesData = ['total_count' => 0, 'check_suites' => []];
-        $this->assertEquals(Task::STATUS_READY, $this->taskModel->resolveStatus($task, null, $checkSuitesData));
+        // Now it should be IMPLEMENTED if no checks are found (manual confirmation required)
+        $this->assertEquals(Task::STATUS_IMPLEMENTED, $this->taskModel->resolveStatus($task, null, $checkSuitesData));
     }
 
     public function testResolveStatusWithWebhookCheckSuiteSuccess()
