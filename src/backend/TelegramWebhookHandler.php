@@ -60,7 +60,61 @@ class TelegramWebhookHandler
             return $this->handleStatus($chatId);
         }
 
+        if ($text === '/tasks') {
+            return $this->handleTasks($chatId);
+        }
+
+        if ($text === '/help') {
+            return $this->handleHelp($chatId);
+        }
+
         return false;
+    }
+
+    private function handleHelp(int $chatId): bool
+    {
+        $helpText = "<b>Available Commands:</b>\n\n";
+        $helpText .= "/status - Get a summary of task counts.\n";
+        $helpText .= "/tasks - List active tasks with details.\n";
+        $helpText .= "/cleanup - Remove read notifications from the chat.\n";
+        $helpText .= "/help - Show this help message.";
+
+        $this->telegramService->sendMessage($chatId, $helpText);
+        return true;
+    }
+
+    private function handleTasks(int $chatId): bool
+    {
+        $user = $this->userModel->findByTelegramChatId($chatId);
+        if (!$user) {
+            $this->telegramService->sendMessage($chatId, "Unauthorized. Please link your account.");
+            return true;
+        }
+
+        $taskModel = new Task($this->userModel->getDb());
+        $tasks = $taskModel->findActiveByUserProjects((int)$user['user_id']);
+
+        if (empty($tasks)) {
+            $this->telegramService->sendMessage($chatId, "No active tasks found.");
+            return true;
+        }
+
+        $text = "<b>Active Tasks:</b>\n\n";
+        foreach (array_slice($tasks, 0, 10) as $task) {
+            $statusEmoji = $taskModel->getStatusEmoji($task['status']);
+            $statusLabel = $taskModel->getStatusLabel($task['status']);
+            $targetUrl = $taskModel->getTargetUrl($task);
+
+            $text .= "$statusEmoji <b>#" . $task['issue_number'] . "</b>: <a href=\"" . htmlspecialchars($targetUrl) . "\">" . htmlspecialchars($task['title']) . "</a>\n";
+            $text .= "<i>Status: $statusLabel</i>\n\n";
+        }
+
+        if (count($tasks) > 10) {
+            $text .= "<i>Showing 10 of " . count($tasks) . " tasks.</i>";
+        }
+
+        $this->telegramService->sendMessage($chatId, $text);
+        return true;
     }
 
     private function handleStatus(int $chatId): bool
@@ -68,7 +122,7 @@ class TelegramWebhookHandler
         $user = $this->userModel->findByTelegramChatId($chatId);
         if (!$user) {
             $this->telegramService->sendMessage($chatId, "Unauthorized. Please link your account.");
-            return false;
+            return true;
         }
 
         $taskModel = new Task($this->userModel->getDb());
@@ -217,7 +271,7 @@ class TelegramWebhookHandler
         $user = $this->userModel->findByTelegramChatId($chatId);
         if (!$user) {
             $this->telegramService->sendMessage($chatId, "Unauthorized. Please link your account.");
-            return false;
+            return true;
         }
 
         $notificationService = new NotificationService($this->userModel->getDb());
