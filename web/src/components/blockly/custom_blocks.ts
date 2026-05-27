@@ -37,9 +37,9 @@ export const defineCustomBlocks = () => {
   // notify action block
   Blockly.Blocks['notify'] = {
     init: function() {
-      this.appendDummyInput()
-          .appendField("Notify")
-          .appendField(new Blockly.FieldTextInput("Message..."), "MESSAGE");
+      this.appendValueInput("MESSAGE")
+          .setCheck("String")
+          .appendField("Notify");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
       this.setColour(160);
@@ -48,9 +48,9 @@ export const defineCustomBlocks = () => {
     }
   };
 
-  javascriptGenerator.forBlock['notify'] = (block: Blockly.Block) => {
-    const text_message = block.getFieldValue('MESSAGE');
-    return `notify("${text_message}");\n`;
+  javascriptGenerator.forBlock['notify'] = (block: Blockly.Block, generator: any) => {
+    const value_message = generator.valueToCode(block, 'MESSAGE', (javascriptGenerator as any).ORDER_ATOMIC) || "''";
+    return `notify(${value_message});\n`;
   };
 
   // merge action block
@@ -150,9 +150,9 @@ export const defineCustomBlocks = () => {
   // post_comment action block
   Blockly.Blocks['post_comment'] = {
     init: function() {
-      this.appendDummyInput()
-          .appendField("Post Comment")
-          .appendField(new Blockly.FieldTextInput("Comment body..."), "COMMENT");
+      this.appendValueInput("COMMENT")
+          .setCheck("String")
+          .appendField("Post Comment");
       this.setPreviousStatement(true, null);
       this.setNextStatement(true, null);
       this.setColour(160);
@@ -161,9 +161,9 @@ export const defineCustomBlocks = () => {
     }
   };
 
-  javascriptGenerator.forBlock['post_comment'] = (block: Blockly.Block) => {
-    const text_comment = block.getFieldValue('COMMENT');
-    return `postComment("${text_comment}");\n`;
+  javascriptGenerator.forBlock['post_comment'] = (block: Blockly.Block, generator: any) => {
+    const value_comment = generator.valueToCode(block, 'COMMENT', (javascriptGenerator as any).ORDER_ATOMIC) || "''";
+    return `postComment(${value_comment});\n`;
   };
 
   // trigger_agent action block
@@ -247,5 +247,37 @@ export const defineCustomBlocks = () => {
 
   javascriptGenerator.forBlock['is_pr_draft'] = () => {
     return [`isPrDraft()`, (javascriptGenerator as any).ORDER_FUNCTION_CALL];
+  };
+
+  // get_task_title expression block
+  Blockly.Blocks['get_task_title'] = {
+    init: function() {
+      this.appendDummyInput()
+          .appendField("Task Title");
+      this.setOutput(true, "String");
+      this.setColour(210);
+      this.setTooltip("Returns the title of the current task.");
+      this.setHelpUrl("");
+    }
+  };
+
+  javascriptGenerator.forBlock['get_task_title'] = () => {
+    return [`getTaskTitle()`, (javascriptGenerator as any).ORDER_FUNCTION_CALL];
+  };
+
+  // get_issue_number expression block
+  Blockly.Blocks['get_issue_number'] = {
+    init: function() {
+      this.appendDummyInput()
+          .appendField("Issue Number");
+      this.setOutput(true, "Number");
+      this.setColour(210);
+      this.setTooltip("Returns the GitHub issue number of the current task.");
+      this.setHelpUrl("");
+    }
+  };
+
+  javascriptGenerator.forBlock['get_issue_number'] = () => {
+    return [`getIssueNumber()`, (javascriptGenerator as any).ORDER_FUNCTION_CALL];
   };
 };

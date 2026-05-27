@@ -77,6 +77,8 @@ const BlocklyComponent: React.FC<BlocklyComponentProps> = ({
               { kind: 'block', type: 'read_label' },
               { kind: 'block', type: 'is_task_ready' },
               { kind: 'block', type: 'get_task_status' },
+              { kind: 'block', type: 'get_task_title' },
+              { kind: 'block', type: 'get_issue_number' },
               { kind: 'block', type: 'is_pr_draft' },
             ],
           },
@@ -99,6 +101,32 @@ const BlocklyComponent: React.FC<BlocklyComponentProps> = ({
             contents: [
               { kind: 'block', type: 'controls_repeat_ext' },
             ],
+          },
+          {
+            kind: 'category',
+            name: 'Math',
+            colour: '%{BKY_MATH_HUE}',
+            contents: [
+              { kind: 'block', type: 'math_number' },
+              { kind: 'block', type: 'math_arithmetic' },
+              { kind: 'block', type: 'math_single' },
+            ],
+          },
+          {
+            kind: 'category',
+            name: 'Text',
+            colour: '%{BKY_TEXTS_HUE}',
+            contents: [
+              { kind: 'block', type: 'text' },
+              { kind: 'block', type: 'text_join' },
+              { kind: 'block', type: 'text_append' },
+            ],
+          },
+          {
+            kind: 'category',
+            name: 'Variables',
+            colour: '%{BKY_VARIABLES_HUE}',
+            custom: 'VARIABLE',
           },
         ],
       },

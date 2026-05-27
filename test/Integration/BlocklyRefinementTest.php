@@ -224,4 +224,43 @@ class BlocklyRefinementTest extends TestCase
         $stmt = $this->pdo->query("SELECT status FROM tasks WHERE task_id = 1");
         $this->assertEquals('ready', $stmt->fetchColumn());
     }
+
+    public function testNewExpressionBlocks()
+    {
+        $this->pdo->exec("INSERT INTO users (user_id, username) VALUES (1, 'testuser')");
+        $this->pdo->exec("INSERT INTO user_github_accounts (github_account_id, user_id, github_username) VALUES (1, 1, 'testuser')");
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo, github_account_id) VALUES (1, 1, 'owner/repo', 1)");
+        $this->pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, github_data, status, github_repo) VALUES (1, 1, 1, 101, 'Specific Task Title', '{\"labels\":[]}', 'checking', 'owner/repo')");
+
+        $jsCode = "
+            const title = getTaskTitle();
+            const num = getIssueNumber();
+            notify('Task ' + num + ' is ' + title);
+        ";
+
+        $this->notificationService->expects($this->once())
+            ->method('notify')
+            ->with(1, 'blockly_action', 'Blockly Notification', 'Task 101 is Specific Task Title');
+
+        $result = $this->sandboxService->execute(1, 1, $jsCode);
+        $this->assertTrue($result['success']);
+    }
+
+    public function testDynamicNotifyBlock()
+    {
+        $this->pdo->exec("INSERT INTO users (user_id, username) VALUES (1, 'testuser')");
+        $this->pdo->exec("INSERT INTO user_github_accounts (github_account_id, user_id, github_username) VALUES (1, 1, 'testuser')");
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo, github_account_id) VALUES (1, 1, 'owner/repo', 1)");
+        $this->pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, github_data, status, github_repo) VALUES (1, 1, 1, 101, 'Test', '{\"labels\":[]}', 'checking', 'owner/repo')");
+
+        // notify('Prefix: ' + 'Dynamic Content')
+        $jsCode = "notify('Prefix: ' + 'Dynamic Content');";
+
+        $this->notificationService->expects($this->once())
+            ->method('notify')
+            ->with(1, 'blockly_action', 'Blockly Notification', 'Prefix: Dynamic Content');
+
+        $result = $this->sandboxService->execute(1, 1, $jsCode);
+        $this->assertTrue($result['success']);
+    }
 }
