@@ -857,13 +857,13 @@ class Task
             $sql .= " AND t.project_id = ?";
             $params[] = $projectId;
             $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
-            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ? OR t.status = 'pending' OR (t.autorepeat_remaining > 0 AND t.github_state = 'open'))
-                      AND (t.status NOT IN ('" . self::STATUS_FINISHED . "', 'completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))";
+            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ? OR t.status = 'pending' OR (t.autorepeat_remaining > 0 AND t.github_state = 'open') OR (t.autorepeat_remaining > 0 AND (t.agent_response IS NULL OR t.agent_response NOT LIKE '%autorepeat_triggered%')))
+                      AND (t.status NOT IN ('" . self::STATUS_FINISHED . "', 'completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed') OR (t.autorepeat_remaining > 0 AND (t.agent_response IS NULL OR t.agent_response NOT LIKE '%autorepeat_triggered%')))";
             $params[] = $fiveMinutesAgo;
         } else {
             $fiveMinutesAgo = date('Y-m-d H:i:s', strtotime('-5 minutes'));
-            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ? OR t.status = 'pending' OR (t.autorepeat_remaining > 0 AND t.github_state = 'open'))
-                      AND (t.status NOT IN ('" . self::STATUS_FINISHED . "', 'completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed'))";
+            $sql .= " AND (t.last_synced_at IS NULL OR t.last_synced_at < ? OR t.status = 'pending' OR (t.autorepeat_remaining > 0 AND t.github_state = 'open') OR (t.autorepeat_remaining > 0 AND (t.agent_response IS NULL OR t.agent_response NOT LIKE '%autorepeat_triggered%')))
+                      AND (t.status NOT IN ('" . self::STATUS_FINISHED . "', 'completed', 'failed', 'failed_jules', 'failed_pr') OR t.jules_status NOT IN ('completed', 'failed') OR (t.autorepeat_remaining > 0 AND (t.agent_response IS NULL OR t.agent_response NOT LIKE '%autorepeat_triggered%')))";
             $params[] = $fiveMinutesAgo;
         }
 
@@ -889,6 +889,29 @@ class Task
 
         foreach ($tasks as $task) {
             $pr = null;
+
+            // If task is finished/closed but still has autorepeat cycles, trigger duplication if missed
+            if (($task['autorepeat_remaining'] ?? 0) > 0 &&
+                ($task['github_state'] === 'closed' || $task['status'] === self::STATUS_FINISHED) &&
+                strpos($task['agent_response'] ?? '', '<!-- autorepeat_triggered -->') === false) {
+
+                $webhookHandler = new WebhookHandler($this->db);
+                $projectModel = new Project($this->db);
+                $project = $projectModel->findById($task['project_id']);
+                if ($project) {
+                    $githubData = json_decode($task['github_data'] ?? '{}', true);
+                    $pseudoEvent = [
+                        'issue' => array_merge($githubData, [
+                            'number' => $task['issue_number'],
+                            'state_reason' => 'completed'
+                        ]),
+                        'repository' => ['full_name' => $project['github_repo']]
+                    ];
+                    $webhookHandler->maybeDuplicateTask($project, $pseudoEvent, $githubService, $notificationService);
+                    continue;
+                }
+            }
+
             $githubData = json_decode($task['github_data'] ?? '{}', true);
             $assignee = $githubData['assignee']['login'] ?? '';
             $labels = $githubData['labels'] ?? [];
@@ -903,7 +926,8 @@ class Task
             $isJulesRelated = (
                 strtolower($assignee) === 'jules' ||
                 strtolower($assignee) === 'google-labs-jules[bot]' ||
-                $hasJulesLabel
+                $hasJulesLabel ||
+                ($task['autorepeat_remaining'] ?? 0) > 0
             );
 
             if (!$isJulesRelated) {

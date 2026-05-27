@@ -165,12 +165,28 @@ class WebhookHandler
             $taskModel = new Task($this->db);
             $taskModel->markAsMerged($task['task_id']);
 
+            // 5. Immediately trigger duplication if it's an autorepeat task
+            // We construct a pseudo-event that maybeDuplicateTask expects
+            $githubData = json_decode($task['github_data'] ?? '{}', true);
+            if ($githubData) {
+                $pseudoEvent = [
+                'issue' => array_merge($githubData, [
+                    'number' => $task['issue_number'],
+                    'state_reason' => 'completed'
+                ]),
+                    'repository' => [
+                        'full_name' => $project['github_repo']
+                    ]
+                ];
+                $this->maybeDuplicateTask($project, $pseudoEvent, $githubService, $notificationService);
+            }
+
         } catch (\Exception $e) {
             Logger::getInstance($this->db)->log($project['user_id'], $task['task_id'], "Auto-merge failed for PR #$prNumber: " . $e->getMessage(), 'error');
         }
     }
 
-    private function maybeDuplicateTask(array $project, array $event, GitHubService $githubService, ?NotificationService $notificationService = null): void
+    public function maybeDuplicateTask(array $project, array $event, GitHubService $githubService, ?NotificationService $notificationService = null): void
     {
         $issue = $event['issue'] ?? null;
         if (!$issue) {
@@ -240,8 +256,8 @@ class WebhookHandler
 
             if (!empty($newIssue['number'])) {
                 $newAutorepeatRemaining = max(0, ($task['autorepeat_remaining'] ?? 0) - 1);
+                $taskModel->upsert($project['user_id'], $project['project_id'], $newIssue, $newAutorepeatRemaining);
                 if ($newAutorepeatRemaining > 0) {
-                    $taskModel->upsert($project['user_id'], $project['project_id'], $newIssue, $newAutorepeatRemaining);
                     $githubService->updateAutorepeatLabels($repo, $newIssue['number'], $newAutorepeatRemaining);
                 }
             }
