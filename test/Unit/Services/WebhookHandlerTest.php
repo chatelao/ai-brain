@@ -81,6 +81,15 @@ class WebhookHandlerTest extends TestCase
 
         $stmt = $this->createMock(PDOStatement::class);
         $stmt->method('execute')->willReturn(true);
+        $stmt->method('rowCount')->willReturn(1);
+        $stmt->method('fetch')->willReturn([
+            'task_id' => 1,
+            'project_id' => 1,
+            'issue_number' => 123,
+            'github_data' => json_encode($event['issue']),
+            'autorepeat_remaining' => 0,
+            'agent_response' => ''
+        ]);
 
         $this->pdo->method('getAttribute')->with(PDO::ATTR_DRIVER_NAME)->willReturn('mysql');
         $this->pdo->method('prepare')->willReturn($stmt);

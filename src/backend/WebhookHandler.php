@@ -197,14 +197,12 @@ class WebhookHandler
         $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
 
         if (!$task) {
-            $task = [
-                'github_data' => json_encode($issue),
-                'status' => 'pending',
-                'agent_response' => ''
-            ];
+            // Ensure task exists in DB to have a task_id for atomic marking
+            $taskModel->upsert($project['user_id'], $project['project_id'], $issue);
+            $task = $taskModel->findByIssueNumber($project['project_id'], $issue['number']);
         }
 
-        if (!$taskModel->hasAutorepeatLabel($task)) {
+        if (!$task || !$taskModel->hasAutorepeatLabel($task)) {
             return;
         }
 
@@ -213,8 +211,8 @@ class WebhookHandler
             return;
         }
 
-        // Avoid double duplication using a marker in agent_response
-        if (strpos($task['agent_response'] ?? '', '<!-- autorepeat_triggered -->') !== false) {
+        // Atomic mark as triggered. If already marked, rowCount() will be 0 and it returns false.
+        if (!$taskModel->markAutorepeatTriggered((int)$task['task_id'])) {
             return;
         }
 
@@ -243,15 +241,6 @@ class WebhookHandler
         }
 
         if ($repo) {
-            // Mark as triggered BEFORE calling GitHub to minimize race condition window
-            if (isset($task['task_id'])) {
-                $taskModel->updateAgentResponse(
-                    $task['task_id'],
-                    ($task['agent_response'] ?? '') . "\n<!-- autorepeat_triggered -->",
-                    $task['status']
-                );
-            }
-
             $newIssue = $githubService->createIssue($repo, $issue['title'], $issue['body'] ?? null, array_values($labelNames));
 
             if (!empty($newIssue['number'])) {
