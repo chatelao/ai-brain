@@ -103,6 +103,12 @@ function executeSandbox(code, context, ignoredEvents = []) {
         getTaskStatus: () => {
             return context.task?.status || 'unknown';
         },
+        getTaskTitle: () => {
+            return context.task?.title || '';
+        },
+        getIssueNumber: () => {
+            return context.task?.issue_number || 0;
+        },
         isPrDraft: () => {
             return !!(context.task?.pr_data?.draft);
         },

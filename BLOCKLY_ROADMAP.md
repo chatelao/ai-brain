@@ -78,6 +78,10 @@
 - [x] Verify that manual JS edits correctly sync back to Blockly (where possible).
 
 ## Phase 7: Advanced Features & Refinement
-- [ ] Implement `get_task_status()` expression block.
-- [ ] Implement `is_pr_draft()` expression block.
-- [ ] Implement `STATUS_CHANGED` trigger for Jules/Task status updates.
+- [x] Implement `get_task_status()` expression block.
+- [x] Implement `is_pr_draft()` expression block.
+- [x] Implement `STATUS_CHANGED` trigger for Jules/Task status updates.
+- [x] Implement `get_task_title()` expression block.
+- [x] Implement `get_issue_number()` expression block.
+- [x] Enhance Toolbox with Math, Text, and Variables categories.
+- [x] Refactor `Notify` and `Post Comment` blocks to support dynamic inputs.
