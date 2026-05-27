@@ -385,6 +385,26 @@ class Task
         return $stmt->execute([$response, $status, $id]);
     }
 
+    public function markAutorepeatTriggered(int $id): bool
+    {
+        $connection = $this->db->getConnection();
+        $driver = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+        if ($driver === 'sqlite') {
+            $sql = "UPDATE tasks
+                    SET agent_response = COALESCE(agent_response, '') || '\n<!-- autorepeat_triggered -->'
+                    WHERE task_id = ? AND (agent_response IS NULL OR agent_response NOT LIKE '%<!-- autorepeat_triggered -->%')";
+        } else {
+            $sql = "UPDATE tasks
+                    SET agent_response = CONCAT(COALESCE(agent_response, ''), '\n<!-- autorepeat_triggered -->')
+                    WHERE task_id = ? AND (agent_response IS NULL OR agent_response NOT LIKE '%<!-- autorepeat_triggered -->%')";
+        }
+
+        $stmt = $connection->prepare($sql);
+        $stmt->execute([$id]);
+        return $stmt->rowCount() > 0;
+    }
+
     public function updateGitHubCache(int $taskId, ?array $prData = null, ?array $commentsData = null): bool
     {
         $updates = [];
@@ -461,6 +481,7 @@ class Task
 
         // Try to extract from labels if not explicitly provided
         $labelCount = isset($issue['labels']) ? $this->extractAutorepeatRemainingFromLabels($issue['labels']) : null;
+        $hasGenericAutorepeatLabel = false;
 
         // If no count is found but the label is present, default to 5
         if ($labelCount === null && isset($issue['labels'])) {
@@ -468,6 +489,7 @@ class Task
                 $name = strtolower($label['name'] ?? '');
                 if ($name === 'autorepeat' || $name === 'auto-repeat') {
                     $labelCount = 5;
+                    $hasGenericAutorepeatLabel = true;
                     break;
                 }
             }
@@ -476,8 +498,10 @@ class Task
         // Final value to use in the INSERT part
         $insertAutorepeatRemaining = $autorepeatRemaining ?? $labelCount ?? 0;
 
-        // Determine if we should update the existing value
-        $shouldUpdateAutorepeat = ($autorepeatRemaining !== null || $labelCount !== null);
+        // Determine if we should update the existing value.
+        // If we only have a generic 'autorepeat' label, we only update if the current DB value is 0.
+        $shouldUpdateAutorepeat = ($autorepeatRemaining !== null || ($labelCount !== null && !$hasGenericAutorepeatLabel));
+        $conditionalAutorepeatUpdate = ($hasGenericAutorepeatLabel && $autorepeatRemaining === null);
 
         if ($driver === 'sqlite') {
             $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state, autorepeat_remaining)
@@ -487,7 +511,8 @@ class Task
                         body = excluded.body,
                         github_data = excluded.github_data,
                         github_state = excluded.github_state,
-                        autorepeat_remaining = " . ($shouldUpdateAutorepeat ? "excluded.autorepeat_remaining" : "tasks.autorepeat_remaining") . ",
+                        autorepeat_remaining = " . ($shouldUpdateAutorepeat ? "excluded.autorepeat_remaining" :
+                                                    ($conditionalAutorepeatUpdate ? "CASE WHEN tasks.autorepeat_remaining = 0 THEN excluded.autorepeat_remaining ELSE tasks.autorepeat_remaining END" : "tasks.autorepeat_remaining")) . ",
                         status = CASE
                             WHEN excluded.github_state = 'closed' THEN 'finished'
                             WHEN status = 'pending' THEN 'created'
@@ -501,7 +526,8 @@ class Task
                         body = VALUES(body),
                         github_data = VALUES(github_data),
                         github_state = VALUES(github_state),
-                        autorepeat_remaining = " . ($shouldUpdateAutorepeat ? "VALUES(autorepeat_remaining)" : "autorepeat_remaining") . ",
+                        autorepeat_remaining = " . ($shouldUpdateAutorepeat ? "VALUES(autorepeat_remaining)" :
+                                                    ($conditionalAutorepeatUpdate ? "CASE WHEN tasks.autorepeat_remaining = 0 THEN VALUES(autorepeat_remaining) ELSE tasks.autorepeat_remaining END" : "tasks.autorepeat_remaining")) . ",
                         status = CASE
                             WHEN VALUES(github_state) = 'closed' THEN 'finished'
                             WHEN status = 'pending' THEN 'created'
