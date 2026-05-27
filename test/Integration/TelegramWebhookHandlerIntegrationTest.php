@@ -38,7 +38,7 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
         $this->pdo->exec("CREATE TABLE users (user_id $pk, email VARCHAR(255), telegram_bot_token VARCHAR(255), jules_api_key VARCHAR(255), jules_quota_updated_at TIMESTAMP NULL)");
         $this->pdo->exec("CREATE TABLE notifications (notification_id $pk, user_id INT, project_id INT, type VARCHAR(50), title VARCHAR(255), message TEXT, data TEXT, is_read TINYINT DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
         $this->pdo->exec("CREATE TABLE user_github_accounts (github_account_id $pk, user_id INT, github_username VARCHAR(255), github_token VARCHAR(255))");
-        $this->pdo->exec("CREATE TABLE projects (project_id $pk, user_id INT, github_account_id INT, github_repo VARCHAR(255), github_token VARCHAR(255))");
+        $this->pdo->exec("CREATE TABLE projects (project_id $pk, user_id INT, github_account_id INT, github_repo VARCHAR(255), github_token VARCHAR(255), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
         $this->pdo->exec("CREATE TABLE tasks (task_id $pk, user_id INT, project_id INT, issue_number INT, title VARCHAR(255), body TEXT, pr_url VARCHAR(255), jules_url VARCHAR(255), jules_status VARCHAR(50), status VARCHAR(50), github_state VARCHAR(50), jules_session_id VARCHAR(255), last_synced_at TIMESTAMP NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, github_data TEXT, autorepeat_remaining INT DEFAULT 0)");
         $this->pdo->exec("CREATE TABLE user_telegram_accounts (telegram_account_id $pk, user_id INT, telegram_chat_id BIGINT UNIQUE)");
 
@@ -317,6 +317,132 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
         $this->telegramService->expects($this->once())
             ->method('sendMessage')
             ->with(123, $this->stringContains('Cleanup complete'));
+
+        $this->assertTrue($this->handler->handle($update));
+    }
+
+    public function testHandleProjectsCommand()
+    {
+        $this->pdo->exec("INSERT INTO users (user_id, email) VALUES (1, 'user@example.com')");
+        $this->pdo->exec("INSERT INTO user_telegram_accounts (user_id, telegram_chat_id) VALUES (1, 123)");
+        $this->pdo->exec("INSERT INTO user_github_accounts (user_id, github_username, github_token) VALUES (1, 'ghuser', 'ghtoken')");
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_account_id, github_repo) VALUES (1, 1, 1, 'owner/repo')");
+
+        $update = [
+            'message' => [
+                'chat' => ['id' => 123],
+                'text' => '/projects'
+            ]
+        ];
+
+        $this->telegramService->expects($this->once())
+            ->method('sendMessage')
+            ->with(123, $this->logicalAnd(
+                $this->stringContains('Your Projects'),
+                $this->stringContains('owner/repo')
+            ));
+
+        $this->assertTrue($this->handler->handle($update));
+    }
+
+    public function testHandleTasksCommandEnhanced()
+    {
+        $this->pdo->exec("INSERT INTO users (user_id, email) VALUES (1, 'user@example.com')");
+        $this->pdo->exec("INSERT INTO user_telegram_accounts (user_id, telegram_chat_id) VALUES (1, 123)");
+        $this->pdo->exec("INSERT INTO user_github_accounts (user_id, github_username, github_token) VALUES (1, 'ghuser', 'ghtoken')");
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_account_id, github_repo) VALUES (1, 1, 1, 'owner/repo')");
+        $this->pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, status, github_state) VALUES (17, 1, 1, 107, 'Enhanced Task', 'executing', 'open')");
+
+        $update = [
+            'message' => [
+                'chat' => ['id' => 123],
+                'text' => '/tasks'
+            ]
+        ];
+
+        $this->telegramService->expects($this->once())
+            ->method('sendMessage')
+            ->with(123, $this->stringContains('Active Tasks'), $this->callback(function($params) {
+                return isset($params['reply_markup']['inline_keyboard']) &&
+                       $params['reply_markup']['inline_keyboard'][0][0]['text'] === '#107 Actions';
+            }));
+
+        $this->assertTrue($this->handler->handle($update));
+    }
+
+    public function testHandleViewTaskAction()
+    {
+        $this->pdo->exec("INSERT INTO users (user_id, email) VALUES (1, 'user@example.com')");
+        $this->pdo->exec("INSERT INTO user_telegram_accounts (user_id, telegram_chat_id) VALUES (1, 123)");
+        $this->pdo->exec("INSERT INTO user_github_accounts (user_id, github_username, github_token) VALUES (1, 'ghuser', 'ghtoken')");
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_account_id, github_repo, github_token) VALUES (1, 1, 1, 'owner/repo', 'token')");
+        $this->pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, pr_url, status) VALUES (18, 1, 1, 108, 'View Task', 'https://github.com/owner/repo/pull/55', 'executing')");
+
+        $update = [
+            'callback_query' => [
+                'id' => 'cb129',
+                'data' => 'view_task:18',
+                'message' => [
+                    'chat' => ['id' => 123],
+                    'message_id' => 462,
+                    'text' => 'Original Message'
+                ]
+            ]
+        ];
+
+        $this->telegramService->expects($this->once())
+            ->method('answerCallbackQuery')
+            ->with('cb129');
+
+        $this->telegramService->expects($this->once())
+            ->method('sendMessage')
+            ->with(123, $this->logicalAnd(
+                $this->stringContains('#108'),
+                $this->stringContains('View Task'),
+                $this->stringContains('Choose an action')
+            ), $this->callback(function($params) {
+                $keyboard = $params['reply_markup']['inline_keyboard'];
+                $hasRetry = false;
+                $hasMerge = false;
+                $hasBack = false;
+                foreach ($keyboard as $row) {
+                    foreach ($row as $button) {
+                        if ($button['text'] === '🚀 Retry') $hasRetry = true;
+                        if ($button['text'] === '✅ Merge') $hasMerge = true;
+                        if ($button['text'] === '⬅️ Back to Tasks') $hasBack = true;
+                    }
+                }
+                return $hasRetry && $hasMerge && $hasBack;
+            }));
+
+        $this->assertTrue($this->handler->handle($update));
+    }
+
+    public function testHandleListTasksAction()
+    {
+        $this->pdo->exec("INSERT INTO users (user_id, email) VALUES (1, 'user@example.com')");
+        $this->pdo->exec("INSERT INTO user_telegram_accounts (user_id, telegram_chat_id) VALUES (1, 123)");
+
+        $update = [
+            'callback_query' => [
+                'id' => 'cb130',
+                'data' => 'list_tasks:0',
+                'message' => [
+                    'chat' => ['id' => 123],
+                    'message_id' => 463,
+                    'text' => 'Original Message'
+                ]
+            ]
+        ];
+
+        $this->telegramService->expects($this->once())
+            ->method('answerCallbackQuery')
+            ->with('cb130');
+
+        // It should call handleTasks which sends "No active tasks found." if none exist
+        $this->telegramService->expects($this->once())
+            ->method('sendMessage')
+            ->with(123, $this->stringContains('No active tasks found.'));
 
         $this->assertTrue($this->handler->handle($update));
     }

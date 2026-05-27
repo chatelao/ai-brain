@@ -12,6 +12,7 @@
 | 6 | [UC-C3] Quick Task Acknowledgment | ✅ |
 | 7 | [UC-C4] Chat Cleanup | ✅ |
 | 8 | Advanced Interactions | ✅ |
+| 9 | Interactive Task Management | ✅ |
 
 ## Goals
 
@@ -69,3 +70,9 @@
 - [x] Implement `/status` command to pull current task summary.
 - [x] Implement `/tasks` command to list active tasks.
 - [x] Implement `/help` command to list available commands.
+
+## Phase 9: Interactive Task Management
+- [x] Implement `/projects` command to list active projects.
+- [x] Enhance `/tasks` list with "Actions" buttons for each task.
+- [x] Implement `view_task:{taskId}` callback to show task details and available actions.
+- [x] Update `/help` command with new options.
