@@ -60,6 +60,10 @@ class TelegramWebhookHandler
             return $this->handleStatus($chatId);
         }
 
+        if ($text === '/projects') {
+            return $this->handleProjects($chatId);
+        }
+
         if ($text === '/tasks') {
             return $this->handleTasks($chatId);
         }
@@ -75,11 +79,37 @@ class TelegramWebhookHandler
     {
         $helpText = "<b>Available Commands:</b>\n\n";
         $helpText .= "/status - Get a summary of task counts.\n";
+        $helpText .= "/projects - List your active projects.\n";
         $helpText .= "/tasks - List active tasks with details.\n";
         $helpText .= "/cleanup - Remove read notifications from the chat.\n";
         $helpText .= "/help - Show this help message.";
 
         $this->telegramService->sendMessage($chatId, $helpText);
+        return true;
+    }
+
+    private function handleProjects(int $chatId): bool
+    {
+        $user = $this->userModel->findByTelegramChatId($chatId);
+        if (!$user) {
+            $this->telegramService->sendMessage($chatId, "Unauthorized. Please link your account.");
+            return true;
+        }
+
+        $projectModel = new Project($this->userModel->getDb());
+        $projects = $projectModel->findByUserId((int)$user['user_id']);
+
+        if (empty($projects)) {
+            $this->telegramService->sendMessage($chatId, "No projects found.");
+            return true;
+        }
+
+        $text = "<b>Your Projects:</b>\n\n";
+        foreach ($projects as $project) {
+            $text .= "📁 <b>" . htmlspecialchars($project['github_repo']) . "</b>\n";
+        }
+
+        $this->telegramService->sendMessage($chatId, $text);
         return true;
     }
 
@@ -100,20 +130,24 @@ class TelegramWebhookHandler
         }
 
         $text = "<b>Active Tasks:</b>\n\n";
+        $inlineKeyboard = [];
         foreach (array_slice($tasks, 0, 10) as $task) {
             $statusEmoji = $taskModel->getStatusEmoji($task['status']);
-            $statusLabel = $taskModel->getStatusLabel($task['status']);
-            $targetUrl = $taskModel->getTargetUrl($task);
+            $text .= "$statusEmoji <b>#" . $task['issue_number'] . "</b>: " . htmlspecialchars($task['title']) . "\n";
 
-            $text .= "$statusEmoji <b>#" . $task['issue_number'] . "</b>: <a href=\"" . htmlspecialchars($targetUrl) . "\">" . htmlspecialchars($task['title']) . "</a>\n";
-            $text .= "<i>Status: $statusLabel</i>\n\n";
+            $inlineKeyboard[] = [[
+                'text' => "#" . $task['issue_number'] . " Actions",
+                'callback_data' => "view_task:" . $task['task_id']
+            ]];
         }
 
         if (count($tasks) > 10) {
-            $text .= "<i>Showing 10 of " . count($tasks) . " tasks.</i>";
+            $text .= "\n<i>Showing 10 of " . count($tasks) . " tasks.</i>";
         }
 
-        $this->telegramService->sendMessage($chatId, $text);
+        $this->telegramService->sendMessage($chatId, $text, [
+            'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+        ]);
         return true;
     }
 
@@ -172,7 +206,12 @@ class TelegramWebhookHandler
         $taskId = isset($parts[1]) ? (int)$parts[1] : null;
         $notificationId = isset($parts[2]) ? (int)$parts[2] : null;
 
-        if (!$taskId || !in_array($action, ['retry', 'restart', 'merge', 'acknowledge', 'approve_plan', 'fix_bug'])) {
+        if ($action === 'list_tasks') {
+            $this->telegramService->answerCallbackQuery($callbackId);
+            return $this->handleTasks($chatId);
+        }
+
+        if (!$taskId || !in_array($action, ['retry', 'restart', 'merge', 'acknowledge', 'approve_plan', 'fix_bug', 'view_task'])) {
             $this->telegramService->answerCallbackQuery($callbackId, [
                 'text' => "Invalid action.",
                 'show_alert' => true
@@ -193,9 +232,13 @@ class TelegramWebhookHandler
         }
 
         // 4. Acknowledge the query
-        $this->telegramService->answerCallbackQuery($callbackId, [
-            'text' => "Processing " . ucfirst($action) . "..."
-        ]);
+        if ($action !== 'view_task') {
+            $this->telegramService->answerCallbackQuery($callbackId, [
+                'text' => "Processing " . ucfirst($action) . "..."
+            ]);
+        } else {
+            $this->telegramService->answerCallbackQuery($callbackId);
+        }
 
         if ($notificationId) {
             $notificationService = new NotificationService($this->userModel->getDb());
@@ -216,7 +259,33 @@ class TelegramWebhookHandler
             $messageId = $callbackQuery['message']['message_id'] ?? null;
             $originalText = $callbackQuery['message']['text'] ?? '';
 
-            if ($action === 'merge') {
+            if ($action === 'view_task') {
+                $statusEmoji = $taskModel->getStatusEmoji($task['status'] ?? Task::STATUS_CREATED);
+                $statusLabel = $taskModel->getStatusLabel($task['status'] ?? Task::STATUS_CREATED);
+                $targetUrl = $taskModel->getTargetUrl($task, $repo);
+
+                $text = "$statusEmoji <b>#" . $task['issue_number'] . "</b>: <a href=\"" . htmlspecialchars($targetUrl) . "\">" . htmlspecialchars($task['title']) . "</a>\n";
+                $text .= "<i>Status: $statusLabel</i>\n\n";
+                $text .= "Choose an action:";
+
+                $actions = [];
+                $actions[] = ['text' => '🚀 Retry', 'callback_data' => "retry:$taskId"];
+                $actions[] = ['text' => '🔄 Restart', 'callback_data' => "restart:$taskId"];
+
+                if (!empty($task['pr_url'])) {
+                    $actions[] = ['text' => '✅ Merge', 'callback_data' => "merge:$taskId"];
+                }
+
+                $actions[] = ['text' => '🆗 Acknowledge', 'callback_data' => "acknowledge:$taskId"];
+
+                $inlineKeyboard = array_chunk($actions, 2);
+                $inlineKeyboard[] = [['text' => '⬅️ Back to Tasks', 'callback_data' => 'list_tasks:0']];
+
+                $this->telegramService->sendMessage($chatId, $text, [
+                    'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+                ]);
+                return true;
+            } elseif ($action === 'merge') {
                 $prNumber = $ghs->extractPrNumber($task['pr_url'] ?? '');
                 if (!$prNumber) {
                     throw new \Exception("No pull request associated with this task.");
