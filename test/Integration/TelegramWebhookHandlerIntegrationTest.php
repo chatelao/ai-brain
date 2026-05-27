@@ -337,10 +337,11 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
 
         $this->telegramService->expects($this->once())
             ->method('sendMessage')
-            ->with(123, $this->logicalAnd(
-                $this->stringContains('Your Projects'),
-                $this->stringContains('owner/repo')
-            ));
+            ->with(123, $this->stringContains('Your Projects'), $this->callback(function($params) {
+                return isset($params['reply_markup']['inline_keyboard']) &&
+                       strpos($params['reply_markup']['inline_keyboard'][0][0]['text'], 'owner/repo') !== false &&
+                       $params['reply_markup']['inline_keyboard'][0][0]['callback_data'] === 'list_tasks:1';
+            }));
 
         $this->assertTrue($this->handler->handle($update));
     }
@@ -443,6 +444,74 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
         $this->telegramService->expects($this->once())
             ->method('sendMessage')
             ->with(123, $this->stringContains('No active tasks found.'));
+
+        $this->assertTrue($this->handler->handle($update));
+    }
+
+    public function testHandleListTasksActionWithProjectId()
+    {
+        $this->pdo->exec("INSERT INTO users (user_id, email) VALUES (1, 'user@example.com')");
+        $this->pdo->exec("INSERT INTO user_telegram_accounts (user_id, telegram_chat_id) VALUES (1, 123)");
+        $this->pdo->exec("INSERT INTO user_github_accounts (user_id, github_username, github_token) VALUES (1, 'ghuser', 'ghtoken')");
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_account_id, github_repo) VALUES (1, 1, 1, 'owner/repo')");
+        $this->pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, status, github_state) VALUES (19, 1, 1, 109, 'Project Task', 'executing', 'open')");
+
+        $update = [
+            'callback_query' => [
+                'id' => 'cb131',
+                'data' => 'list_tasks:1',
+                'message' => [
+                    'chat' => ['id' => 123],
+                    'message_id' => 464,
+                    'text' => 'Original Message'
+                ]
+            ]
+        ];
+
+        $this->telegramService->expects($this->once())
+            ->method('answerCallbackQuery')
+            ->with('cb131');
+
+        $this->telegramService->expects($this->once())
+            ->method('sendMessage')
+            ->with(123, $this->logicalAnd(
+                $this->stringContains('Active Tasks for owner/repo'),
+                $this->stringContains('#109')
+            ));
+
+        $this->assertTrue($this->handler->handle($update));
+    }
+
+    public function testHandleRefreshTaskAction()
+    {
+        $this->pdo->exec("INSERT INTO users (user_id, email, jules_api_key) VALUES (1, 'user@example.com', 'key')");
+        $this->pdo->exec("INSERT INTO user_telegram_accounts (user_id, telegram_chat_id) VALUES (1, 123)");
+        $this->pdo->exec("INSERT INTO user_github_accounts (user_id, github_username, github_token) VALUES (1, 'ghuser', 'ghtoken')");
+        $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_account_id, github_repo, github_token) VALUES (1, 1, 1, 'owner/repo', 'token')");
+        $this->pdo->exec("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title) VALUES (20, 1, 1, 110, 'Refresh Task')");
+
+        $update = [
+            'callback_query' => [
+                'id' => 'cb132',
+                'data' => 'refresh_task:20',
+                'message' => [
+                    'chat' => ['id' => 123],
+                    'message_id' => 465,
+                    'text' => 'Original Message'
+                ]
+            ]
+        ];
+
+        // We expect refreshJulesStatus to be called, which will trigger GitHub and Jules API calls.
+        // For this unit-ish integration test, we mainly check if it processes without crashing.
+        // It's hard to mock all dependencies since handleCallback creates new instances.
+
+        $this->telegramService->expects($this->once())
+            ->method('answerCallbackQuery');
+
+        $this->telegramService->expects($this->once())
+            ->method('editMessageText')
+            ->with(123, 465, $this->stringContains('🔄 Status refreshed'));
 
         $this->assertTrue($this->handler->handle($update));
     }

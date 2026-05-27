@@ -13,6 +13,7 @@
 | 7 | [UC-C4] Chat Cleanup | ✅ |
 | 8 | Advanced Interactions | ✅ |
 | 9 | Interactive Task Management | ✅ |
+| 10 | Enhanced Navigation & Contextual Actions | ✅ |
 
 ## Goals
 
@@ -76,3 +77,8 @@
 - [x] Enhance `/tasks` list with "Actions" buttons for each task.
 - [x] Implement `view_task:{taskId}` callback to show task details and available actions.
 - [x] Update `/help` command with new options.
+
+## Phase 10: Enhanced Navigation & Contextual Actions
+- [x] Enhance `/projects` with inline buttons for task filtering.
+- [x] Support project-based filtering in `/tasks`.
+- [x] Implement `refresh_task:{taskId}` action to force a status sync.
