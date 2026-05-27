@@ -67,6 +67,18 @@ if (($_COOKIE['prefer_legacy'] ?? '') !== '1' && $nextGenExists) {
     // We should try to serve the Next-Gen UI index.html if it exists.
     // We avoid catching AJAX (.php) or assets.
     if ($isWebPath && strpos($requestUri, '.php') === false) {
+        // Extract the path relative to /web/ to check for physical file existence
+        $cleanPath = parse_url($requestUri, PHP_URL_PATH);
+
+        // If the path has an extension, it's likely a static asset (js, css, txt, etc.)
+        // If it reaches here (index.php), it means the web server didn't find it.
+        $extension = pathinfo($cleanPath, PATHINFO_EXTENSION);
+        if ($extension && !file_exists(__DIR__ . $cleanPath)) {
+            http_response_code(404);
+            echo "Asset not found: " . htmlspecialchars($cleanPath);
+            exit;
+        }
+
         $webIndex = __DIR__ . '/web/index.html';
         if (file_exists($webIndex)) {
             readfile($webIndex);
