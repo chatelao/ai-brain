@@ -88,14 +88,17 @@ The goal of Phase 2 is to achieve feature parity with the existing "Project Card
 ## Phase 3: Mobile App & Notification Integration (Beta)
 The goal of Phase 3 is to launch the native mobile application and enhance the notification ecosystem.
 
-- ⏳ **Milestone 3.1: React Native Shell**
-    - ⏳ Initialize the Expo project and implement shared API clients.
-    - ⏳ Build the unified Login flow (Google/GitHub).
+- ✅ **Milestone 3.1: React Native Shell**
+    - ✅ Initialize the Expo project and implement shared API clients.
+    - ✅ Build the unified Login flow (Google/GitHub).
 - ✅ **Milestone 3.2: Native Oversight**
     - ✅ Implement the "Running Autorepeat Tasks" view for web.
     - ✅ Implement the "Global Tasks" and "In-App Notifications" view for web.
-    - ⏳ Implement the "Running Autorepeat Tasks" and "Project Grid" views for mobile.
-- ⏳ **Milestone 3.3: Push Notifications**
+    - ✅ Implement the "Running Autorepeat Tasks" and "Project Grid" views for mobile.
+- ⏳ **Milestone 3.3: Mobile Task Management**
+    - ⏳ Implement the "Task Detail" and "Logs" view for mobile.
+    - ⏳ Support core actions (Retry, Merge) from mobile.
+- ⏳ **Milestone 3.4: Push Notifications**
     - ⏳ Integrate with Firebase or Expo Notifications to deliver native alerts for `FAILED` and `READY` states.
 
 ## Phase 4: Full Migration & Legacy Sunset
