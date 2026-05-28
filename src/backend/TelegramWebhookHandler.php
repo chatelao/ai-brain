@@ -72,6 +72,10 @@ class TelegramWebhookHandler
             return $this->handleTasks($chatId);
         }
 
+        if ($text === '/settings') {
+            return $this->handleSettings($chatId);
+        }
+
         if ($text === '/help') {
             return $this->handleHelp($chatId);
         }
@@ -85,6 +89,7 @@ class TelegramWebhookHandler
         $helpText .= "/status - Get a summary of task counts.\n";
         $helpText .= "/projects - List your active projects.\n";
         $helpText .= "/tasks - List active tasks with details.\n";
+        $helpText .= "/settings - Manage notification preferences.\n";
         $helpText .= "/cleanup - Remove read notifications from the chat.\n";
         $helpText .= "/help - Show this help message.";
 
@@ -120,6 +125,34 @@ class TelegramWebhookHandler
         $this->telegramService->sendMessage($chatId, $text, [
             'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
         ]);
+        return true;
+    }
+
+    private function handleToggleSetting(string $callbackId, int $chatId, string $channel, ?int $messageId): bool
+    {
+        $user = $this->userModel->findByTelegramChatId($chatId);
+        if (!$user) {
+            $this->telegramService->answerCallbackQuery($callbackId, [
+                'text' => "Unauthorized.",
+                'show_alert' => true
+            ]);
+            return false;
+        }
+
+        $notificationService = new NotificationService($this->userModel->getDb());
+        $settings = $notificationService->getUserSettings((int)$user['user_id']);
+
+        $newValue = !($settings[$channel] ?? false);
+        $notificationService->updateUserSettings((int)$user['user_id'], [$channel => $newValue]);
+
+        $this->telegramService->answerCallbackQuery($callbackId, [
+            'text' => "Setting updated."
+        ]);
+
+        if ($messageId) {
+            $this->handleSettings($chatId, $messageId);
+        }
+
         return true;
     }
 
@@ -166,6 +199,49 @@ class TelegramWebhookHandler
         $this->telegramService->sendMessage($chatId, $text, [
             'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
         ]);
+        return true;
+    }
+
+    private function handleSettings(int $chatId, ?int $editMessageId = null): bool
+    {
+        $user = $this->userModel->findByTelegramChatId($chatId);
+        if (!$user) {
+            if (!$editMessageId) {
+                $this->telegramService->sendMessage($chatId, "Unauthorized. Please link your account.");
+            }
+            return true;
+        }
+
+        $notificationService = new NotificationService($this->userModel->getDb());
+        $settings = $notificationService->getUserSettings((int)$user['user_id']);
+
+        $text = "<b>Notification Settings:</b>\n\nToggle channels to enable/disable notifications:";
+        $inlineKeyboard = [];
+
+        $channels = [
+            'telegram' => 'Telegram',
+            'in_app' => 'In-App Inbox',
+            'browser' => 'Browser'
+        ];
+
+        foreach ($channels as $key => $label) {
+            $enabled = $settings[$key] ?? false;
+            $statusEmoji = $enabled ? "✅" : "❌";
+            $inlineKeyboard[] = [[
+                'text' => "$label: $statusEmoji",
+                'callback_data' => "toggle_setting:$key"
+            ]];
+        }
+
+        if ($editMessageId) {
+            $this->telegramService->editMessageText($chatId, $editMessageId, $text, [
+                'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+            ]);
+        } else {
+            $this->telegramService->sendMessage($chatId, $text, [
+                'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+            ]);
+        }
         return true;
     }
 
@@ -227,6 +303,11 @@ class TelegramWebhookHandler
         if ($action === 'list_tasks') {
             $this->telegramService->answerCallbackQuery($callbackId);
             return $this->handleTasks($chatId, $targetId ?: null);
+        }
+
+        if ($action === 'toggle_setting') {
+            $channel = $parts[1] ?? '';
+            return $this->handleToggleSetting($callbackId, $chatId, $channel, $callbackQuery['message']['message_id'] ?? null);
         }
 
         if (!$targetId || !in_array($action, ['retry', 'restart', 'merge', 'acknowledge', 'approve_plan', 'fix_bug', 'view_task', 'refresh_task'])) {
