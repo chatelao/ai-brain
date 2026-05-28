@@ -49,6 +49,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $userModel->updateBlocklyConfig($userId, $input['blockly_config']);
     }
 
+    if (isset($input['automations_enabled'])) {
+        $userModel->updateAutomationsEnabled($userId, (bool)$input['automations_enabled']);
+    }
+
     if (isset($input['telegram_bot_name']) || isset($input['telegram_bot_token']) || isset($input['telegram_webhook_secret'])) {
         $user = $userModel->findById($userId);
         $newBotToken = $input['telegram_bot_token'] ?? $user['telegram_bot_token'] ?? '';
@@ -115,6 +119,7 @@ $output = [
     'telegram_webhook_secret' => !empty($user['telegram_webhook_secret']) ? '********' : null,
     'telegram_chat_id' => $userModel->getTelegramChatId($userId),
     'has_jules_key' => !empty($user['jules_api_key']),
+    'automations_enabled' => (bool)($user['automations_enabled'] ?? true),
     'jules_quota_usage' => isset($user['jules_quota_usage']) ? (int)$user['jules_quota_usage'] : null,
     'jules_quota_limit' => isset($user['jules_quota_limit']) ? (int)$user['jules_quota_limit'] : null,
     'blockly_config' => !empty($user['blockly_config']) ? json_decode($user['blockly_config'], true) : null,

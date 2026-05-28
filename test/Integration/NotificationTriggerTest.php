@@ -62,7 +62,8 @@ class NotificationTriggerTest extends TestCase
             telegram_bot_token VARCHAR(255),
             jules_quota_usage INT DEFAULT 0,
             jules_quota_limit INT DEFAULT 0,
-            jules_quota_updated_at DATETIME
+            jules_quota_updated_at DATETIME,
+            automations_enabled BOOLEAN DEFAULT 1
         )");
 
         $this->pdo->exec("CREATE TABLE user_telegram_accounts (

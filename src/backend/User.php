@@ -259,4 +259,12 @@ class User
         );
         return $stmt->execute([$config, $userId]);
     }
+
+    public function updateAutomationsEnabled(int $userId, bool $enabled): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE users SET automations_enabled = ? WHERE user_id = ?"
+        );
+        return $stmt->execute([(int)$enabled, $userId]);
+    }
 }

@@ -326,18 +326,42 @@ export default function SettingsPage() {
         {activeTab === 'automation' && (
           <div className="space-y-6">
             <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Global Automation (Experimental)</h3>
-              <p className="text-sm text-gray-500 mb-6">
-                Define global workflows that apply to all your projects using Blockly.
-                These scripts are executed when events occur in any of your linked repositories.
-              </p>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Enable Automations</h3>
+                  <p className="text-sm text-gray-500">
+                    Master switch for all automated actions, including Auto-Repeat, Auto-Merge, and Blockly scripts.
+                  </p>
+                </div>
+                <button
+                  onClick={() => updateUser.mutate({ automations_enabled: !user?.automations_enabled })}
+                  disabled={updateUser.isPending}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ring-offset-2 focus:ring-2 focus:ring-blue-500 ${
+                    user?.automations_enabled ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      user?.automations_enabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
 
-              <BlocklyEditor
-                initialXml={user?.blockly_config?.xml}
-                onSave={(config) => {
-                  updateUser.mutate({ blockly_config: config });
-                }}
-              />
+              <div className={`transition-opacity duration-200 ${!user?.automations_enabled ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Global Automation (Experimental)</h3>
+                <p className="text-sm text-gray-500 mb-6">
+                  Define global workflows that apply to all your projects using Blockly.
+                  These scripts are executed when events occur in any of your linked repositories.
+                </p>
+
+                <BlocklyEditor
+                  initialXml={user?.blockly_config?.xml}
+                  onSave={(config) => {
+                    updateUser.mutate({ blockly_config: config });
+                  }}
+                />
+              </div>
             </section>
           </div>
         )}
