@@ -3,6 +3,10 @@
 namespace App;
 
 use App\Task;
+use App\Project;
+use App\GitHubService;
+use App\JulesService;
+use App\NotificationService;
 
 class TelegramWebhookHandler
 {
@@ -104,16 +108,22 @@ class TelegramWebhookHandler
             return true;
         }
 
-        $text = "<b>Your Projects:</b>\n\n";
+        $text = "<b>Your Projects:</b>\n\nSelect a project to view its active tasks:";
+        $inlineKeyboard = [];
         foreach ($projects as $project) {
-            $text .= "📁 <b>" . htmlspecialchars($project['github_repo']) . "</b>\n";
+            $inlineKeyboard[] = [[
+                'text' => "📁 " . $project['github_repo'],
+                'callback_data' => "list_tasks:" . $project['project_id']
+            ]];
         }
 
-        $this->telegramService->sendMessage($chatId, $text);
+        $this->telegramService->sendMessage($chatId, $text, [
+            'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+        ]);
         return true;
     }
 
-    private function handleTasks(int $chatId): bool
+    private function handleTasks(int $chatId, ?int $projectId = null): bool
     {
         $user = $this->userModel->findByTelegramChatId($chatId);
         if (!$user) {
@@ -122,14 +132,22 @@ class TelegramWebhookHandler
         }
 
         $taskModel = new Task($this->userModel->getDb());
-        $tasks = $taskModel->findActiveByUserProjects((int)$user['user_id']);
+        if ($projectId) {
+            $tasks = $taskModel->findActiveByProjectId($projectId);
+            $projectModel = new Project($this->userModel->getDb());
+            $project = $projectModel->findById($projectId);
+            $repoName = $project['github_repo'] ?? 'Project';
+            $text = "<b>Active Tasks for $repoName:</b>\n\n";
+        } else {
+            $tasks = $taskModel->findActiveByUserProjects((int)$user['user_id']);
+            $text = "<b>Active Tasks:</b>\n\n";
+        }
 
         if (empty($tasks)) {
-            $this->telegramService->sendMessage($chatId, "No active tasks found.");
+            $this->telegramService->sendMessage($chatId, $projectId ? "No active tasks found for this project." : "No active tasks found.");
             return true;
         }
 
-        $text = "<b>Active Tasks:</b>\n\n";
         $inlineKeyboard = [];
         foreach (array_slice($tasks, 0, 10) as $task) {
             $statusEmoji = $taskModel->getStatusEmoji($task['status']);
@@ -199,19 +217,19 @@ class TelegramWebhookHandler
             return false;
         }
 
-        // 2. Parse action and taskId
-        // Expected format: "action:taskId" or "action:taskId:notificationId"
+        // 2. Parse action and targetId
+        // Expected format: "action:targetId" or "action:targetId:notificationId"
         $parts = explode(':', $data);
         $action = $parts[0] ?? '';
-        $taskId = isset($parts[1]) ? (int)$parts[1] : null;
+        $targetId = isset($parts[1]) ? (int)$parts[1] : null;
         $notificationId = isset($parts[2]) ? (int)$parts[2] : null;
 
         if ($action === 'list_tasks') {
             $this->telegramService->answerCallbackQuery($callbackId);
-            return $this->handleTasks($chatId);
+            return $this->handleTasks($chatId, $targetId ?: null);
         }
 
-        if (!$taskId || !in_array($action, ['retry', 'restart', 'merge', 'acknowledge', 'approve_plan', 'fix_bug', 'view_task'])) {
+        if (!$targetId || !in_array($action, ['retry', 'restart', 'merge', 'acknowledge', 'approve_plan', 'fix_bug', 'view_task', 'refresh_task'])) {
             $this->telegramService->answerCallbackQuery($callbackId, [
                 'text' => "Invalid action.",
                 'show_alert' => true
@@ -221,6 +239,7 @@ class TelegramWebhookHandler
 
         // 3. Verify project permissions
         $taskModel = new Task($this->userModel->getDb());
+        $taskId = $targetId;
         $task = $taskModel->findById($taskId);
 
         if (!$task || (int)$task['user_id'] !== (int)$user['user_id']) {
@@ -277,9 +296,10 @@ class TelegramWebhookHandler
                 }
 
                 $actions[] = ['text' => '🆗 Acknowledge', 'callback_data' => "acknowledge:$taskId"];
+                $actions[] = ['text' => '🔄 Sync Status', 'callback_data' => "refresh_task:$taskId"];
 
                 $inlineKeyboard = array_chunk($actions, 2);
-                $inlineKeyboard[] = [['text' => '⬅️ Back to Tasks', 'callback_data' => 'list_tasks:0']];
+                $inlineKeyboard[] = [['text' => '⬅️ Back to Tasks', 'callback_data' => 'list_tasks:' . $task['project_id']]];
 
                 $this->telegramService->sendMessage($chatId, $text, [
                     'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
@@ -316,6 +336,12 @@ class TelegramWebhookHandler
                 $statusText = "🐛 Bug label added and Jules triggered for Issue #$issueNumber.";
             } elseif ($action === 'acknowledge') {
                 $statusText = "✅ Acknowledged.";
+            } elseif ($action === 'refresh_task') {
+                $julesService = new JulesService(null, $user['jules_api_key'] ?? null);
+                $notificationService = new NotificationService($this->userModel->getDb());
+                $projectGhs = new GitHubService(null, $project['github_token']);
+                $taskModel->refreshJulesStatus((int)$user['user_id'], $projectGhs, $julesService, $notificationService, $taskId);
+                $statusText = "🔄 Status refreshed for Issue #$issueNumber.";
             } else {
                 $statusText = "Infrastructure for <b>$action</b> is ready. Actual execution will be implemented soon.";
             }
