@@ -35,7 +35,7 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
         $this->pdo->exec("DROP TABLE IF EXISTS notifications");
         $this->pdo->exec("DROP TABLE IF EXISTS users");
 
-        $this->pdo->exec("CREATE TABLE users (user_id $pk, email VARCHAR(255), telegram_bot_token VARCHAR(255), jules_api_key VARCHAR(255), jules_quota_updated_at TIMESTAMP NULL)");
+        $this->pdo->exec("CREATE TABLE users (user_id $pk, email VARCHAR(255), telegram_bot_token VARCHAR(255), jules_api_key VARCHAR(255), jules_quota_updated_at TIMESTAMP NULL, automations_enabled TINYINT DEFAULT 1)");
         $this->pdo->exec("CREATE TABLE notifications (notification_id $pk, user_id INT, project_id INT, type VARCHAR(50), title VARCHAR(255), message TEXT, data TEXT, is_read TINYINT DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
         $this->pdo->exec("CREATE TABLE user_github_accounts (github_account_id $pk, user_id INT, github_username VARCHAR(255), github_token VARCHAR(255))");
         $this->pdo->exec("CREATE TABLE projects (project_id $pk, user_id INT, github_account_id INT, github_repo VARCHAR(255), github_token VARCHAR(255), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
