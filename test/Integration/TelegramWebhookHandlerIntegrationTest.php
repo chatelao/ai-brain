@@ -9,6 +9,10 @@ use App\User;
 use App\TelegramService;
 use App\GitHubService;
 use App\Database;
+use App\Task;
+use App\Project;
+use App\JulesService;
+use App\NotificationService;
 use PDO;
 
 class TelegramWebhookHandlerIntegrationTest extends TestCase
@@ -34,13 +38,15 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
         $this->pdo->exec("DROP TABLE IF EXISTS user_github_accounts");
         $this->pdo->exec("DROP TABLE IF EXISTS notifications");
         $this->pdo->exec("DROP TABLE IF EXISTS users");
+        $this->pdo->exec("DROP TABLE IF EXISTS performance_logs");
 
         $this->pdo->exec("CREATE TABLE users (user_id $pk, email VARCHAR(255), telegram_bot_token VARCHAR(255), jules_api_key VARCHAR(255), jules_quota_updated_at TIMESTAMP NULL)");
         $this->pdo->exec("CREATE TABLE notifications (notification_id $pk, user_id INT, project_id INT, type VARCHAR(50), title VARCHAR(255), message TEXT, data TEXT, is_read TINYINT DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
         $this->pdo->exec("CREATE TABLE user_github_accounts (github_account_id $pk, user_id INT, github_username VARCHAR(255), github_token VARCHAR(255))");
         $this->pdo->exec("CREATE TABLE projects (project_id $pk, user_id INT, github_account_id INT, github_repo VARCHAR(255), github_token VARCHAR(255), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
-        $this->pdo->exec("CREATE TABLE tasks (task_id $pk, user_id INT, project_id INT, issue_number INT, title VARCHAR(255), body TEXT, pr_url VARCHAR(255), jules_url VARCHAR(255), jules_status VARCHAR(50), status VARCHAR(50), github_state VARCHAR(50), jules_session_id VARCHAR(255), last_synced_at TIMESTAMP NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, github_data TEXT, autorepeat_remaining INT DEFAULT 0)");
+        $this->pdo->exec("CREATE TABLE tasks (task_id $pk, user_id INT, project_id INT, issue_number INT, title VARCHAR(255), body TEXT, pr_url VARCHAR(255), jules_url VARCHAR(255), jules_status VARCHAR(50), status VARCHAR(50), github_state VARCHAR(50), jules_session_id VARCHAR(255), last_synced_at TIMESTAMP NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, github_data TEXT, autorepeat_remaining INT DEFAULT 0, agent_response TEXT)");
         $this->pdo->exec("CREATE TABLE user_telegram_accounts (telegram_account_id $pk, user_id INT, telegram_chat_id BIGINT UNIQUE)");
+        $this->pdo->exec("CREATE TABLE performance_logs (log_id $pk, user_id INT, service VARCHAR(50), target VARCHAR(255), duration FLOAT, context TEXT, status_code INT, error_message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 
         $this->db = $this->createMock(Database::class);
         $this->db->method('getConnection')->willReturn($this->pdo);
@@ -502,9 +508,40 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
             ]
         ];
 
-        // We expect refreshJulesStatus to be called, which will trigger GitHub and Jules API calls.
-        // For this unit-ish integration test, we mainly check if it processes without crashing.
-        // It's hard to mock all dependencies since handleCallback creates new instances.
+        // Mock dependencies to avoid real network calls
+        $mockTask = $this->createMock(Task::class);
+        $mockTask->method('findById')->willReturn([
+            'task_id' => 20,
+            'user_id' => 1,
+            'project_id' => 1,
+            'issue_number' => 110,
+            'title' => 'Refresh Task'
+        ]);
+
+        $mockTask->expects($this->once())
+            ->method('refreshJulesStatus');
+
+        $mockJules = $this->createMock(JulesService::class);
+        $mockNotif = $this->createMock(NotificationService::class);
+        $mockGh = $this->createMock(GitHubService::class);
+
+        $handler = new class($this->userModel, $this->telegramService, $this->githubService, 'secret', $mockTask, $mockJules, $mockNotif, $mockGh) extends TelegramWebhookHandler {
+            public function __construct($userModel, $telegramService, $githubService, $webhookSecret, private $mockTask, private $mockJules, private $mockNotif, private $mockGh) {
+                parent::__construct($userModel, $telegramService, $githubService, $webhookSecret);
+            }
+            protected function getTaskModel(): Task {
+                return $this->mockTask;
+            }
+            protected function getJulesService(?string $apiKey = null): JulesService {
+                return $this->mockJules;
+            }
+            protected function getNotificationService(): NotificationService {
+                return $this->mockNotif;
+            }
+            protected function getProjectGitHubService(string $token): GitHubService {
+                return $this->mockGh;
+            }
+        };
 
         $this->telegramService->expects($this->once())
             ->method('answerCallbackQuery');
@@ -513,6 +550,6 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
             ->method('editMessageText')
             ->with(123, 465, $this->stringContains('🔄 Status refreshed'));
 
-        $this->assertTrue($this->handler->handle($update));
+        $this->assertTrue($handler->handle($update));
     }
 }
