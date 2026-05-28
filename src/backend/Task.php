@@ -897,10 +897,11 @@ class Task
         $stmt->execute($params);
         $tasks = $stmt->fetchAll();
 
-        $userStmt = $this->db->getConnection()->prepare("SELECT jules_api_key, jules_quota_updated_at FROM users WHERE user_id = ?");
+        $userStmt = $this->db->getConnection()->prepare("SELECT jules_api_key, jules_quota_updated_at, automations_enabled FROM users WHERE user_id = ?");
         $userStmt->execute([$userId]);
         $user = $userStmt->fetch();
         $apiKey = $user['jules_api_key'] ?? null;
+        $automationsEnabled = (bool)($user['automations_enabled'] ?? true);
         $quotaUpdatedAt = $user['jules_quota_updated_at'] ?? null;
 
         // Fetch Jules quota if more than 60 minutes have passed since last update
@@ -919,7 +920,8 @@ class Task
             // If task is finished/closed but still has autorepeat cycles, trigger duplication if missed
             if (($task['autorepeat_remaining'] ?? 0) > 0 &&
                 ($task['github_state'] === 'closed' || $task['status'] === self::STATUS_FINISHED) &&
-                strpos($task['agent_response'] ?? '', '<!-- autorepeat_triggered -->') === false) {
+                strpos($task['agent_response'] ?? '', '<!-- autorepeat_triggered -->') === false &&
+                $automationsEnabled) {
 
                 $webhookHandler = new WebhookHandler($this->db);
                 $projectModel = new Project($this->db);
@@ -1090,7 +1092,7 @@ class Task
                         $message = "Task \"" . $task['title'] . "\" is ready to merge.";
 
                         // Automatic merge if autorepeat is active
-                        if (($task['autorepeat_remaining'] ?? 0) > 0) {
+                        if (($task['autorepeat_remaining'] ?? 0) > 0 && $automationsEnabled) {
                             $webhookHandler = new WebhookHandler($this->db);
                             $projectModel = new Project($this->db);
                             $project = $projectModel->findById($task['project_id']);
@@ -1132,7 +1134,7 @@ class Task
             } else {
                 // If status didn't change but it's READY, still check for auto-merge
                 // This covers cases where a previous auto-merge might have been skipped or failed.
-                if ($mappedStatus === self::STATUS_READY && ($task['autorepeat_remaining'] ?? 0) > 0) {
+                if ($mappedStatus === self::STATUS_READY && ($task['autorepeat_remaining'] ?? 0) > 0 && $automationsEnabled) {
                     $webhookHandler = new WebhookHandler($this->db);
                     $projectModel = new Project($this->db);
                     $project = $projectModel->findById($task['project_id']);

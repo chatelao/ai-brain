@@ -18,6 +18,12 @@ class WebhookHandlerTest extends TestCase
         $this->pdo = new PDO('sqlite::memory:');
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+        $this->pdo->exec("CREATE TABLE users (
+            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name VARCHAR(255),
+            automations_enabled BOOLEAN DEFAULT 1
+        )");
+
         $this->pdo->exec("CREATE TABLE projects (
             project_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INT NOT NULL,
@@ -60,6 +66,7 @@ class WebhookHandlerTest extends TestCase
     public function testHandleIssueOpened()
     {
         $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
+        $this->pdo->exec("INSERT INTO users (user_id, name) VALUES (1, 'Test User')");
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'owner/repo')");
 
         $event = [
@@ -90,6 +97,7 @@ class WebhookHandlerTest extends TestCase
     public function testHandleAutorepeat()
     {
         $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
+        $this->pdo->exec("INSERT INTO users (user_id, name) VALUES (1, 'Test User')");
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'owner/repo')");
 
         $event = [
@@ -123,6 +131,7 @@ class WebhookHandlerTest extends TestCase
     {
         // Simulate human-triggered merge (sender.type === 'User')
         $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
+        $this->pdo->exec("INSERT INTO users (user_id, name) VALUES (1, 'Test User')");
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'owner/repo')");
 
         $prUrl = 'https://github.com/owner/repo/pull/123';
@@ -166,6 +175,7 @@ class WebhookHandlerTest extends TestCase
     public function testHandleCheckSuiteInProgress()
     {
         $project = ['user_id' => 1, 'project_id' => 1, 'github_repo' => 'owner/repo'];
+        $this->pdo->exec("INSERT INTO users (user_id, name) VALUES (1, 'Test User')");
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo) VALUES (1, 1, 'owner/repo')");
 
         $prUrl = 'https://github.com/owner/repo/pull/123';

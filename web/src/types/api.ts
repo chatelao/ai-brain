@@ -1967,6 +1967,8 @@ export interface components {
             jules_api_key?: string | null;
             /** @example true */
             has_jules_key?: boolean;
+            /** @example true */
+            automations_enabled?: boolean;
             /** @example 150 */
             jules_quota_usage?: number | null;
             /** @example 1000 */

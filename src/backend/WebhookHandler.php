@@ -126,7 +126,11 @@ class WebhookHandler
         }
 
         if ($result && $action === 'closed' && $githubService) {
-            $this->maybeDuplicateTask($project, $event, $githubService, $effectiveNotifService);
+            $userModel = new User($this->db);
+            $user = $userModel->findById($project['user_id']);
+            if ($user && ($user['automations_enabled'] ?? true)) {
+                $this->maybeDuplicateTask($project, $event, $githubService, $effectiveNotifService);
+            }
         }
 
         return $result;
@@ -327,8 +331,10 @@ class WebhookHandler
             if ($task && $task['issue_number']) {
                 $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
 
+                $userModel = new User($this->db);
+                $user = $userModel->findById($project['user_id']);
                 $githubData = json_decode($task['github_data'] ?? '{}', true);
-                if ($githubData) {
+                if ($githubData && ($user['automations_enabled'] ?? true)) {
                     // Normalize event for maybeDuplicateTask
                     $pseudoEvent = $event;
                     $pseudoEvent['issue'] = $githubData;
@@ -493,8 +499,12 @@ class WebhookHandler
                     $message = $newStatus === Task::STATUS_FAILED_PR ? "PR checks for \"" . $task['title'] . "\" failed." : "PR checks for \"" . $task['title'] . "\" are now passing.";
 
                     if ($newStatus === Task::STATUS_READY && ($task['autorepeat_remaining'] ?? 0) > 0 && $githubService) {
-                        $this->autoMergeAndDuplicate($project, array_merge($task, ['status' => $newStatus]), $githubService, $notificationService);
-                        $message .= " (Auto-merging...)";
+                        $userModel = new User($this->db);
+                        $user = $userModel->findById($project['user_id']);
+                        if ($user && ($user['automations_enabled'] ?? true)) {
+                            $this->autoMergeAndDuplicate($project, array_merge($task, ['status' => $newStatus]), $githubService, $notificationService);
+                            $message .= " (Auto-merging...)";
+                        }
                     }
 
                     $actions = [];
@@ -517,7 +527,11 @@ class WebhookHandler
             } elseif ($newStatus === Task::STATUS_READY && ($task['autorepeat_remaining'] ?? 0) > 0 && $githubService) {
                 // Even if status didn't change (still READY), attempt auto-merge if it's an autorepeat task
                 // This handles cases where a previous merge attempt might have failed but is now possible.
-                $this->autoMergeAndDuplicate($project, array_merge($task, ['status' => $newStatus]), $githubService, $notificationService);
+                $userModel = new User($this->db);
+                $user = $userModel->findById($project['user_id']);
+                if ($user && ($user['automations_enabled'] ?? true)) {
+                    $this->autoMergeAndDuplicate($project, array_merge($task, ['status' => $newStatus]), $githubService, $notificationService);
+                }
             }
 
             $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
@@ -565,6 +579,11 @@ class WebhookHandler
 
         $userModel = new User($this->db);
         $user = $userModel->findById($userId);
+
+        if ($user && !($user['automations_enabled'] ?? true)) {
+            Logger::getInstance($this->db)->log($userId, $taskId, "Blockly automations skipped: Automations are disabled in settings.", 'info');
+            return;
+        }
 
         $blocklyEvent = $overrideEvent ?: $this->mapToBlocklyEvent($githubEvent, $event);
         $eventContext = [
