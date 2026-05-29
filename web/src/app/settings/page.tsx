@@ -124,7 +124,7 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-gray-50 pb-12">
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <Breadcrumbs items={[{ label: 'Settings' }]} />
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>

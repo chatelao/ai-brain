@@ -19,7 +19,7 @@ const BlocklyEditor: React.FC<BlocklyEditorProps> = ({ initialXml, onSave }) => 
   };
 
   return (
-    <div className="flex flex-col h-[600px] border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+    <div className="flex flex-col h-[700px] border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50">
         <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Automation Editor</h3>
         <button
