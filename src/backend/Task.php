@@ -211,6 +211,40 @@ class Task
         return $this->findByUserProjects($userId, false);
     }
 
+    public function findActiveBySearch(int $userId, string $query): array
+    {
+        $sql = "SELECT t.*, p.github_repo
+             FROM tasks t
+             JOIN projects p ON t.project_id = p.project_id
+             WHERE p.user_id = ?
+             AND t.issue_number > 0 AND t.title != ''";
+
+        $params = [$userId];
+
+        $sql .= " AND (t.title LIKE ? OR t.body LIKE ? OR t.issue_number = ?)";
+        $params[] = '%' . $query . '%';
+        $params[] = '%' . $query . '%';
+        $params[] = is_numeric($query) ? (int)$query : -1;
+
+        $sql .= " AND (t.github_state = 'open' OR (
+            t.github_state = 'closed' AND t.status IN ('" . self::STATUS_FINISHED . "', 'completed')
+            AND (
+                SELECT COUNT(*) FROM tasks t3
+                WHERE t3.user_id = ?
+                AND t3.github_state = 'closed'
+                AND t3.status IN ('" . self::STATUS_FINISHED . "', 'completed')
+                AND (t3.created_at > t.created_at OR (t3.created_at = t.created_at AND t3.task_id > t.task_id))
+            ) < 3
+        ))";
+        $params[] = $userId;
+
+        $sql .= " ORDER BY t.created_at DESC";
+
+        $stmt = $this->db->getConnection()->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
     public function getTaskCounts(int $userId): array
     {
         $sql = "SELECT
