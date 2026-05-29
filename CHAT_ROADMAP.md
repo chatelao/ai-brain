@@ -14,6 +14,8 @@
 | 8 | Advanced Interactions | ✅ |
 | 9 | Interactive Task Management | ✅ |
 | 10 | Enhanced Navigation & Contextual Actions | ✅ |
+| 11 | Notification Settings Management | ✅ |
+| 12 | Pagination & Search | ⏳ |
 
 ## Goals
 
@@ -82,3 +84,12 @@
 - [x] Enhance `/projects` with inline buttons for task filtering.
 - [x] Support project-based filtering in `/tasks`.
 - [x] Implement `refresh_task:{taskId}` action to force a status sync.
+
+## Phase 11: Notification Settings Management
+- [x] Implement `/settings` command to view current channel preferences.
+- [x] Add inline buttons to toggle notification channels (Telegram, In-App, Browser).
+- [x] Update `handleCallback` to process toggle actions and refresh settings view.
+
+## Phase 12: Pagination & Search
+- [ ] Implement pagination for `/tasks` list (Next/Prev buttons).
+- [ ] Implement `/search` command for finding tasks.
