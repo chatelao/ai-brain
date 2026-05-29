@@ -446,10 +446,10 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
             ->method('answerCallbackQuery')
             ->with('cb130');
 
-        // It should call handleTasks which sends "No active tasks found." if none exist
+        // It should call handleTasks which edits message to "No active tasks found." if none exist
         $this->telegramService->expects($this->once())
-            ->method('sendMessage')
-            ->with(123, $this->stringContains('No active tasks found.'));
+            ->method('editMessageText')
+            ->with(123, 463, $this->stringContains('No active tasks found.'));
 
         $this->assertTrue($this->handler->handle($update));
     }
@@ -479,8 +479,8 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
             ->with('cb131');
 
         $this->telegramService->expects($this->once())
-            ->method('sendMessage')
-            ->with(123, $this->logicalAnd(
+            ->method('editMessageText')
+            ->with(123, 464, $this->logicalAnd(
                 $this->stringContains('Active Tasks for owner/repo'),
                 $this->stringContains('#109')
             ));
