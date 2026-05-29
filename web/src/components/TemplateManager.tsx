@@ -35,21 +35,21 @@ export default function TemplateManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Issue Templates</h3>
-          <p className="text-sm text-gray-500">Manage reusable templates for GitHub issues.</p>
-        </div>
-        <button
-          onClick={() => setEditingTemplate({ name: '', title_template: '', body_template: '', parameter_config: {} })}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-        >
-          Create New Template
-        </button>
-      </div>
+      {!editingTemplate ? (
+        <>
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Issue Templates</h3>
+              <p className="text-sm text-gray-500">Manage reusable templates for GitHub issues.</p>
+            </div>
+            <button
+              onClick={() => setEditingTemplate({ name: '', title_template: '', body_template: '', parameter_config: {} })}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+            >
+              Create New Template
+            </button>
+          </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-4">
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -68,7 +68,7 @@ export default function TemplateManager() {
                   templates?.map((t) => (
                     <tr key={t.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{t.name}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">{t.title_template}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">{t.title_template}</td>
                       <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
                         <button onClick={() => setEditingTemplate(t)} className="text-blue-600 hover:text-blue-900">Edit</button>
                         <button onClick={() => {
@@ -83,15 +83,22 @@ export default function TemplateManager() {
               </tbody>
             </table>
           </div>
-        </div>
+        </>
+      ) : (
+        <div className="space-y-6">
+          <button
+            onClick={() => setEditingTemplate(null)}
+            className="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center"
+          >
+            ← Back to templates
+          </button>
 
-        <div className="lg:col-span-1">
-          {editingTemplate ? (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 sticky top-24">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
-                {editingTemplate.id ? 'Edit Template' : 'New Template'}
-              </h3>
-              <form onSubmit={handleSave} className="space-y-4">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              {editingTemplate.id ? 'Edit Template' : 'New Template'}
+            </h3>
+            <form onSubmit={handleSave} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Name</label>
                   <input
@@ -114,64 +121,60 @@ export default function TemplateManager() {
                     placeholder="e.g. Bug: %1 in %2"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Body Template</label>
-                  <textarea
-                    rows={4}
-                    value={editingTemplate.body_template || ''}
-                    onChange={(e) => setEditingTemplate({ ...editingTemplate, body_template: e.target.value })}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
-                    placeholder="e.g. Steps to reproduce: %1"
-                  />
-                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Body Template</label>
+                <textarea
+                  rows={12}
+                  value={editingTemplate.body_template || ''}
+                  onChange={(e) => setEditingTemplate({ ...editingTemplate, body_template: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm font-mono"
+                  placeholder="e.g. Steps to reproduce: %1"
+                />
+              </div>
 
-                {placeholders.length > 0 && (
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Parameter Labels</label>
-                    {placeholders.map((p) => (
-                      <div key={p} className="flex items-center space-x-2">
-                        <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">{p}</span>
-                        <input
-                          type="text"
-                          value={editingTemplate.parameter_config?.[p] || ''}
-                          onChange={(e) => {
-                            const newConfig = { ...(editingTemplate.parameter_config || {}) };
-                            newConfig[p] = e.target.value;
-                            setEditingTemplate({ ...editingTemplate, parameter_config: newConfig });
-                          }}
-                          className="block w-full border border-gray-300 rounded-md shadow-sm p-1 text-xs"
-                          placeholder={`Label for ${p}`}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    type="submit"
-                    disabled={isSaving}
-                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {isSaving ? 'Saving...' : 'Save'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingTemplate(null)}
-                    className="flex-1 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
+              {placeholders.length > 0 && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Parameter Labels</label>
+                  {placeholders.map((p) => (
+                    <div key={p} className="flex items-center space-x-2">
+                      <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">{p}</span>
+                      <input
+                        type="text"
+                        value={editingTemplate.parameter_config?.[p] || ''}
+                        onChange={(e) => {
+                          const newConfig = { ...(editingTemplate.parameter_config || {}) };
+                          newConfig[p] = e.target.value;
+                          setEditingTemplate({ ...editingTemplate, parameter_config: newConfig });
+                        }}
+                        className="block w-full border border-gray-300 rounded-md shadow-sm p-1 text-xs"
+                        placeholder={`Label for ${p}`}
+                      />
+                    </div>
+                  ))}
                 </div>
-              </form>
-            </div>
-          ) : (
-            <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-8 text-center">
-              <p className="text-sm text-gray-500">Select a template to edit or create a new one.</p>
-            </div>
-          )}
+              )}
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setEditingTemplate(null)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isSaving ? 'Saving...' : 'Save Template'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

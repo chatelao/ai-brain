@@ -120,7 +120,7 @@ export default function ProjectSettingsView({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="mb-6">
           <Breadcrumbs
             items={[
