@@ -41,4 +41,19 @@ describe('AutorepeatTasks', () => {
     const link = screen.getByText(/#101/);
     expect(link).toHaveAttribute('href', '/tasks?id=1');
   });
+
+  it('applies correct layout classes for responsiveness', () => {
+    render(<AutorepeatTasks />);
+    const table = screen.getByRole('table');
+    expect(table.className).toContain('table-fixed');
+
+    const repoLink = screen.getByText('google/jules');
+    expect(repoLink.className).toContain('break-words');
+
+    const issueLink = screen.getByText(/#101/);
+    expect(issueLink.className).toContain('break-words');
+
+    const statusHeader = screen.getByText('Status');
+    expect(statusHeader.className).toContain('w-32');
+  });
 });
