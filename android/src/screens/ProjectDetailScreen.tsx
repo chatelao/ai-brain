@@ -1,12 +1,12 @@
 import React from 'react';
-import { StyleSheet, View, Text, FlatList, SafeAreaView, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, FlatList, SafeAreaView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../api/client';
 import { components } from '../types/api';
 
 type Task = components['schemas']['Task'];
 
-export default function ProjectDetailScreen({ route }: any) {
+export default function ProjectDetailScreen({ route, navigation }: any) {
   const { id, name } = route.params;
 
   const { data: tasks, isLoading } = useQuery({
@@ -18,7 +18,10 @@ export default function ProjectDetailScreen({ route }: any) {
   });
 
   const renderTaskItem = ({ item }: { item: Task }) => (
-    <View style={styles.taskCard}>
+    <TouchableOpacity
+      style={styles.taskCard}
+      onPress={() => navigation.navigate('TaskDetail', { id: item.id })}
+    >
       <View style={styles.taskHeader}>
         <Text style={styles.taskNumber}>#{item.issue_number}</Text>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
@@ -26,7 +29,7 @@ export default function ProjectDetailScreen({ route }: any) {
         </View>
       </View>
       <Text style={styles.taskTitle}>{item.title}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   const getStatusColor = (status: string | undefined) => {

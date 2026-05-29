@@ -32,10 +32,14 @@ export default function DashboardScreen({ navigation }: any) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Running Autorepeat</Text>
           {autorepeatTasks.map(task => (
-            <View key={task.id} style={styles.taskItem}>
+            <TouchableOpacity
+              key={task.id}
+              style={styles.taskItem}
+              onPress={() => navigation.navigate('TaskDetail', { id: task.id })}
+            >
               <Text style={styles.taskTitle}>{task.title}</Text>
               <Text style={styles.taskRepo}>{task.github_repo}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       )}

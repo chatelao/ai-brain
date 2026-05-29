@@ -9,6 +9,7 @@ import { useAuth } from './src/hooks/useAuth';
 import LoginScreen from './src/screens/LoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import ProjectDetailScreen from './src/screens/ProjectDetailScreen';
+import TaskDetailScreen from './src/screens/TaskDetailScreen';
 
 const Stack = createStackNavigator();
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ function Navigation() {
         <>
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           <Stack.Screen name="ProjectDetail" component={ProjectDetailScreen} />
+          <Stack.Screen name="TaskDetail" component={TaskDetailScreen} />
         </>
       )}
     </Stack.Navigator>
