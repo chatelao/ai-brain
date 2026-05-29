@@ -97,6 +97,11 @@ class TelegramWebhookHandler
             return $this->handleTasks($chatId);
         }
 
+        if (str_starts_with($text, '/search ')) {
+            $query = trim(substr($text, 8));
+            return $this->handleSearch($chatId, $query);
+        }
+
         if ($text === '/settings') {
             return $this->handleSettings($chatId);
         }
@@ -115,6 +120,7 @@ class TelegramWebhookHandler
         $helpText .= "/projects - List your active projects.\n";
         $helpText .= "/tasks - List active tasks with details.\n";
         $helpText .= "/settings - Manage notification preferences.\n";
+        $helpText .= "/search &lt;query&gt; - Search for active tasks.\n";
         $helpText .= "/cleanup - Remove read notifications from the chat.\n";
         $helpText .= "/help - Show this help message.";
 
@@ -181,13 +187,93 @@ class TelegramWebhookHandler
         return true;
     }
 
-    private function handleTasks(int $chatId, ?int $projectId = null): bool
+    private function handleSearch(int $chatId, string $query, int $page = 1, ?int $editMessageId = null): bool
     {
         $user = $this->userModel->findByTelegramChatId($chatId);
         if (!$user) {
-            $this->telegramService->sendMessage($chatId, "Unauthorized. Please link your account.");
+            if (!$editMessageId) {
+                $this->telegramService->sendMessage($chatId, "Unauthorized. Please link your account.");
+            }
             return true;
         }
+
+        $pageSize = 10;
+        $offset = ($page - 1) * $pageSize;
+
+        $taskModel = $this->getTaskModel();
+        $tasks = $taskModel->findActiveBySearch((int)$user['user_id'], $query);
+
+        if (empty($tasks)) {
+            $msg = "No active tasks found matching \"$query\".";
+            if ($editMessageId) {
+                $this->telegramService->editMessageText($chatId, $editMessageId, $msg);
+            } else {
+                $this->telegramService->sendMessage($chatId, $msg);
+            }
+            return true;
+        }
+
+        $totalTasks = count($tasks);
+        $tasksPage = array_slice($tasks, $offset, $pageSize);
+
+        $text = "<b>Search Results for \"$query\":</b>\n\n";
+        $inlineKeyboard = [];
+        foreach ($tasksPage as $task) {
+            $statusEmoji = $taskModel->getStatusEmoji($task['status']);
+            $text .= "$statusEmoji <b>#" . $task['issue_number'] . "</b>: " . htmlspecialchars($task['title']) . "\n";
+
+            $inlineKeyboard[] = [[
+                'text' => "#" . $task['issue_number'] . " Actions",
+                'callback_data' => "view_task:" . $task['task_id']
+            ]];
+        }
+
+        $navButtons = [];
+        if ($page > 1) {
+            $navButtons[] = [
+                'text' => "⬅️ Previous",
+                'callback_data' => "search_tasks:" . $query . ":" . ($page - 1)
+            ];
+        }
+        if ($totalTasks > $offset + $pageSize) {
+            $navButtons[] = [
+                'text' => "Next ➡️",
+                'callback_data' => "search_tasks:" . $query . ":" . ($page + 1)
+            ];
+        }
+
+        if (!empty($navButtons)) {
+            $inlineKeyboard[] = $navButtons;
+        }
+
+        $start = $offset + 1;
+        $end = min($offset + $pageSize, $totalTasks);
+        $text .= "\n<i>Showing $start-$end of $totalTasks results.</i>";
+
+        if ($editMessageId) {
+            $this->telegramService->editMessageText($chatId, $editMessageId, $text, [
+                'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+            ]);
+        } else {
+            $this->telegramService->sendMessage($chatId, $text, [
+                'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+            ]);
+        }
+        return true;
+    }
+
+    private function handleTasks(int $chatId, ?int $projectId = null, int $page = 1, ?int $editMessageId = null): bool
+    {
+        $user = $this->userModel->findByTelegramChatId($chatId);
+        if (!$user) {
+            if (!$editMessageId) {
+                $this->telegramService->sendMessage($chatId, "Unauthorized. Please link your account.");
+            }
+            return true;
+        }
+
+        $pageSize = 10;
+        $offset = ($page - 1) * $pageSize;
 
         $taskModel = $this->getTaskModel();
         if ($projectId) {
@@ -202,12 +288,19 @@ class TelegramWebhookHandler
         }
 
         if (empty($tasks)) {
-            $this->telegramService->sendMessage($chatId, $projectId ? "No active tasks found for this project." : "No active tasks found.");
+            if ($editMessageId) {
+                $this->telegramService->editMessageText($chatId, $editMessageId, $projectId ? "No active tasks found for this project." : "No active tasks found.");
+            } else {
+                $this->telegramService->sendMessage($chatId, $projectId ? "No active tasks found for this project." : "No active tasks found.");
+            }
             return true;
         }
 
+        $totalTasks = count($tasks);
+        $tasksPage = array_slice($tasks, $offset, $pageSize);
+
         $inlineKeyboard = [];
-        foreach (array_slice($tasks, 0, 10) as $task) {
+        foreach ($tasksPage as $task) {
             $statusEmoji = $taskModel->getStatusEmoji($task['status']);
             $text .= "$statusEmoji <b>#" . $task['issue_number'] . "</b>: " . htmlspecialchars($task['title']) . "\n";
 
@@ -217,13 +310,37 @@ class TelegramWebhookHandler
             ]];
         }
 
-        if (count($tasks) > 10) {
-            $text .= "\n<i>Showing 10 of " . count($tasks) . " tasks.</i>";
+        $navButtons = [];
+        if ($page > 1) {
+            $navButtons[] = [
+                'text' => "⬅️ Previous",
+                'callback_data' => "list_tasks:" . ($projectId ?: 0) . ":" . ($page - 1)
+            ];
+        }
+        if ($totalTasks > $offset + $pageSize) {
+            $navButtons[] = [
+                'text' => "Next ➡️",
+                'callback_data' => "list_tasks:" . ($projectId ?: 0) . ":" . ($page + 1)
+            ];
         }
 
-        $this->telegramService->sendMessage($chatId, $text, [
-            'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
-        ]);
+        if (!empty($navButtons)) {
+            $inlineKeyboard[] = $navButtons;
+        }
+
+        $start = $offset + 1;
+        $end = min($offset + $pageSize, $totalTasks);
+        $text .= "\n<i>Showing $start-$end of $totalTasks tasks.</i>";
+
+        if ($editMessageId) {
+            $this->telegramService->editMessageText($chatId, $editMessageId, $text, [
+                'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+            ]);
+        } else {
+            $this->telegramService->sendMessage($chatId, $text, [
+                'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+            ]);
+        }
         return true;
     }
 
@@ -327,7 +444,15 @@ class TelegramWebhookHandler
 
         if ($action === 'list_tasks') {
             $this->telegramService->answerCallbackQuery($callbackId);
-            return $this->handleTasks($chatId, $targetId ?: null);
+            $page = isset($parts[2]) ? (int)$parts[2] : 1;
+            return $this->handleTasks($chatId, $targetId ?: null, $page, $callbackQuery['message']['message_id'] ?? null);
+        }
+
+        if ($action === 'search_tasks') {
+            $this->telegramService->answerCallbackQuery($callbackId);
+            $query = $parts[1] ?? '';
+            $page = isset($parts[2]) ? (int)$parts[2] : 1;
+            return $this->handleSearch($chatId, $query, $page, $callbackQuery['message']['message_id'] ?? null);
         }
 
         if ($action === 'toggle_setting') {
@@ -335,7 +460,7 @@ class TelegramWebhookHandler
             return $this->handleToggleSetting($callbackId, $chatId, $channel, $callbackQuery['message']['message_id'] ?? null);
         }
 
-        if (!$targetId || !in_array($action, ['retry', 'restart', 'merge', 'acknowledge', 'approve_plan', 'fix_bug', 'view_task', 'refresh_task'])) {
+        if (!$targetId || !in_array($action, ['retry', 'restart', 'merge', 'acknowledge', 'approve_plan', 'fix_bug', 'view_task', 'refresh_task', 'search_tasks'])) {
             $this->telegramService->answerCallbackQuery($callbackId, [
                 'text' => "Invalid action.",
                 'show_alert' => true
@@ -365,7 +490,7 @@ class TelegramWebhookHandler
             $this->telegramService->answerCallbackQuery($callbackId);
         }
 
-        if ($notificationId) {
+        if ($notificationId && $action !== 'list_tasks' && $action !== 'search_tasks') {
             $notificationService = $this->getNotificationService();
             $notificationService->markAsRead($notificationId, false);
         }

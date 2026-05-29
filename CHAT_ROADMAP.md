@@ -15,7 +15,7 @@
 | 9 | Interactive Task Management | ✅ |
 | 10 | Enhanced Navigation & Contextual Actions | ✅ |
 | 11 | Notification Settings Management | ✅ |
-| 12 | Pagination & Search | ⏳ |
+| 12 | Pagination & Search | ✅ |
 
 ## Goals
 
@@ -91,5 +91,5 @@
 - [x] Update `handleCallback` to process toggle actions and refresh settings view.
 
 ## Phase 12: Pagination & Search
-- [ ] Implement pagination for `/tasks` list (Next/Prev buttons).
-- [ ] Implement `/search` command for finding tasks.
+- [x] Implement pagination for `/tasks` list (Next/Prev buttons).
+- [x] Implement `/search` command for finding tasks.
