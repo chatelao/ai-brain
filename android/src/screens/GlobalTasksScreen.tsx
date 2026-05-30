@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, FlatList, SafeAreaView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useTasks } from '../hooks/useTasks';
+import { theme } from '../theme';
 
 const FILTERS = [
   { id: 'all_open', label: 'All Open' },
@@ -18,18 +19,18 @@ export default function GlobalTasksScreen({ navigation }: any) {
       case 'ready':
       case 'finished':
       case 'implemented':
-        return '#10b981';
+        return theme.colors.success;
       case 'failed_jules':
       case 'failed_pr':
-        return '#ef4444';
+        return theme.colors.error;
       case 'analyzing':
       case 'planning':
       case 'executing':
       case 'verifying':
       case 'checking':
-        return '#3b82f6';
+        return theme.colors.primary;
       default:
-        return '#6b7280';
+        return theme.colors.textSecondary;
     }
   };
 
@@ -57,8 +58,8 @@ export default function GlobalTasksScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Global Tasks</Text>
-        <View style={{ width: 40 }} />
+        <Text style={styles.headerTitle} numberOfLines={1}>Global Tasks</Text>
+        <View style={styles.headerRightPlaceholder} />
       </View>
 
       <View style={styles.filterBar}>
@@ -83,7 +84,7 @@ export default function GlobalTasksScreen({ navigation }: any) {
 
       {isLoading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#2563eb" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -108,7 +109,7 @@ export default function GlobalTasksScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: theme.colors.background,
   },
   centered: {
     flex: 1,
@@ -119,107 +120,116 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#ffffff',
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: theme.colors.border,
   },
   backButton: {
-    paddingRight: 8,
+    padding: theme.spacing.xs,
+    minWidth: 60,
   },
   backButtonText: {
-    color: '#2563eb',
+    color: theme.colors.primary,
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: theme.typography.md,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: theme.typography.lg,
     fontWeight: '700',
-    color: '#111827',
-    flex: 1,
+    color: theme.colors.text,
     textAlign: 'center',
+    flex: 1,
+  },
+  headerRightPlaceholder: {
+    minWidth: 60,
   },
   filterBar: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: theme.colors.border,
   },
   filterList: {
-    padding: 12,
-    gap: 8,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    gap: theme.spacing.sm,
   },
   filterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#f3f4f6',
-    marginRight: 8,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: theme.colors.borderLight,
+    marginRight: theme.spacing.sm,
   },
   activeFilterChip: {
-    backgroundColor: '#2563eb',
+    backgroundColor: theme.colors.primary,
   },
   filterText: {
-    fontSize: 14,
-    color: '#4b5563',
+    fontSize: theme.typography.sm,
+    color: theme.colors.textSecondary,
     fontWeight: '600',
   },
   activeFilterText: {
-    color: '#ffffff',
+    color: theme.colors.surface,
   },
   listContent: {
-    padding: 12,
+    padding: theme.spacing.md,
+    paddingBottom: theme.spacing.xxl,
   },
   taskCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.md,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: theme.colors.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
-    elevation: 1,
+    elevation: 2,
   },
   taskHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   repoText: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: theme.typography.sm,
+    color: theme.colors.textSecondary,
     fontWeight: '600',
+    flex: 1,
   },
   statusBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: theme.spacing.sm,
     paddingVertical: 2,
-    borderRadius: 999,
+    borderRadius: theme.borderRadius.full,
+    marginLeft: theme.spacing.sm,
   },
   statusText: {
-    fontSize: 10,
+    fontSize: theme.typography.xs,
     fontWeight: '700',
-    color: '#ffffff',
+    color: theme.colors.surface,
     textTransform: 'uppercase',
   },
   taskTitle: {
-    fontSize: 15,
+    fontSize: theme.typography.md,
     fontWeight: '700',
-    color: '#111827',
+    color: theme.colors.text,
     marginBottom: 4,
   },
   dateText: {
-    fontSize: 11,
-    color: '#9ca3af',
+    fontSize: theme.typography.xs,
+    color: theme.colors.textMuted,
   },
   emptyContainer: {
     padding: 40,
     alignItems: 'center',
   },
   emptyText: {
-    color: '#6b7280',
+    color: theme.colors.textMuted,
     fontStyle: 'italic',
+    fontSize: theme.typography.base,
   },
 });

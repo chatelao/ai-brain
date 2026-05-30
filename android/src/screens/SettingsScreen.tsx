@@ -11,6 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { useUser, useUpdateUser } from '../hooks/useUser';
+import { theme } from '../theme';
 
 export default function SettingsScreen({ navigation }: any) {
   const { data: user, isLoading } = useUser();
@@ -19,7 +20,7 @@ export default function SettingsScreen({ navigation }: any) {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -51,7 +52,7 @@ export default function SettingsScreen({ navigation }: any) {
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Settings</Text>
-        <View style={{ width: 60 }} />
+        <View style={styles.headerRightPlaceholder} />
       </View>
 
       <ScrollView style={styles.content}>
@@ -62,7 +63,7 @@ export default function SettingsScreen({ navigation }: any) {
               source={{ uri: user?.avatar || 'https://www.gravatar.com/avatar/?d=mp' }}
               style={styles.avatar}
             />
-            <View>
+            <View style={styles.userInfo}>
               <Text style={styles.userName}>{user?.name}</Text>
               <Text style={styles.userEmail}>{user?.email}</Text>
             </View>
@@ -73,20 +74,20 @@ export default function SettingsScreen({ navigation }: any) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Notification Channels</Text>
           <View style={styles.settingItem}>
-            <View>
+            <View style={styles.settingTextContainer}>
               <Text style={styles.settingLabel}>In-App Notifications</Text>
               <Text style={styles.settingDescription}>Receive alerts inside the app</Text>
             </View>
             <Switch
               value={user?.notification_settings?.in_app}
               onValueChange={() => toggleChannel('in_app')}
-              trackColor={{ false: '#d1d5db', true: '#93c5fd' }}
-              thumbColor={user?.notification_settings?.in_app ? '#2563eb' : '#f4f3f4'}
+              trackColor={{ false: theme.colors.border, true: '#93c5fd' }}
+              thumbColor={user?.notification_settings?.in_app ? theme.colors.primary : '#f4f3f4'}
             />
           </View>
 
           <View style={styles.settingItem}>
-            <View>
+            <View style={styles.settingTextContainer}>
               <Text style={styles.settingLabel}>Telegram</Text>
               <Text style={styles.settingDescription}>
                 {user?.telegram_bot_name ? `@${user.telegram_bot_name}` : 'Not configured'}
@@ -96,8 +97,8 @@ export default function SettingsScreen({ navigation }: any) {
               value={user?.notification_settings?.telegram}
               onValueChange={() => toggleChannel('telegram')}
               disabled={!user?.telegram_bot_name}
-              trackColor={{ false: '#d1d5db', true: '#93c5fd' }}
-              thumbColor={user?.notification_settings?.telegram ? '#2563eb' : '#f4f3f4'}
+              trackColor={{ false: theme.colors.border, true: '#93c5fd' }}
+              thumbColor={user?.notification_settings?.telegram ? theme.colors.primary : '#f4f3f4'}
             />
           </View>
         </View>
@@ -117,14 +118,14 @@ export default function SettingsScreen({ navigation }: any) {
               <Switch
                 value={user?.notification_event_settings?.[item.id as keyof typeof user.notification_event_settings]}
                 onValueChange={() => toggleEvent(item.id)}
-                trackColor={{ false: '#d1d5db', true: '#93c5fd' }}
-                thumbColor={user?.notification_event_settings?.[item.id as keyof typeof user.notification_event_settings] ? '#2563eb' : '#f4f3f4'}
+                trackColor={{ false: theme.colors.border, true: '#93c5fd' }}
+                thumbColor={user?.notification_event_settings?.[item.id as keyof typeof user.notification_event_settings] ? theme.colors.primary : '#f4f3f4'}
               />
             </View>
           ))}
         </View>
 
-        <View style={[styles.section, { marginBottom: 40 }]}>
+        <View style={[styles.section, { marginBottom: theme.spacing.xxl }]}>
           <Text style={styles.sectionTitle}>Integrations</Text>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>GitHub Accounts</Text>
@@ -132,7 +133,7 @@ export default function SettingsScreen({ navigation }: any) {
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Jules AI Key</Text>
-            <Text style={[styles.infoValue, { color: user?.has_jules_key ? '#10b981' : '#ef4444' }]}>
+            <Text style={[styles.infoValue, { color: user?.has_jules_key ? theme.colors.success : theme.colors.error }]}>
               {user?.has_jules_key ? 'Configured' : 'Missing'}
             </Text>
           </View>
@@ -145,7 +146,7 @@ export default function SettingsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: theme.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -156,97 +157,111 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#ffffff',
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: theme.colors.border,
   },
   backButton: {
-    padding: 8,
+    padding: theme.spacing.xs,
+    minWidth: 60,
   },
   backButtonText: {
-    color: '#2563eb',
+    color: theme.colors.primary,
     fontWeight: '600',
+    fontSize: theme.typography.md,
   },
   title: {
-    fontSize: 18,
+    fontSize: theme.typography.lg,
     fontWeight: '700',
-    color: '#111827',
+    color: theme.colors.text,
+    textAlign: 'center',
+    flex: 1,
+  },
+  headerRightPlaceholder: {
+    minWidth: 60,
   },
   content: {
     flex: 1,
   },
   section: {
-    backgroundColor: '#ffffff',
-    marginTop: 16,
-    paddingHorizontal: 16,
+    backgroundColor: theme.colors.surface,
+    marginTop: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderTopColor: '#e5e7eb',
-    borderBottomColor: '#e5e7eb',
+    borderTopColor: theme.colors.border,
+    borderBottomColor: theme.colors.border,
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: theme.typography.xs,
     fontWeight: '700',
-    color: '#6b7280',
+    color: theme.colors.textMuted,
     textTransform: 'uppercase',
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
     letterSpacing: 0.5,
   },
   profileInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: theme.spacing.md,
   },
   avatar: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    marginRight: 16,
+    marginRight: theme.spacing.md,
+  },
+  userInfo: {
+    flex: 1,
   },
   userName: {
-    fontSize: 18,
+    fontSize: theme.typography.lg,
     fontWeight: '700',
-    color: '#111827',
+    color: theme.colors.text,
   },
   userEmail: {
-    fontSize: 14,
-    color: '#6b7280',
+    fontSize: theme.typography.base,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   settingItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: theme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: theme.colors.borderLight,
+  },
+  settingTextContainer: {
+    flex: 1,
+    marginRight: theme.spacing.md,
   },
   settingLabel: {
-    fontSize: 16,
+    fontSize: theme.typography.md,
     fontWeight: '500',
-    color: '#374151',
+    color: theme.colors.textSecondary,
   },
   settingDescription: {
-    fontSize: 13,
-    color: '#6b7280',
-    marginTop: 1,
+    fontSize: theme.typography.sm,
+    color: theme.colors.textMuted,
+    marginTop: 2,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: theme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: theme.colors.borderLight,
   },
   infoLabel: {
-    fontSize: 15,
-    color: '#374151',
+    fontSize: theme.typography.base,
+    color: theme.colors.textSecondary,
   },
   infoValue: {
-    fontSize: 15,
+    fontSize: theme.typography.base,
     fontWeight: '600',
-    color: '#111827',
+    color: theme.colors.text,
   },
 });
