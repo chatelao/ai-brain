@@ -308,6 +308,22 @@ class WebhookHandler
         // Sync task data (including labels) during PR events
         $taskModel = new Task($this->db);
         $task = $taskModel->findByPrUrl($pr['html_url']);
+
+        // Fallback: If not found by PR URL, try searching for issue references in the PR body
+        if (!$task && !empty($pr['body'])) {
+            $referencedIssues = $taskModel->extractIssueNumbers($pr['body'], $project['github_repo']);
+            foreach ($referencedIssues as $issueNumber) {
+                $task = $taskModel->findByIssueNumber($project['project_id'], $issueNumber);
+                if ($task) {
+                    // Established link: update task with PR URL
+                    $stmt = $this->db->getConnection()->prepare("UPDATE tasks SET pr_url = ? WHERE task_id = ?");
+                    $stmt->execute([$pr['html_url'], $task['task_id']]);
+                    $task['pr_url'] = $pr['html_url'];
+                    break;
+                }
+            }
+        }
+
         if ($task && $githubService && !empty($project['github_repo'])) {
             try {
                 $issue = $githubService->getIssue($project['github_repo'], $task['issue_number']);
@@ -326,11 +342,14 @@ class WebhookHandler
             }
         }
 
+        // Run Blockly automations if task context is resolved
+        if ($task) {
+            $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
+        }
+
         // Handle auto-repeat if PR is merged
         if ($action === 'closed' && ($pr['merged'] ?? false) && $githubService) {
             if ($task && $task['issue_number']) {
-                $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
-
                 $userModel = new User($this->db);
                 $user = $userModel->findById($project['user_id']);
                 $githubData = json_decode($task['github_data'] ?? '{}', true);
@@ -342,10 +361,6 @@ class WebhookHandler
                     $pseudoEvent['issue']['state_reason'] = 'completed';
                     $this->maybeDuplicateTask($project, $pseudoEvent, $githubService, $notificationService);
                 }
-            }
-        } elseif ($action !== 'closed') {
-            if ($task) {
-                $this->runBlocklyAutomations($project, $event, $githubEvent, (int)$task['task_id'], $sandboxService);
             }
         }
 
