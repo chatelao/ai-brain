@@ -140,6 +140,6 @@ class AutorepeatPersistenceTest extends TestCase
                 'labels' => [['name' => 'autorepeat']]
             ])
         ];
-        $this->assertTrue($this->taskModel->hasAutorepeatLabel($task2));
+        $this->assertFalse($this->taskModel->hasAutorepeatLabel($task2));
     }
 }

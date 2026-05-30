@@ -140,7 +140,7 @@ class AutorepeatRaceTest extends TestCase
         ];
         $taskModel->upsert(1, 1, $issueUpdate);
 
-        // Should NOT reset to 5, should stay 3
+        // Should NOT change anything, should stay 3
         $stmt = $this->pdo->query("SELECT autorepeat_remaining FROM tasks WHERE issue_number = 201");
         $this->assertEquals(3, $stmt->fetchColumn());
 
@@ -149,7 +149,7 @@ class AutorepeatRaceTest extends TestCase
         $stmt = $this->pdo->query("SELECT autorepeat_remaining FROM tasks WHERE issue_number = 201");
         $this->assertEquals(2, $stmt->fetchColumn());
 
-        // Final sanity check: if it was 0, generic label should set it to 5
+        // Final sanity check: if it was 0, generic label should NOT set it to 5 anymore
         $issueNew = [
             'number' => 202,
             'title' => 'New Task',
@@ -158,6 +158,6 @@ class AutorepeatRaceTest extends TestCase
         ];
         $taskModel->upsert(1, 1, $issueNew);
         $stmt = $this->pdo->query("SELECT autorepeat_remaining FROM tasks WHERE issue_number = 202");
-        $this->assertEquals(5, $stmt->fetchColumn());
+        $this->assertEquals(0, $stmt->fetchColumn());
     }
 }

@@ -470,7 +470,6 @@ class GitHubService
         }
 
         if ($count > 0) {
-            $newLabels[] = 'autorepeat';
             $newLabels[] = 'autorepeat: ' . $count;
         }
 

@@ -73,7 +73,7 @@ class WebhookHandlerTest extends TestCase
                 'body' => 'Body',
                 'state_reason' => 'completed',
                 'labels' => [
-                    ['name' => 'autorepeat'],
+                    ['name' => 'autorepeat: 5'],
                     ['name' => 'bug']
                 ]
             ]

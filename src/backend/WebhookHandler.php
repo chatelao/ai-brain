@@ -224,7 +224,7 @@ class WebhookHandler
 
         $labelNames = array_filter(
             array_map(fn($l) => $l['name'], $labels),
-            fn($name) => strtolower($name) !== 'autorepeat' && strtolower($name) !== 'auto-repeat' && !str_starts_with(strtolower($name), 'autorepeat:')
+            fn($name) => strtolower($name) !== 'autorepeat' && strtolower($name) !== 'auto-repeat' && !str_starts_with(strtolower($name), 'autorepeat:') && !str_starts_with(strtolower($name), 'auto-repeat:')
         );
 
         // Ensure 'Jules' label is present to trigger the agent for the new issue
