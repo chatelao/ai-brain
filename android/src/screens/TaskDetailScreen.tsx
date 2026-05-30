@@ -101,6 +101,33 @@ export default function TaskDetailScreen({ route, navigation }: any) {
               </Text>
             </TouchableOpacity>
           )}
+
+          {!!task.pr_url && task.status !== 'finished' && task.github_state === 'open' && (
+            <>
+              <TouchableOpacity
+                style={[styles.primaryButton, { backgroundColor: '#9333ea', marginTop: 12 }]}
+                onPress={() => performAction({ action: 'merge_close' })}
+                disabled={isPerformingAction}
+              >
+                <Text style={styles.buttonText}>
+                  {isPerformingAction ? 'Merging...' : 'Merge & Close'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.primaryButton, { backgroundColor: '#4f46e5', marginTop: 12 }]}
+                onPress={() => performAction({ action: 'merge_close_duplicate' })}
+                disabled={isPerformingAction}
+              >
+                <Text style={styles.buttonText}>
+                  {isPerformingAction ? 'Processing...' : 'Merge, Close & Duplicate'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {task.status === 'finished' && (
+            <Text style={styles.finishedText}>This task is finished.</Text>
+          )}
         </View>
 
         <View style={styles.logsContainer}>
@@ -295,5 +322,12 @@ const styles = StyleSheet.create({
   },
   errorLog: {
     color: '#f87171',
+  },
+  finishedText: {
+    fontSize: 14,
+    color: '#6b7280',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 8,
   },
 });
