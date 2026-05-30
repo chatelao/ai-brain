@@ -31,6 +31,7 @@ if (!$userId) {
 
 $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $filter = $_GET['filter'] ?? 'all_open';
+$showAll = isset($_GET['all']) && ($_GET['all'] === 'true' || $_GET['all'] === '1');
 
 $db = new Database();
 $projectModel = new Project($db);
@@ -44,7 +45,7 @@ if ($projectId > 0) {
         echo json_encode(['error' => 'Project not found']);
         exit;
     }
-    $tasks = $taskModel->findByProjectId($projectId);
+    $tasks = $taskModel->findByProjectId($projectId, $showAll);
 } else {
     // Global filter
     $tasks = $taskModel->findByFilter($userId, $filter);
