@@ -19,7 +19,7 @@ export default function ProjectDetailView({ id }: { id: string }) {
   const { rel } = useRelativePath();
   const projectId = parseInt(id);
   const { data: project, isLoading: projectLoading, error: projectError, syncIssues, isSyncing, createFromTemplate, isCreatingFromTemplate, createFromRoadmap, isCreatingFromRoadmap, createGithubIssue, isCreatingGithubIssue } = useProject(projectId);
-  const { data: tasks, isLoading: tasksLoading } = useTasks(projectId);
+  const { data: tasks, isLoading: tasksLoading } = useTasks(projectId, 'all_open', true);
   const { data: templates } = useTemplates();
   const { performAction, isPerformingAction, performingActionId } = useTaskActions();
 

@@ -159,7 +159,7 @@ class Task
                     AND t2.github_state = 'closed'
                     AND t2.status IN ('" . self::STATUS_FINISHED . "', 'completed')
                     AND (t2.created_at > t1.created_at OR (t2.created_at = t1.created_at AND t2.task_id > t1.task_id))
-                ) < 3
+                ) < 10
             ))";
         }
 
@@ -194,7 +194,7 @@ class Task
                     AND t3.github_state = 'closed'
                     AND t3.status IN ('" . self::STATUS_FINISHED . "', 'completed')
                     AND (t3.created_at > t.created_at OR (t3.created_at = t.created_at AND t3.task_id > t.task_id))
-                ) < 3
+                ) < 10
             ))";
             $params[] = $userId;
         }
@@ -234,7 +234,7 @@ class Task
                 AND t3.github_state = 'closed'
                 AND t3.status IN ('" . self::STATUS_FINISHED . "', 'completed')
                 AND (t3.created_at > t.created_at OR (t3.created_at = t.created_at AND t3.task_id > t.task_id))
-            ) < 3
+            ) < 10
         ))";
         $params[] = $userId;
 

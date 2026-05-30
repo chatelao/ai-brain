@@ -81,10 +81,10 @@ class TaskFilteringTest extends TestCase
         // findByProjectId(1, false)
         $tasks = $this->taskModel->findByProjectId(1, false);
 
-        // Expected issues for Project 1: 1, 2 (open), 4, 5, 6 (last 3 completed for this project)
+        // Expected issues for Project 1: 1, 2 (open), 3, 4, 5, 6 (last 10 completed for this project)
         $issueNumbers = array_column($tasks, 'issue_number');
         sort($issueNumbers);
-        $this->assertEquals([1, 2, 4, 5, 6], $issueNumbers, "Should only show open issues and last 3 completed issues for Project 1");
+        $this->assertEquals([1, 2, 3, 4, 5, 6], $issueNumbers, "Should only show open issues and last 10 completed issues for Project 1");
 
         // findActiveByUserProjects(1)
         $activeTasks = $this->taskModel->findActiveByUserProjects(1);
@@ -92,8 +92,8 @@ class TaskFilteringTest extends TestCase
         sort($issueNumbers);
 
         // Globally open: 1, 2, 10
-        // Globally completed (last 3): 11 (17:00), 6 (15:00), 5 (14:00)
+        // Globally completed (last 10): 11 (17:00), 6 (15:00), 5 (14:00), 4 (13:00), 3 (12:00)
         // Hidden orphans: 0, 99 (empty title)
-        $this->assertEquals([1, 2, 5, 6, 10, 11], $issueNumbers, "Should only show active issues and last 3 globally completed issues");
+        $this->assertEquals([1, 2, 3, 4, 5, 6, 10, 11], $issueNumbers, "Should only show active issues and last 10 globally completed issues");
     }
 }
