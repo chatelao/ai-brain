@@ -13,7 +13,7 @@ export default function NotificationsScreen({ navigation }: any) {
       <View style={styles.notificationContent}>
         <View style={styles.titleRow}>
           <Text style={styles.notificationTitle}>
-            {item.title_plain || item.title?.replace(/<[^>]*>?/gm, '')}
+            {item.title_plain || item.title}
           </Text>
           {item.is_read === 0 && <View style={styles.unreadDot} />}
         </View>
@@ -23,7 +23,7 @@ export default function NotificationsScreen({ navigation }: any) {
         )}
 
         <Text style={styles.notificationMessage}>
-          {item.message_plain || item.message?.replace(/<[^>]*>?/gm, '')}
+          {item.message_plain || item.message}
         </Text>
 
         <View style={styles.footer}>
