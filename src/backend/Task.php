@@ -830,6 +830,29 @@ class Task
         return null;
     }
 
+    public function extractIssueNumbers(string $text, ?string $repo = null): array
+    {
+        $issueNumbers = [];
+
+        // 1. Full URLs: https://github.com/owner/repo/issues/123
+        if (preg_match_all('/https?:\/\/github\.com\/([^\/]+\/[^\/]+)\/issues\/(\d+)/i', $text, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                if ($repo === null || strtolower($match[1]) === strtolower($repo)) {
+                    $issueNumbers[] = (int)$match[2];
+                }
+            }
+        }
+
+        // 2. Relative references like #123
+        if (preg_match_all('/(?:fixes|closes|resolves|#)\s*#?(\d+)/i', $text, $matches)) {
+            foreach ($matches[1] as $num) {
+                $issueNumbers[] = (int)$num;
+            }
+        }
+
+        return array_values(array_unique($issueNumbers));
+    }
+
     public function extractPrUrl(string $text, ?string $repo = null, ?int $excludeIssueNumber = null): ?string
     {
         // Full URL
