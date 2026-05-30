@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, ScrollView, SafeAreaView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTask } from '../hooks/useTask';
 import { useTaskLogs } from '../hooks/useTaskLogs';
+import { theme } from '../theme';
 
 export default function TaskDetailScreen({ route, navigation }: any) {
   const { id } = route.params;
@@ -12,7 +13,7 @@ export default function TaskDetailScreen({ route, navigation }: any) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#2563eb" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       </SafeAreaView>
     );
@@ -23,18 +24,18 @@ export default function TaskDetailScreen({ route, navigation }: any) {
       case 'ready':
       case 'finished':
       case 'implemented':
-        return '#10b981';
+        return theme.colors.success;
       case 'failed_jules':
       case 'failed_pr':
-        return '#ef4444';
+        return theme.colors.error;
       case 'analyzing':
       case 'planning':
       case 'executing':
       case 'verifying':
       case 'checking':
-        return '#3b82f6';
+        return theme.colors.primary;
       default:
-        return '#6b7280';
+        return theme.colors.textSecondary;
     }
   };
 
@@ -105,7 +106,7 @@ export default function TaskDetailScreen({ route, navigation }: any) {
           {!!task.pr_url && task.status !== 'finished' && task.github_state === 'open' && (
             <>
               <TouchableOpacity
-                style={[styles.primaryButton, { backgroundColor: '#9333ea', marginTop: 12 }]}
+                style={[styles.primaryButton, { backgroundColor: theme.colors.secondary }]}
                 onPress={() => performAction({ action: 'merge_close' })}
                 disabled={isPerformingAction}
               >
@@ -114,7 +115,7 @@ export default function TaskDetailScreen({ route, navigation }: any) {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.primaryButton, { backgroundColor: '#4f46e5', marginTop: 12 }]}
+                style={[styles.primaryButton, { backgroundColor: theme.colors.indigo, marginTop: theme.spacing.md }]}
                 onPress={() => performAction({ action: 'merge_close_duplicate' })}
                 disabled={isPerformingAction}
               >
@@ -157,7 +158,7 @@ export default function TaskDetailScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: theme.colors.background,
   },
   centered: {
     flex: 1,
@@ -167,35 +168,37 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#ffffff',
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: theme.colors.border,
   },
   backButton: {
-    marginRight: 12,
+    marginRight: theme.spacing.md,
+    padding: theme.spacing.xs,
   },
   backButtonText: {
-    color: '#2563eb',
+    color: theme.colors.primary,
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: theme.typography.md,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: theme.typography.lg,
     fontWeight: '700',
-    color: '#111827',
+    color: theme.colors.text,
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
+    padding: theme.spacing.md,
+    paddingBottom: theme.spacing.xxl,
   },
   card: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    marginBottom: theme.spacing.md,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: theme.colors.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -205,103 +208,105 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginBottom: 12,
+    marginBottom: theme.spacing.sm,
   },
   statusBadge: {
-    paddingHorizontal: 10,
+    paddingHorizontal: theme.spacing.sm,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: theme.borderRadius.full,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: theme.typography.sm,
     fontWeight: '700',
-    color: '#ffffff',
+    color: theme.colors.surface,
     textTransform: 'uppercase',
   },
   taskTitle: {
-    fontSize: 20,
+    fontSize: theme.typography.xl,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 12,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
   },
   taskBody: {
-    fontSize: 14,
-    color: '#4b5563',
-    lineHeight: 20,
-    marginBottom: 16,
+    fontSize: theme.typography.base,
+    color: theme.colors.textSecondary,
+    lineHeight: theme.typography.xl,
+    marginBottom: theme.spacing.md,
   },
   noBody: {
-    fontSize: 14,
-    color: '#9ca3af',
+    fontSize: theme.typography.base,
+    color: theme.colors.textMuted,
     fontStyle: 'italic',
-    marginBottom: 16,
+    marginBottom: theme.spacing.md,
   },
   labelsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: theme.spacing.sm,
   },
   label: {
-    paddingHorizontal: 8,
+    paddingHorizontal: theme.spacing.sm,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: theme.borderRadius.sm,
     borderWidth: 1,
   },
   labelText: {
-    fontSize: 12,
+    fontSize: theme.typography.sm,
     fontWeight: '600',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: theme.typography.md,
     fontWeight: '700',
-    color: '#374151',
-    marginBottom: 12,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.md,
   },
   prCard: {
     backgroundColor: '#f0fdf4',
     borderColor: '#bbf7d0',
   },
   prTitle: {
-    fontSize: 15,
+    fontSize: theme.typography.md,
     fontWeight: '600',
     color: '#065f46',
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   prMeta: {
     flexDirection: 'row',
-    gap: 16,
+    gap: theme.spacing.md,
   },
   prMetaText: {
-    fontSize: 12,
+    fontSize: theme.typography.sm,
     color: '#047857',
   },
   actionsContainer: {
-    marginBottom: 16,
+    marginBottom: theme.spacing.lg,
   },
   primaryButton: {
-    backgroundColor: '#2563eb',
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: theme.colors.primary,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 48,
   },
   buttonText: {
-    color: '#ffffff',
+    color: theme.colors.surface,
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: theme.typography.md,
   },
   logsContainer: {
-    marginTop: 8,
+    marginTop: theme.spacing.sm,
   },
   logsBox: {
     backgroundColor: '#111827',
-    padding: 12,
-    borderRadius: 8,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
     minHeight: 200,
   },
   noLogs: {
-    color: '#6b7280',
+    color: theme.colors.textMuted,
     fontStyle: 'italic',
+    fontSize: theme.typography.base,
   },
   logItem: {
     flexDirection: 'row',
@@ -310,24 +315,24 @@ const styles = StyleSheet.create({
   logTime: {
     color: '#6b7280',
     fontFamily: 'monospace',
-    fontSize: 11,
+    fontSize: theme.typography.xs,
     marginRight: 8,
     width: 75,
   },
   logMessage: {
     color: '#d1d5db',
     fontFamily: 'monospace',
-    fontSize: 11,
+    fontSize: theme.typography.xs,
     flex: 1,
   },
   errorLog: {
     color: '#f87171',
   },
   finishedText: {
-    fontSize: 14,
-    color: '#6b7280',
+    fontSize: theme.typography.base,
+    color: theme.colors.textMuted,
     fontStyle: 'italic',
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: theme.spacing.sm,
   },
 });

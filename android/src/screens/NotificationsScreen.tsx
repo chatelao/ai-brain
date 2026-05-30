@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, FlatList, SafeAreaView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useNotifications, useNotificationActions } from '../hooks/useNotifications';
+import { theme } from '../theme';
 
 export default function NotificationsScreen({ navigation }: any) {
   const { data, isLoading, refetch, isRefetching } = useNotifications('list');
@@ -53,21 +54,24 @@ export default function NotificationsScreen({ navigation }: any) {
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
-        {notifications.length > 0 && (
-          <TouchableOpacity
-            onPress={() => markAllAsRead()}
-            disabled={isMarkingAllRead}
-          >
-            <Text style={[styles.markAllText, isMarkingAllRead && { opacity: 0.5 }]}>
-              Mark all read
-            </Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.headerRight}>
+          {notifications.length > 0 && (
+            <TouchableOpacity
+              onPress={() => markAllAsRead()}
+              disabled={isMarkingAllRead}
+              style={styles.markAllButton}
+            >
+              <Text style={[styles.markAllText, isMarkingAllRead && { opacity: 0.5 }]}>
+                Mark all
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {isLoading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#2563eb" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -92,7 +96,7 @@ export default function NotificationsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: theme.colors.background,
   },
   centered: {
     flex: 1,
@@ -103,53 +107,62 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#ffffff',
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: theme.colors.border,
   },
   backButton: {
-    paddingRight: 8,
+    minWidth: 60,
+    padding: theme.spacing.xs,
   },
   backButtonText: {
-    color: '#2563eb',
+    color: theme.colors.primary,
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: theme.typography.md,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: theme.typography.lg,
     fontWeight: '700',
-    color: '#111827',
+    color: theme.colors.text,
     flex: 1,
     textAlign: 'center',
   },
+  headerRight: {
+    minWidth: 60,
+    alignItems: 'flex-end',
+  },
+  markAllButton: {
+    padding: theme.spacing.xs,
+  },
   markAllText: {
-    color: '#2563eb',
-    fontSize: 14,
+    color: theme.colors.primary,
+    fontSize: theme.typography.sm,
     fontWeight: '600',
   },
   listContent: {
-    padding: 12,
+    padding: theme.spacing.md,
+    paddingBottom: theme.spacing.xxl,
   },
   notificationCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    marginBottom: theme.spacing.md,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: theme.colors.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
-    elevation: 1,
+    elevation: 2,
     overflow: 'hidden',
   },
   unreadCard: {
-    backgroundColor: '#eff6ff',
+    backgroundColor: theme.colors.primaryLight,
     borderColor: '#bfdbfe',
   },
   notificationContent: {
-    padding: 16,
+    padding: theme.spacing.md,
   },
   titleRow: {
     flexDirection: 'row',
@@ -158,29 +171,29 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   notificationTitle: {
-    fontSize: 15,
+    fontSize: theme.typography.md,
     fontWeight: '700',
-    color: '#111827',
+    color: theme.colors.text,
     flex: 1,
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#2563eb',
-    marginLeft: 8,
+    backgroundColor: theme.colors.primary,
+    marginLeft: theme.spacing.sm,
   },
   repoText: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: theme.typography.sm,
+    color: theme.colors.textMuted,
     fontStyle: 'italic',
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   notificationMessage: {
-    fontSize: 14,
-    color: '#4b5563',
-    lineHeight: 20,
-    marginBottom: 12,
+    fontSize: theme.typography.base,
+    color: theme.colors.textSecondary,
+    lineHeight: theme.typography.xl,
+    marginBottom: theme.spacing.md,
   },
   footer: {
     flexDirection: 'row',
@@ -188,31 +201,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateText: {
-    fontSize: 11,
-    color: '#9ca3af',
+    fontSize: theme.typography.xs,
+    color: theme.colors.textMuted,
   },
   actions: {
     flexDirection: 'row',
   },
   markReadButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    backgroundColor: '#ffffff',
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
+    borderRadius: theme.borderRadius.sm,
+    backgroundColor: theme.colors.surface,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: theme.colors.border,
   },
   markReadText: {
-    fontSize: 12,
+    fontSize: theme.typography.xs,
     fontWeight: '600',
-    color: '#374151',
+    color: theme.colors.textSecondary,
   },
   emptyContainer: {
     padding: 40,
     alignItems: 'center',
   },
   emptyText: {
-    color: '#6b7280',
+    color: theme.colors.textMuted,
     fontStyle: 'italic',
+    fontSize: theme.typography.base,
   },
 });

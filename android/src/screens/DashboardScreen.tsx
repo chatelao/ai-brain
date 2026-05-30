@@ -4,6 +4,7 @@ import { useProjects } from '../hooks/useProjects';
 import { useAutorepeatTasks } from '../hooks/useAutorepeatTasks';
 import { useAuth } from '../hooks/useAuth';
 import { useNotifications } from '../hooks/useNotifications';
+import { theme } from '../theme';
 
 export default function DashboardScreen({ navigation }: any) {
   const { data: projects, isLoading: projectsLoading } = useProjects();
@@ -42,46 +43,47 @@ export default function DashboardScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
             <Text style={styles.settingsEmoji}>⚙️</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={logout}>
+          <TouchableOpacity onPress={logout} style={styles.logoutButton}>
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {autorepeatTasks && autorepeatTasks.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Running Autorepeat</Text>
-          {autorepeatTasks.map(task => (
-            <TouchableOpacity
-              key={task.id}
-              style={styles.taskItem}
-              onPress={() => navigation.navigate('TaskDetail', { id: task.id })}
-            >
-              <Text style={styles.taskTitle}>{task.title}</Text>
-              <Text style={styles.taskRepo}>{task.github_repo}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
+      <FlatList
+        data={projects}
+        renderItem={renderProjectItem}
+        keyExtractor={item => item.id?.toString() || Math.random().toString()}
+        contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          <>
+            {autorepeatTasks && autorepeatTasks.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Running Autorepeat</Text>
+                {autorepeatTasks.map(task => (
+                  <TouchableOpacity
+                    key={task.id}
+                    style={styles.taskItem}
+                    onPress={() => navigation.navigate('TaskDetail', { id: task.id })}
+                  >
+                    <Text style={styles.taskTitle}>{task.title}</Text>
+                    <Text style={styles.taskRepo}>{task.github_repo}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Your Projects</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('GlobalTasks')}>
-            <Text style={styles.viewAllTasks}>View All Tasks →</Text>
-          </TouchableOpacity>
-        </View>
-        {projectsLoading ? (
-          <ActivityIndicator size="large" color="#2563eb" />
-        ) : (
-          <FlatList
-            data={projects}
-            renderItem={renderProjectItem}
-            keyExtractor={item => item.id?.toString() || Math.random().toString()}
-            contentContainerStyle={styles.listContent}
-          />
-        )}
-      </View>
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Your Projects</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('GlobalTasks')} style={styles.viewAllButton}>
+                  <Text style={styles.viewAllTasks}>View All Tasks →</Text>
+                </TouchableOpacity>
+              </View>
+              {projectsLoading && <ActivityIndicator size="large" color={theme.colors.primary} />}
+            </View>
+          </>
+        }
+      />
     </SafeAreaView>
   );
 }
@@ -89,114 +91,129 @@ export default function DashboardScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: theme.colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#ffffff',
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: theme.colors.border,
   },
   title: {
-    fontSize: 24,
+    fontSize: theme.typography.xxl,
     fontWeight: '700',
-    color: '#111827',
+    color: theme.colors.text,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: theme.spacing.md,
   },
   notifButton: {
     position: 'relative',
-    padding: 4,
+    padding: theme.spacing.xs,
   },
   notifEmoji: {
-    fontSize: 20,
+    fontSize: theme.typography.xl,
   },
   settingsEmoji: {
-    fontSize: 20,
+    fontSize: theme.typography.xl,
   },
   badge: {
     position: 'absolute',
     top: -2,
     right: -2,
-    backgroundColor: '#ef4444',
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
+    backgroundColor: theme.colors.error,
+    borderRadius: theme.borderRadius.full,
+    minWidth: theme.spacing.md,
+    height: theme.spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
   badgeText: {
-    color: '#ffffff',
-    fontSize: 10,
+    color: theme.colors.surface,
+    fontSize: theme.typography.xs,
     fontWeight: 'bold',
   },
+  logoutButton: {
+    paddingVertical: theme.spacing.xs,
+  },
   logoutText: {
-    color: '#ef4444',
+    color: theme.colors.error,
     fontWeight: '600',
+    fontSize: theme.typography.base,
   },
   section: {
-    padding: 20,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: theme.spacing.md,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: theme.typography.lg,
     fontWeight: '600',
-    color: '#374151',
+    color: theme.colors.textSecondary,
+  },
+  viewAllButton: {
+    padding: theme.spacing.xs,
   },
   viewAllTasks: {
-    fontSize: 14,
-    color: '#2563eb',
+    fontSize: theme.typography.base,
+    color: theme.colors.primary,
     fontWeight: '600',
   },
   projectCard: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.md,
+    marginHorizontal: theme.spacing.lg,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: theme.colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   projectRepo: {
-    fontSize: 16,
+    fontSize: theme.typography.md,
     fontWeight: '600',
-    color: '#111827',
+    color: theme.colors.text,
   },
   projectUser: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginTop: 4,
+    fontSize: theme.typography.base,
+    color: theme.colors.textMuted,
+    marginTop: theme.spacing.xs,
   },
   taskItem: {
-    backgroundColor: '#eff6ff',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+    backgroundColor: theme.colors.primaryLight,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.sm,
     borderLeftWidth: 4,
-    borderLeftColor: '#3b82f6',
+    borderLeftColor: theme.colors.primary,
   },
   taskTitle: {
-    fontSize: 14,
+    fontSize: theme.typography.base,
     fontWeight: '600',
-    color: '#1e40af',
+    color: theme.colors.primaryDark,
   },
   taskRepo: {
-    fontSize: 12,
-    color: '#3b82f6',
+    fontSize: theme.typography.sm,
+    color: theme.colors.primary,
     marginTop: 2,
   },
   listContent: {
-    paddingBottom: 20,
+    paddingBottom: theme.spacing.xxl,
   },
 });

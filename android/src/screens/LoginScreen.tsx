@@ -4,6 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { useAuth } from '../hooks/useAuth';
 import apiClient from '../api/client';
+import { theme } from '../theme';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -39,7 +40,10 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Agent Control</Text>
+        <View style={styles.logoContainer}>
+          <Text style={styles.logoEmoji}>🤖</Text>
+          <Text style={styles.title}>Agent Control</Text>
+        </View>
         <Text style={styles.subtitle}>Manage your AI agents from anywhere.</Text>
 
         <TouchableOpacity
@@ -53,7 +57,7 @@ export default function LoginScreen() {
           style={[styles.button, styles.githubButton]}
           onPress={() => handleLogin('github')}
         >
-          <Text style={styles.buttonText}>Login with GitHub</Text>
+          <Text style={styles.githubButtonText}>Login with GitHub</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -63,31 +67,38 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: theme.colors.background,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: theme.spacing.xl,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  logoEmoji: {
+    fontSize: 64,
+    marginBottom: theme.spacing.sm,
   },
   title: {
-    fontSize: 32,
+    fontSize: theme.typography.xxxl,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
+    color: theme.colors.text,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#6b7280',
-    marginBottom: 40,
+    fontSize: theme.typography.md,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.xxl,
     textAlign: 'center',
   },
   button: {
     width: '100%',
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginBottom: 12,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -95,18 +106,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
+    minHeight: 48,
   },
   googleButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: theme.colors.primary,
   },
   githubButton: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.surface,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: theme.colors.border,
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: theme.typography.md,
     fontWeight: '600',
-    color: '#ffffff',
+    color: theme.colors.surface,
+  },
+  githubButtonText: {
+    fontSize: theme.typography.md,
+    fontWeight: '600',
+    color: theme.colors.text,
   },
 });
