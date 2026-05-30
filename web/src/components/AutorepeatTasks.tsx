@@ -13,9 +13,33 @@ export const AutorepeatTasks: React.FC = () => {
   }
 
   return (
-    <div className="mb-8 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+    <div className="mb-8 p-3 sm:p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
       <h3 className="text-lg font-bold text-gray-900 mb-4">Running Autorepeat Tasks</h3>
-      <div className="overflow-x-auto">
+
+      {/* Mobile List View */}
+      <div className="space-y-4 sm:hidden">
+        {tasks.map((task) => (
+          <div key={task.id} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
+            <div className="flex justify-between items-start mb-2">
+              <a
+                href={`https://github.com/${task.github_repo}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-medium text-blue-600 hover:underline truncate mr-2"
+              >
+                {task.github_repo}
+              </a>
+              <StatusBadge status={task.status} className="shrink-0 scale-90 origin-right" />
+            </div>
+            <Link href={rel(`/tasks/?id=${task.id}`)} className="text-sm text-gray-900 hover:text-blue-600 break-words line-clamp-2">
+              #{task.issue_number} - {task.title}
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 table-fixed">
           <thead className="bg-gray-50">
             <tr>

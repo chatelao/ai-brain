@@ -36,7 +36,7 @@ export const TaskFilterBar: React.FC<TaskFilterBarProps> = ({
   searchPlaceholder = 'e.g. google/jules',
 }) => {
   return (
-    <div className="flex flex-col md:flex-row gap-4 mb-6 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+    <div className="flex flex-col md:flex-row gap-4 sm:gap-6 mb-6 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
       <div className="flex-grow min-w-0">
         <label htmlFor="search" className="block text-xs font-medium text-gray-700 mb-1">
           {searchLabel}
