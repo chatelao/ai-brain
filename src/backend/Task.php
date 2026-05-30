@@ -855,7 +855,8 @@ class Task
 
     public function getTargetUrl(array $task, ?string $repo = null): string
     {
-        $issueUrl = "https://github.com/" . ($repo ?? $task['github_repo']) . "/issues/" . $task['issue_number'];
+        $repo = $repo ?? $task['github_repo'] ?? '';
+        $issueUrl = "https://github.com/" . $repo . "/issues/" . ($task['issue_number'] ?? 0);
         $status = $task['status'] ?? self::STATUS_CREATED;
 
         if ($status === self::STATUS_FINISHED || $status === 'completed' || $status === 'failed_pr') {

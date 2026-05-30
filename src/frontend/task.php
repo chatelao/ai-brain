@@ -1,7 +1,5 @@
 <?php
-
 require_once __DIR__ . '/../../vendor/autoload.php';
-
 use App\Database;
 use App\Auth;
 use App\User;
@@ -14,11 +12,10 @@ $taskModel = new Task($db);
 
 if (!$auth->isLoggedIn()) {
     header('Location: google/login.php');
-    exit;
+    die();
 }
 
 $user = $userModel->findById($auth->getUserId());
-
 $taskId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $task = $taskModel->findById($taskId);
 
@@ -26,6 +23,17 @@ if (!$task || $task['user_id'] !== $user['user_id']) {
     die("Task not found or access denied.");
 }
 
-// Redirect to Next-Gen UI
-header('Location: /web/tasks/?id=' . $taskId);
-exit;
+if (($_COOKIE['prefer_legacy'] ?? '') !== '1' && !isset($_GET['legacy'])) {
+    header('Location: /web/tasks/?id=' . $taskId);
+    die();
+}
+?>
+<!DOCTYPE html>
+<html>
+<head><title>Legacy Task View</title></head>
+<body>
+    <h1><?= htmlspecialchars($task['title'] ?? 'Task') ?></h1>
+    <div>Task Logs</div>
+    <div>Status & Links</div>
+</body>
+</html>
