@@ -3,11 +3,15 @@ import { StyleSheet, View, Text, FlatList, SafeAreaView, TouchableOpacity, Activ
 import { useProjects } from '../hooks/useProjects';
 import { useAutorepeatTasks } from '../hooks/useAutorepeatTasks';
 import { useAuth } from '../hooks/useAuth';
+import { useNotifications } from '../hooks/useNotifications';
 
 export default function DashboardScreen({ navigation }: any) {
   const { data: projects, isLoading: projectsLoading } = useProjects();
   const { data: autorepeatTasks } = useAutorepeatTasks();
+  const { data: notificationData } = useNotifications('unread_count');
   const { logout } = useAuth();
+
+  const unreadCount = notificationData?.unread_count || 0;
 
   const renderProjectItem = ({ item }: any) => (
     <TouchableOpacity
@@ -23,9 +27,22 @@ export default function DashboardScreen({ navigation }: any) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Dashboard</Text>
-        <TouchableOpacity onPress={logout}>
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Notifications')}
+            style={styles.notifButton}
+          >
+            <Text style={styles.notifEmoji}>🔔</Text>
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={logout}>
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {autorepeatTasks && autorepeatTasks.length > 0 && (
@@ -45,7 +62,12 @@ export default function DashboardScreen({ navigation }: any) {
       )}
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Your Projects</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Your Projects</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('GlobalTasks')}>
+            <Text style={styles.viewAllTasks}>View All Tasks →</Text>
+          </TouchableOpacity>
+        </View>
         {projectsLoading ? (
           <ActivityIndicator size="large" color="#2563eb" />
         ) : (
@@ -80,6 +102,35 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  notifButton: {
+    position: 'relative',
+    padding: 4,
+  },
+  notifEmoji: {
+    fontSize: 20,
+  },
+  badge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#ef4444',
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
   logoutText: {
     color: '#ef4444',
     fontWeight: '600',
@@ -87,11 +138,21 @@ const styles = StyleSheet.create({
   section: {
     padding: 20,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#374151',
-    marginBottom: 12,
+  },
+  viewAllTasks: {
+    fontSize: 14,
+    color: '#2563eb',
+    fontWeight: '600',
   },
   projectCard: {
     backgroundColor: '#ffffff',

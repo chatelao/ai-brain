@@ -95,6 +95,7 @@ The goal of Phase 3 is to launch the native mobile application and enhance the n
     - ✅ Implement the "Running Autorepeat Tasks" view for web.
     - ✅ Implement the "Global Tasks" and "In-App Notifications" view for web.
     - ✅ Implement the "Running Autorepeat Tasks" and "Project Grid" views for mobile.
+    - ✅ Implement the "Global Tasks" and "In-App Notifications" view for mobile.
 - ✅ **Milestone 3.3: Mobile Task Management**
     - ✅ Implement the "Task Detail" and "Logs" view for mobile.
     - ✅ Support core actions (Retry, Merge) from mobile.
