@@ -134,7 +134,8 @@ class CronAutorepeatTest extends TestCase
 
         // Task is already 'ready', with autorepeat_remaining = 3, and is Jules related
         $githubData = json_encode([
-            'labels' => [['name' => 'Jules']],
+            'title' => 'Autorepeat Task',
+            'labels' => [['name' => 'Jules'], ['name' => 'autorepeat: 3']],
             'assignee' => ['login' => 'jules']
         ]);
         $this->pdo->prepare("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, status, pr_url, autorepeat_remaining, github_data, jules_status, jules_session_id)
@@ -181,7 +182,8 @@ class CronAutorepeatTest extends TestCase
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo, github_token, github_account_id) VALUES (1, 1, 'owner/repo', 'token', 1)");
 
         $githubData = json_encode([
-            'labels' => [['name' => 'Jules']]
+            'title' => 'Autorepeat Task',
+            'labels' => [['name' => 'Jules'], ['name' => 'autorepeat: 3']]
         ]);
         $this->pdo->prepare("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, status, pr_url, autorepeat_remaining, github_data, jules_status, jules_session_id)
                           VALUES (1, 1, 1, 101, 'Autorepeat Task', 'ready', 'https://github.com/owner/repo/pull/42', 3, ?, 'completed', 'sess_123')")
@@ -255,7 +257,11 @@ class CronAutorepeatTest extends TestCase
         $this->pdo->exec("INSERT INTO user_github_accounts (github_account_id, user_id, github_username, github_token) VALUES (1, 1, 'testuser', 'token')");
         $this->pdo->exec("INSERT INTO projects (project_id, user_id, github_repo, github_token, github_account_id) VALUES (1, 1, 'owner/repo', 'token', 1)");
 
-        $githubData = json_encode(['labels' => [], 'assignee' => null]);
+        $githubData = json_encode([
+            'title' => 'Non-Jules Autorepeat',
+            'labels' => [['name' => 'autorepeat: 3']],
+            'assignee' => null
+        ]);
         $this->pdo->prepare("INSERT INTO tasks (task_id, user_id, project_id, issue_number, title, status, pr_url, autorepeat_remaining, github_data)
                           VALUES (1, 1, 1, 101, 'Non-Jules Autorepeat', 'ready', 'https://github.com/owner/repo/pull/42', 3, ?)")
                   ->execute([$githubData]);

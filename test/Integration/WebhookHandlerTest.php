@@ -108,7 +108,7 @@ class WebhookHandlerTest extends TestCase
                 'body' => 'Description',
                 'state_reason' => 'completed',
                 'labels' => [
-                    ['name' => 'autorepeat']
+                    ['name' => 'autorepeat: 5']
                 ]
             ],
             'repository' => [
@@ -140,7 +140,7 @@ class WebhookHandlerTest extends TestCase
         $githubData = [
             'number' => 123,
             'title' => 'Issue to autorepeat',
-            'labels' => [['name' => 'autorepeat']]
+            'labels' => [['name' => 'autorepeat: 5']]
         ];
 
         $stmt = $this->pdo->prepare("INSERT INTO tasks (user_id, project_id, issue_number, title, github_data, pr_url, status) VALUES (?, ?, ?, ?, ?, ?, ?)");

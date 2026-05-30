@@ -324,7 +324,7 @@ class Task
              JOIN projects p ON t.project_id = p.project_id
              WHERE p.user_id = ?
              AND t.github_state = 'open'
-             AND (t.autorepeat_remaining > 0 OR t.github_data LIKE '%autorepeat%' OR t.github_data LIKE '%auto-repeat%')
+             AND (t.autorepeat_remaining > 0 OR t.github_data LIKE '%autorepeat:%' OR t.github_data LIKE '%auto-repeat:%')
              ORDER BY t.created_at DESC"
         );
         $stmt->execute([$userId]);
@@ -515,27 +515,12 @@ class Task
 
         // Try to extract from labels if not explicitly provided
         $labelCount = isset($issue['labels']) ? $this->extractAutorepeatRemainingFromLabels($issue['labels']) : null;
-        $hasGenericAutorepeatLabel = false;
-
-        // If no count is found but the label is present, default to 5
-        if ($labelCount === null && isset($issue['labels'])) {
-            foreach ($issue['labels'] as $label) {
-                $name = strtolower($label['name'] ?? '');
-                if ($name === 'autorepeat' || $name === 'auto-repeat') {
-                    $labelCount = 5;
-                    $hasGenericAutorepeatLabel = true;
-                    break;
-                }
-            }
-        }
 
         // Final value to use in the INSERT part
         $insertAutorepeatRemaining = $autorepeatRemaining ?? $labelCount ?? 0;
 
         // Determine if we should update the existing value.
-        // If we only have a generic 'autorepeat' label, we only update if the current DB value is 0.
-        $shouldUpdateAutorepeat = ($autorepeatRemaining !== null || ($labelCount !== null && !$hasGenericAutorepeatLabel));
-        $conditionalAutorepeatUpdate = ($hasGenericAutorepeatLabel && $autorepeatRemaining === null);
+        $shouldUpdateAutorepeat = ($autorepeatRemaining !== null || $labelCount !== null);
 
         if ($driver === 'sqlite') {
             $sql = "INSERT INTO tasks (user_id, project_id, issue_number, title, body, github_data, status, github_state, autorepeat_remaining)
@@ -545,8 +530,7 @@ class Task
                         body = excluded.body,
                         github_data = excluded.github_data,
                         github_state = excluded.github_state,
-                        autorepeat_remaining = " . ($shouldUpdateAutorepeat ? "excluded.autorepeat_remaining" :
-                                                    ($conditionalAutorepeatUpdate ? "CASE WHEN tasks.autorepeat_remaining = 0 THEN excluded.autorepeat_remaining ELSE tasks.autorepeat_remaining END" : "tasks.autorepeat_remaining")) . ",
+                        autorepeat_remaining = " . ($shouldUpdateAutorepeat ? "excluded.autorepeat_remaining" : "tasks.autorepeat_remaining") . ",
                         status = CASE
                             WHEN excluded.github_state = 'closed' THEN 'finished'
                             WHEN status = 'pending' THEN 'created'
@@ -560,8 +544,7 @@ class Task
                         body = VALUES(body),
                         github_data = VALUES(github_data),
                         github_state = VALUES(github_state),
-                        autorepeat_remaining = " . ($shouldUpdateAutorepeat ? "VALUES(autorepeat_remaining)" :
-                                                    ($conditionalAutorepeatUpdate ? "CASE WHEN tasks.autorepeat_remaining = 0 THEN VALUES(autorepeat_remaining) ELSE tasks.autorepeat_remaining END" : "tasks.autorepeat_remaining")) . ",
+                        autorepeat_remaining = " . ($shouldUpdateAutorepeat ? "VALUES(autorepeat_remaining)" : "tasks.autorepeat_remaining") . ",
                         status = CASE
                             WHEN VALUES(github_state) = 'closed' THEN 'finished'
                             WHEN status = 'pending' THEN 'created'
@@ -722,7 +705,7 @@ class Task
         $labels = $githubData['labels'] ?? [];
         foreach ($labels as $label) {
             $name = strtolower($label['name'] ?? '');
-            if ($name === 'autorepeat' || $name === 'auto-repeat' || str_starts_with($name, 'autorepeat:')) {
+            if (str_starts_with($name, 'autorepeat:') || str_starts_with($name, 'auto-repeat:')) {
                 return true;
             }
         }
