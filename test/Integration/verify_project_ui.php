@@ -96,8 +96,20 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS task_logs (
     FOREIGN KEY (task_id) REFERENCES tasks(task_id) ON DELETE CASCADE
 )");
 
+$pdo->exec("CREATE TABLE IF NOT EXISTS performance_logs (
+    performance_log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INT,
+    type VARCHAR(50) NOT NULL,
+    target VARCHAR(255),
+    duration FLOAT,
+    status_code INT,
+    error_message TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)");
+
 $pdo->exec("CREATE TABLE IF NOT EXISTS notifications (
     notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id INT,
     user_id INT NOT NULL,
     type VARCHAR(50) NOT NULL,
     title VARCHAR(255) NOT NULL,
@@ -139,6 +151,14 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS project_notification_settings (
     notification_type VARCHAR(50) NOT NULL,
     is_enabled BOOLEAN DEFAULT 1,
     PRIMARY KEY (project_id, notification_type),
+    FOREIGN KEY (project_id) REFERENCES projects(project_id) ON DELETE CASCADE
+)");
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS project_status_notification_settings (
+    project_id INT NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    is_enabled BOOLEAN DEFAULT 1,
+    PRIMARY KEY (project_id, status),
     FOREIGN KEY (project_id) REFERENCES projects(project_id) ON DELETE CASCADE
 )");
 

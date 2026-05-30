@@ -30,7 +30,17 @@ if (isset($_GET['legacy'])) {
 
 // Next-Gen UI Redirection & Safeguard
 $nextGenExists = file_exists(__DIR__ . '/web/index.html');
-if (($_COOKIE['prefer_legacy'] ?? '') !== '1' && $nextGenExists) {
+
+if (isset($_GET['redirect']) && $nextGenExists && ($_COOKIE['prefer_legacy'] ?? '') !== '1') {
+    $redirect = $_GET['redirect'];
+    // Basic security: only allow relative paths starting with /web/
+    if (strpos($redirect, '/web/') === 0) {
+        header('Location: ' . $redirect);
+        exit;
+    }
+}
+
+if (($_COOKIE['prefer_legacy'] ?? '') !== '1' && $nextGenExists && strpos($_SERVER['REQUEST_URI'] ?? '', '/web/') === false) {
     $requestUri = $_SERVER['REQUEST_URI'] ?? '';
     $isWebPath = strpos($requestUri, '/web/') !== false;
 

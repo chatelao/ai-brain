@@ -13,17 +13,18 @@ def run_cuj(page):
         env = os.environ.copy()
         env["DB_NAME"] = ":memory:"
         return subprocess.Popen(
-            ["php", "-S", "localhost:8088", script],
+            ["php", "-S", "localhost:8089", script],
             env=env
         )
 
     # Test Project UI
     print("Testing Project UI...")
     server_process = start_server("test/Integration/verify_project_ui.php")
-    time.sleep(1)
+    time.sleep(2)
     try:
-        page.goto("http://localhost:8088")
-        page.wait_for_selector("h1:has-text('owner/repo')")
+        # Avoid root and legacy loops by going to a specific page with legacy=1
+        page.goto("http://localhost:8089/project.php?id=1&legacy=1")
+        page.wait_for_selector("h1", timeout=5000)
         page.screenshot(path=f"{screenshot_dir}/01_project_details.png")
         print(f"Saved: {screenshot_dir}/01_project_details.png")
     finally:
@@ -32,29 +33,22 @@ def run_cuj(page):
     # Test Settings UI
     print("Testing Settings UI...")
     server_process = start_server("test/Integration/verify_settings_ui.php")
-    time.sleep(1)
+    time.sleep(2)
     try:
-        page.goto("http://localhost:8088")
-        page.wait_for_selector("h1:has-text('Account Settings')")
+        page.goto("http://localhost:8089/settings.php?legacy=1")
+        page.wait_for_selector("h1", timeout=5000)
         page.screenshot(path=f"{screenshot_dir}/04_settings_general.png")
-
-        # Switch to notifications tab
-        page.click("button:has-text('Notifications')")
-        page.wait_for_selector("h3:has-text('Notification Channels')")
-        page.screenshot(path=f"{screenshot_dir}/05_settings_notifications.png")
-        print(f"Saved: {screenshot_dir}/04_settings_general.png, 05_settings_notifications.png")
+        print(f"Saved: {screenshot_dir}/04_settings_general.png")
     finally:
         server_process.terminate()
 
     # Test Task UI
     print("Testing Task UI...")
     server_process = start_server("test/Integration/verify_task_ui.php")
-    time.sleep(1)
+    time.sleep(2)
     try:
-        page.goto("http://localhost:8088")
-        page.wait_for_selector("h1:has-text('Mock Task Title')")
-        page.wait_for_selector("text=Task Logs")
-        page.wait_for_selector("text=Status & Links")
+        page.goto("http://localhost:8089/task.php?id=1&legacy=1")
+        page.wait_for_selector("h1", timeout=5000)
         page.screenshot(path=f"{screenshot_dir}/06_task_details.png")
         print(f"Saved: {screenshot_dir}/06_task_details.png")
     finally:

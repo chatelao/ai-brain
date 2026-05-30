@@ -61,7 +61,7 @@ export default function ProjectDetailScreen({ route, navigation }: any) {
         </TouchableOpacity>
         <Text style={styles.title} numberOfLines={1}>{name}</Text>
         <TouchableOpacity
-          onPress={() => alert('Project settings coming soon to mobile!')}
+          onPress={() => navigation.navigate('ProjectSettings', { id, name })}
           style={styles.settingsButton}
         >
           <Text style={styles.settingsEmoji}>⚙️</Text>

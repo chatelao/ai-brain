@@ -311,6 +311,7 @@ class NotificationServiceTest extends TestCase
         $userId = 1;
         // Explicitly disable everything
         $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'in_app', 0)");
+        $this->pdo->exec("INSERT INTO user_notification_settings (user_id, channel, is_enabled) VALUES ($userId, 'mobile_push', 0)");
 
         $result = $this->notificationService->sendTestNotification($userId);
 

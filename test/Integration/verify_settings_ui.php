@@ -74,6 +74,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS webhook_logs (
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS notifications (
     notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id INT,
     user_id INT NOT NULL,
     type VARCHAR(50) NOT NULL,
     title VARCHAR(255) NOT NULL,
