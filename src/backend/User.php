@@ -267,4 +267,12 @@ class User
         );
         return $stmt->execute([(int)$enabled, $userId]);
     }
+
+    public function updateExpoPushToken(int $userId, ?string $token): bool
+    {
+        $stmt = $this->db->getConnection()->prepare(
+            "UPDATE users SET expo_push_token = ? WHERE user_id = ?"
+        );
+        return $stmt->execute([$token, $userId]);
+    }
 }

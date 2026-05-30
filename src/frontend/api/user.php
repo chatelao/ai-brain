@@ -91,6 +91,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($input['notification_event_settings'])) {
         $notificationService->updateUserEventSettings($userId, $input['notification_event_settings']);
     }
+
+    if (isset($input['expo_push_token'])) {
+        $userModel->updateExpoPushToken($userId, trim($input['expo_push_token']));
+    }
 }
 
 $user = $userModel->findById($userId);
@@ -133,6 +137,7 @@ $output = [
         'in_app' => (bool)($notifSettings['in_app'] ?? true),
         'browser' => (bool)($notifSettings['browser'] ?? false),
         'telegram' => (bool)($notifSettings['telegram'] ?? false),
+        'mobile_push' => (bool)($notifSettings['mobile_push'] ?? true),
     ],
     'notification_event_settings' => [
         'created' => (bool)($eventSettings[\App\Task::UNIFIED_CREATED] ?? true),

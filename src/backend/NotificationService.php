@@ -155,6 +155,10 @@ class NotificationService
             } elseif ($channelName === 'browser') {
                 $channel = new BrowserChannelHandler();
                 $this->registerChannel('browser', $channel);
+            } elseif ($channelName === 'mobile_push') {
+                $userModel = new User($this->db);
+                $channel = new ExpoChannelHandler($userModel);
+                $this->registerChannel('mobile_push', $channel);
             }
         }
 
@@ -568,6 +572,9 @@ class NotificationService
         }
         if (!isset($settings['browser'])) {
             $settings['browser'] = false;
+        }
+        if (!isset($settings['mobile_push'])) {
+            $settings['mobile_push'] = true;
         }
 
         return $settings;

@@ -13,6 +13,7 @@ import TaskDetailScreen from './src/screens/TaskDetailScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import GlobalTasksScreen from './src/screens/GlobalTasksScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import ProjectSettingsScreen from './src/screens/ProjectSettingsScreen';
 
 const Stack = createStackNavigator();
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ function Navigation() {
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
           <Stack.Screen name="GlobalTasks" component={GlobalTasksScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="ProjectSettings" component={ProjectSettingsScreen} />
         </>
       )}
     </Stack.Navigator>
