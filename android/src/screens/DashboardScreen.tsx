@@ -39,6 +39,9 @@ export default function DashboardScreen({ navigation }: any) {
               </View>
             )}
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+            <Text style={styles.settingsEmoji}>⚙️</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={logout}>
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
@@ -112,6 +115,9 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   notifEmoji: {
+    fontSize: 20,
+  },
+  settingsEmoji: {
     fontSize: 20,
   },
   badge: {

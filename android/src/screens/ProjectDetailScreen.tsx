@@ -55,7 +55,16 @@ export default function ProjectDetailScreen({ route, navigation }: any) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{name}</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.title} numberOfLines={1}>{name}</Text>
+        <TouchableOpacity
+          onPress={() => alert('Project settings coming soon to mobile!')}
+          style={styles.settingsButton}
+        >
+          <Text style={styles.settingsEmoji}>⚙️</Text>
+        </TouchableOpacity>
       </View>
 
       {isLoading ? (
@@ -78,15 +87,34 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb',
   },
   header: {
-    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
-  title: {
+  backButton: {
+    padding: 4,
+  },
+  backButtonText: {
     fontSize: 20,
+    color: '#2563eb',
+    fontWeight: '600',
+  },
+  title: {
+    fontSize: 18,
     fontWeight: '700',
     color: '#111827',
+    flex: 1,
+    marginHorizontal: 12,
+  },
+  settingsButton: {
+    padding: 4,
+  },
+  settingsEmoji: {
+    fontSize: 20,
   },
   taskCard: {
     backgroundColor: '#ffffff',

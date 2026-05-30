@@ -99,7 +99,10 @@ The goal of Phase 3 is to launch the native mobile application and enhance the n
 - ✅ **Milestone 3.3: Mobile Task Management**
     - ✅ Implement the "Task Detail" and "Logs" view for mobile.
     - ✅ Support core actions (Retry, Merge) from mobile.
-- ⏳ **Milestone 3.4: Push Notifications**
+- ✅ **Milestone 3.4: Mobile Feature Parity**
+    - ✅ Implement "Settings" view for mobile.
+    - ✅ Add "Project Settings" entry point to mobile UI.
+- ⏳ **Milestone 3.5: Push Notifications**
     - ⏳ Integrate with Firebase or Expo Notifications to deliver native alerts for `FAILED` and `READY` states.
 
 ## Phase 4: Full Migration & Legacy Sunset
@@ -111,6 +114,9 @@ The final phase involves migrating all remaining features and decommissioning th
 - ✅ **Milestone 4.2: User Migration**
     - ✅ Default all users to the New UI (handled in `index.php` and OAuth callbacks).
     - ✅ Provide a "Switch back to Legacy" toggle in Settings and handle `legacy=0/1` preference state.
-- ⏳ **Milestone 4.3: Legacy Decommission**
-    - ⏳ Remove PHP frontend templates and Alpine.js dependencies.
-    - ⏳ Complete refactoring of the backend into a pure API server (e.g., transitioning to NestJS).
+- ⏳ **Milestone 4.3: UI Decommission**
+    - ⏳ Remove PHP frontend templates (`index.php`, `project.php`, etc.).
+    - ⏳ Remove Alpine.js and Tailwind CDN dependencies from legacy views.
+- ⏳ **Milestone 4.4: Backend Refactor**
+    - ⏳ Decouple API from remaining PHP frontend logic.
+    - ⏳ Complete transition to a pure API server architecture.
