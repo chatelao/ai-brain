@@ -180,9 +180,6 @@ export default function ProjectDetailView({ id }: { id: string }) {
                                   </button>
                                 </>
                               )}
-                            <Link href={rel(`/tasks/?id=${task.id}`)} className="text-blue-600 hover:text-blue-900">
-                              Details
-                            </Link>
                           </div>
                         </td>
                       </tr>
