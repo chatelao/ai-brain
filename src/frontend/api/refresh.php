@@ -8,10 +8,17 @@ header('Content-Type: application/json');
 
 $auth = new Auth();
 
-$headers = getallheaders();
-$authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
-$refreshToken = null;
+$authHeader = '';
+if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+} elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+    $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+} elseif (function_exists('getallheaders')) {
+    $headers = getallheaders();
+    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+}
 
+$refreshToken = null;
 if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
     $refreshToken = $matches[1];
 }

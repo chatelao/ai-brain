@@ -70,7 +70,7 @@ class Project
         $stmt = $this->db->getConnection()->prepare(
             "SELECT p.*, a.github_token, a.github_username
              FROM projects p
-             JOIN user_github_accounts a ON p.github_account_id = a.github_account_id
+             LEFT JOIN user_github_accounts a ON p.github_account_id = a.github_account_id
              WHERE p.project_id = ?"
         );
         $stmt->execute([$id]);
