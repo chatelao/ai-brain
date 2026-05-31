@@ -11,22 +11,7 @@ header('Content-Type: application/json');
 
 $db = new Database();
 $auth = new Auth($db);
-$userId = null;
-
-// Support both Session and JWT authentication
-if ($auth->isLoggedIn()) {
-    $userId = $auth->getUserId();
-} else {
-    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['Authorization'] ?? '';
-    if (empty($authHeader) && function_exists('getallheaders')) {
-        $headers = getallheaders();
-        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
-    }
-
-    if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
-        $userId = $auth->validateToken($matches[1]);
-    }
-}
+$userId = $auth->getAuthenticatedUserId();
 
 if (!$userId) {
     http_response_code(401);

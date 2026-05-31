@@ -10,18 +10,7 @@ use App\Project;
 header('Content-Type: application/json');
 
 $auth = new Auth();
-$userId = null;
-
-// Support both Session and JWT authentication
-if ($auth->isLoggedIn()) {
-    $userId = $auth->getUserId();
-} else {
-    $headers = getallheaders();
-    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
-    if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
-        $userId = $auth->validateToken($matches[1]);
-    }
-}
+$userId = $auth->getAuthenticatedUserId();
 
 if (!$userId) {
     http_response_code(401);
@@ -47,7 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $project = $projectModel->findById($task['project_id']);
-    if (!$project || (int)$project['user_id'] !== $userId) {
+    $isOwner = (int)$task['user_id'] === $userId || ($project && (int)$project['user_id'] === $userId);
+
+    if (!$isOwner) {
         http_response_code(403);
         echo json_encode(['error' => 'Access denied']);
         exit;
@@ -225,7 +216,9 @@ if (!$task) {
 
 // Verify project ownership
 $project = $projectModel->findById($task['project_id']);
-if (!$project || (int)$project['user_id'] !== $userId) {
+$isOwner = (int)$task['user_id'] === $userId || ($project && (int)$project['user_id'] === $userId);
+
+if (!$isOwner) {
     http_response_code(403);
     echo json_encode(['error' => 'Access denied']);
     exit;

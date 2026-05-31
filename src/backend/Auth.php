@@ -81,6 +81,39 @@ class Auth
         return $_SESSION['user_id'] ?? null;
     }
 
+    /**
+     * Get the authenticated user ID from session or Bearer token in headers.
+     * Checks multiple potential header sources for robustness.
+     */
+    public function getAuthenticatedUserId(): ?int
+    {
+        if ($this->isLoggedIn()) {
+            return $this->getUserId();
+        }
+
+        $authHeader = '';
+
+        // 1. Try standard $_SERVER['HTTP_AUTHORIZATION']
+        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+        }
+        // 2. Try redirected authorization (often used in Apache)
+        elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+        }
+        // 3. Try getallheaders() if available
+        elseif (function_exists('getallheaders')) {
+            $headers = getallheaders();
+            $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        }
+
+        if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+            return $this->validateToken($matches[1]);
+        }
+
+        return null;
+    }
+
     public function isLoggedIn(): bool
     {
         return isset($_SESSION['user_id']);

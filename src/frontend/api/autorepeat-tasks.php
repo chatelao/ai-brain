@@ -9,18 +9,7 @@ use App\Task;
 header('Content-Type: application/json');
 
 $auth = new Auth();
-$userId = null;
-
-// Support both Session and JWT authentication
-if ($auth->isLoggedIn()) {
-    $userId = $auth->getUserId();
-} else {
-    $headers = getallheaders();
-    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
-    if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
-        $userId = $auth->validateToken($matches[1]);
-    }
-}
+$userId = $auth->getAuthenticatedUserId();
 
 if (!$userId) {
     http_response_code(401);
