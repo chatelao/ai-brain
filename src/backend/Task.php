@@ -439,6 +439,29 @@ class Task
         return $stmt->rowCount() > 0;
     }
 
+    public function markJulesRetryTriggered(int $id, string $commentBody): bool
+    {
+        $connection = $this->db->getConnection();
+        $driver = $connection->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+        // Create a unique marker for this specific comment body to avoid re-triggering for the same failure
+        $marker = '<!-- jules_retry_triggered: ' . md5($commentBody) . ' -->';
+
+        if ($driver === 'sqlite') {
+            $sql = "UPDATE tasks
+                    SET agent_response = COALESCE(agent_response, '') || '\n" . $marker . "'
+                    WHERE task_id = ? AND (agent_response IS NULL OR agent_response NOT LIKE '%" . $marker . "%')";
+        } else {
+            $sql = "UPDATE tasks
+                    SET agent_response = CONCAT(COALESCE(agent_response, ''), '\n" . $marker . "')
+                    WHERE task_id = ? AND (agent_response IS NULL OR agent_response NOT LIKE '%" . $marker . "%')";
+        }
+
+        $stmt = $connection->prepare($sql);
+        $stmt->execute([$id]);
+        return $stmt->rowCount() > 0;
+    }
+
     public function updateGitHubCache(int $taskId, ?array $prData = null, ?array $commentsData = null): bool
     {
         $updates = [];
@@ -1042,8 +1065,19 @@ class Task
                             return ($login === 'google-labs-jules[bot]' || $login === 'jules');
                         }));
 
-                        foreach ($julesComments as $comment) {
-                            $sessionId = $this->extractSessionId($comment['body'] ?? '');
+                        foreach ($julesComments as $index => $comment) {
+                            $body = $comment['body'] ?? '';
+                            $sessionId = $this->extractSessionId($body);
+
+                            // Only check the latest comment for the failure message to avoid flapping
+                            if ($index === 0 && str_contains($body, "Jules has failed to create a task")) {
+                                if ($this->markJulesRetryTriggered((int)$task['task_id'], $body)) {
+                                    Logger::getInstance($this->db)->log($userId, $task['task_id'], "Jules failed to create task (detected in sync), re-triggering by re-adding label.", 'info');
+                                    $githubService->removeLabel($task['github_repo'], $task['issue_number'], 'jules');
+                                    $githubService->addLabel($task['github_repo'], $task['issue_number'], 'jules');
+                                }
+                            }
+
                             if ($sessionId) break;
                         }
                     }
