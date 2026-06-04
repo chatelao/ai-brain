@@ -390,6 +390,15 @@ class WebhookHandler
                 $stmt->execute([$sessionId, $task['task_id']]);
             }
 
+            if ($isJulesComment && str_contains($body, "Jules has failed to create a task") && $githubService && $task) {
+                $repo = $project['github_repo'] ?? '';
+                if ($repo && $taskModel->markJulesRetryTriggered((int)$task['task_id'], $body)) {
+                    Logger::getInstance($this->db)->log($project['user_id'], $task['task_id'], "Jules failed to create task, re-triggering by re-adding label.", 'info');
+                    $githubService->removeLabel($repo, $issue['number'], 'jules');
+                    $githubService->addLabel($repo, $issue['number'], 'jules');
+                }
+            }
+
             // Always refresh status when Jules comments to capture state transitions immediately
             if ($task && $githubService && $julesService) {
                 $taskModel->refreshJulesStatus($project['user_id'], $githubService, $julesService, $notificationService, (int)$task['task_id']);
