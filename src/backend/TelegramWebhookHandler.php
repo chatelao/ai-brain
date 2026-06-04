@@ -102,6 +102,13 @@ class TelegramWebhookHandler
             return $this->handleSearch($chatId, $query);
         }
 
+        if (str_starts_with($text, '/task ')) {
+            $issueNumber = trim(substr($text, 6));
+            if (is_numeric($issueNumber)) {
+                return $this->handleTaskByNumber($chatId, (int)$issueNumber);
+            }
+        }
+
         if ($text === '/settings') {
             return $this->handleSettings($chatId);
         }
@@ -119,12 +126,142 @@ class TelegramWebhookHandler
         $helpText .= "/status - Get a summary of task counts.\n";
         $helpText .= "/projects - List your active projects.\n";
         $helpText .= "/tasks - List active tasks with details.\n";
+        $helpText .= "/task &lt;number&gt; - View details of a specific task.\n";
         $helpText .= "/settings - Manage notification preferences.\n";
         $helpText .= "/search &lt;query&gt; - Search for active tasks.\n";
         $helpText .= "/cleanup - Remove read notifications from the chat.\n";
         $helpText .= "/help - Show this help message.";
 
         $this->telegramService->sendMessage($chatId, $helpText);
+        return true;
+    }
+
+    private function handleTaskByNumber(int $chatId, int $issueNumber): bool
+    {
+        $user = $this->userModel->findByTelegramChatId($chatId);
+        if (!$user) {
+            $this->telegramService->sendMessage($chatId, "Unauthorized. Please link your account.");
+            return true;
+        }
+
+        $taskModel = $this->getTaskModel();
+        $tasks = $taskModel->findActiveBySearch((int)$user['user_id'], (string)$issueNumber);
+
+        // Filter for exact issue number match
+        $exactMatch = null;
+        foreach ($tasks as $task) {
+            if ((int)$task['issue_number'] === $issueNumber) {
+                $exactMatch = $task;
+                break;
+            }
+        }
+
+        if (!$exactMatch) {
+            $this->telegramService->sendMessage($chatId, "Task #$issueNumber not found among active tasks.");
+            return true;
+        }
+
+        // Reuse view_task logic by simulating a callback or calling the handler
+        return $this->handleViewTask($chatId, (int)$exactMatch['task_id']);
+    }
+
+    private function handleViewTask(int $chatId, int $taskId, ?int $editMessageId = null): bool
+    {
+        $user = $this->userModel->findByTelegramChatId($chatId);
+        if (!$user) return false;
+
+        $taskModel = $this->getTaskModel();
+        $task = $taskModel->findById($taskId);
+
+        if (!$task || (int)$task['user_id'] !== (int)$user['user_id']) {
+            $this->telegramService->sendMessage($chatId, "Task not found or access denied.");
+            return true;
+        }
+
+        $projectModel = $this->getProjectModel();
+        $project = $projectModel->findById($task['project_id']);
+        $repo = $project['github_repo'] ?? '';
+
+        $statusEmoji = $taskModel->getStatusEmoji($task['status'] ?? Task::STATUS_CREATED);
+        $statusLabel = $taskModel->getStatusLabel($task['status'] ?? Task::STATUS_CREATED);
+        $targetUrl = $taskModel->getTargetUrl($task, $repo);
+
+        $text = "$statusEmoji <b>#" . $task['issue_number'] . "</b>: <a href=\"" . htmlspecialchars($targetUrl) . "\">" . htmlspecialchars($task['title']) . "</a>\n";
+        $text .= "<i>Status: $statusLabel</i>\n\n";
+        $text .= "Choose an action:";
+
+        $actions = [];
+        $actions[] = ['text' => '🚀 Retry', 'callback_data' => "retry:$taskId"];
+        $actions[] = ['text' => '🔄 Restart', 'callback_data' => "restart:$taskId"];
+
+        if (!empty($task['pr_url'])) {
+            $actions[] = ['text' => '✅ Merge', 'callback_data' => "merge:$taskId"];
+        }
+
+        $actions[] = ['text' => '🆗 Acknowledge', 'callback_data' => "acknowledge:$taskId"];
+        $actions[] = ['text' => '🔄 Sync Status', 'callback_data' => "refresh_task:$taskId"];
+        $actions[] = ['text' => '📋 View Logs', 'callback_data' => "view_logs:$taskId"];
+
+        $inlineKeyboard = array_chunk($actions, 2);
+        $inlineKeyboard[] = [['text' => '⬅️ Back to Tasks', 'callback_data' => 'list_tasks:' . $task['project_id']]];
+
+        if ($editMessageId) {
+            $this->telegramService->editMessageText($chatId, $editMessageId, $text, [
+                'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+            ]);
+        } else {
+            $this->telegramService->sendMessage($chatId, $text, [
+                'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+            ]);
+        }
+        return true;
+    }
+
+    private function handleViewLogs(int $chatId, int $taskId, ?int $editMessageId = null): bool
+    {
+        $user = $this->userModel->findByTelegramChatId($chatId);
+        if (!$user) return false;
+
+        $taskModel = $this->getTaskModel();
+        $task = $taskModel->findById($taskId);
+
+        if (!$task || (int)$task['user_id'] !== (int)$user['user_id']) {
+            $this->telegramService->sendMessage($chatId, "Task not found or access denied.");
+            return true;
+        }
+
+        $logs = $taskModel->getLogs($taskId);
+        $recentLogs = array_slice($logs, -10);
+
+        $text = "<b>Recent Logs for #" . $task['issue_number'] . ":</b>\n\n";
+        if (empty($recentLogs)) {
+            $text .= "<i>No logs found for this task.</i>";
+        } else {
+            foreach ($recentLogs as $log) {
+                $time = date('H:i:s', strtotime($log['created_at']));
+                $level = strtoupper($log['level']);
+                $emoji = match ($log['level']) {
+                    'error', 'critical' => '❌',
+                    'warning' => '⚠️',
+                    default => 'ℹ️'
+                };
+                $text .= "$emoji <code>[$time]</code> $level: " . htmlspecialchars($log['message']) . "\n";
+            }
+        }
+
+        $inlineKeyboard = [[
+            ['text' => '⬅️ Back to Task', 'callback_data' => "view_task:$taskId"]
+        ]];
+
+        if ($editMessageId) {
+            $this->telegramService->editMessageText($chatId, $editMessageId, $text, [
+                'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+            ]);
+        } else {
+            $this->telegramService->sendMessage($chatId, $text, [
+                'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+            ]);
+        }
         return true;
     }
 
@@ -262,7 +399,7 @@ class TelegramWebhookHandler
         return true;
     }
 
-    private function handleTasks(int $chatId, ?int $projectId = null, int $page = 1, ?int $editMessageId = null): bool
+    private function handleTasks(int $chatId, $projectId = null, int $page = 1, ?int $editMessageId = null): bool
     {
         $user = $this->userModel->findByTelegramChatId($chatId);
         if (!$user) {
@@ -276,12 +413,22 @@ class TelegramWebhookHandler
         $offset = ($page - 1) * $pageSize;
 
         $taskModel = $this->getTaskModel();
+        $filter = null;
+        if (is_string($projectId) && !is_numeric($projectId)) {
+            $filter = $projectId;
+            $projectId = null;
+        }
+
         if ($projectId) {
-            $tasks = $taskModel->findActiveByProjectId($projectId);
+            $tasks = $taskModel->findActiveByProjectId((int)$projectId);
             $projectModel = $this->getProjectModel();
-            $project = $projectModel->findById($projectId);
+            $project = $projectModel->findById((int)$projectId);
             $repoName = $project['github_repo'] ?? 'Project';
             $text = "<b>Active Tasks for $repoName:</b>\n\n";
+        } elseif ($filter) {
+            $tasks = $taskModel->findByFilter((int)$user['user_id'], $filter);
+            $filterLabel = ucwords(str_replace('_', ' ', $filter));
+            $text = "<b>Tasks Filtering by $filterLabel:</b>\n\n";
         } else {
             $tasks = $taskModel->findActiveByUserProjects((int)$user['user_id']);
             $text = "<b>Active Tasks:</b>\n\n";
@@ -314,13 +461,13 @@ class TelegramWebhookHandler
         if ($page > 1) {
             $navButtons[] = [
                 'text' => "⬅️ Previous",
-                'callback_data' => "list_tasks:" . ($projectId ?: 0) . ":" . ($page - 1)
+                'callback_data' => "list_tasks:" . ($projectId ?: ($filter ?: 0)) . ":" . ($page - 1)
             ];
         }
         if ($totalTasks > $offset + $pageSize) {
             $navButtons[] = [
                 'text' => "Next ➡️",
-                'callback_data' => "list_tasks:" . ($projectId ?: 0) . ":" . ($page + 1)
+                'callback_data' => "list_tasks:" . ($projectId ?: ($filter ?: 0)) . ":" . ($page + 1)
             ];
         }
 
@@ -387,11 +534,13 @@ class TelegramWebhookHandler
         return true;
     }
 
-    private function handleStatus(int $chatId): bool
+    private function handleStatus(int $chatId, ?int $editMessageId = null): bool
     {
         $user = $this->userModel->findByTelegramChatId($chatId);
         if (!$user) {
-            $this->telegramService->sendMessage($chatId, "Unauthorized. Please link your account.");
+            if (!$editMessageId) {
+                $this->telegramService->sendMessage($chatId, "Unauthorized. Please link your account.");
+            }
             return true;
         }
 
@@ -411,7 +560,30 @@ class TelegramWebhookHandler
         $text .= "🚀 Passed: " . ($counts['github_passed'] ?? 0) . "\n";
         $text .= "❌ Failed: " . ($counts['github_failed'] ?? 0) . "\n";
 
-        $this->telegramService->sendMessage($chatId, $text);
+        $inlineKeyboard = [
+            [
+                ['text' => '📝 Open Issues', 'callback_data' => 'list_tasks:open_issues'],
+                ['text' => '🚧 Jules Working', 'callback_data' => 'list_tasks:jules_executing']
+            ],
+            [
+                ['text' => '🔍 GH Running', 'callback_data' => 'list_tasks:github_running'],
+                ['text' => '🚀 GH Passed', 'callback_data' => 'list_tasks:github_passed']
+            ],
+            [
+                ['text' => '❌ GH Failed', 'callback_data' => 'list_tasks:github_failed'],
+                ['text' => '❌ Jules Failed', 'callback_data' => 'list_tasks:jules_failed']
+            ]
+        ];
+
+        if ($editMessageId) {
+            $this->telegramService->editMessageText($chatId, $editMessageId, $text, [
+                'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+            ]);
+        } else {
+            $this->telegramService->sendMessage($chatId, $text, [
+                'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
+            ]);
+        }
         return true;
     }
 
@@ -439,13 +611,15 @@ class TelegramWebhookHandler
         // Expected format: "action:targetId" or "action:targetId:notificationId"
         $parts = explode(':', $data);
         $action = $parts[0] ?? '';
-        $targetId = isset($parts[1]) ? (int)$parts[1] : null;
+        $targetIdRaw = $parts[1] ?? null;
+        $targetId = is_numeric($targetIdRaw) ? (int)$targetIdRaw : null;
         $notificationId = isset($parts[2]) ? (int)$parts[2] : null;
 
         if ($action === 'list_tasks') {
             $this->telegramService->answerCallbackQuery($callbackId);
             $page = isset($parts[2]) ? (int)$parts[2] : 1;
-            return $this->handleTasks($chatId, $targetId ?: null, $page, $callbackQuery['message']['message_id'] ?? null);
+            $target = is_numeric($targetIdRaw) ? (int)$targetIdRaw : $targetIdRaw;
+            return $this->handleTasks($chatId, $target ?: null, $page, $callbackQuery['message']['message_id'] ?? null);
         }
 
         if ($action === 'search_tasks') {
@@ -460,7 +634,7 @@ class TelegramWebhookHandler
             return $this->handleToggleSetting($callbackId, $chatId, $channel, $callbackQuery['message']['message_id'] ?? null);
         }
 
-        if (!$targetId || !in_array($action, ['retry', 'restart', 'merge', 'acknowledge', 'approve_plan', 'fix_bug', 'view_task', 'refresh_task', 'search_tasks'])) {
+        if (!$targetId || !in_array($action, ['retry', 'restart', 'merge', 'acknowledge', 'approve_plan', 'fix_bug', 'view_task', 'refresh_task', 'search_tasks', 'view_logs'])) {
             $this->telegramService->answerCallbackQuery($callbackId, [
                 'text' => "Invalid action.",
                 'show_alert' => true
@@ -482,7 +656,7 @@ class TelegramWebhookHandler
         }
 
         // 4. Acknowledge the query
-        if ($action !== 'view_task') {
+        if ($action !== 'view_task' && $action !== 'view_logs') {
             $this->telegramService->answerCallbackQuery($callbackId, [
                 'text' => "Processing " . ucfirst($action) . "..."
             ]);
@@ -510,32 +684,9 @@ class TelegramWebhookHandler
             $originalText = $callbackQuery['message']['text'] ?? '';
 
             if ($action === 'view_task') {
-                $statusEmoji = $taskModel->getStatusEmoji($task['status'] ?? Task::STATUS_CREATED);
-                $statusLabel = $taskModel->getStatusLabel($task['status'] ?? Task::STATUS_CREATED);
-                $targetUrl = $taskModel->getTargetUrl($task, $repo);
-
-                $text = "$statusEmoji <b>#" . $task['issue_number'] . "</b>: <a href=\"" . htmlspecialchars($targetUrl) . "\">" . htmlspecialchars($task['title']) . "</a>\n";
-                $text .= "<i>Status: $statusLabel</i>\n\n";
-                $text .= "Choose an action:";
-
-                $actions = [];
-                $actions[] = ['text' => '🚀 Retry', 'callback_data' => "retry:$taskId"];
-                $actions[] = ['text' => '🔄 Restart', 'callback_data' => "restart:$taskId"];
-
-                if (!empty($task['pr_url'])) {
-                    $actions[] = ['text' => '✅ Merge', 'callback_data' => "merge:$taskId"];
-                }
-
-                $actions[] = ['text' => '🆗 Acknowledge', 'callback_data' => "acknowledge:$taskId"];
-                $actions[] = ['text' => '🔄 Sync Status', 'callback_data' => "refresh_task:$taskId"];
-
-                $inlineKeyboard = array_chunk($actions, 2);
-                $inlineKeyboard[] = [['text' => '⬅️ Back to Tasks', 'callback_data' => 'list_tasks:' . $task['project_id']]];
-
-                $this->telegramService->sendMessage($chatId, $text, [
-                    'reply_markup' => ['inline_keyboard' => $inlineKeyboard]
-                ]);
-                return true;
+                return $this->handleViewTask($chatId, $taskId, $callbackQuery['message']['message_id'] ?? null);
+            } elseif ($action === 'view_logs') {
+                return $this->handleViewLogs($chatId, $taskId, $callbackQuery['message']['message_id'] ?? null);
             } elseif ($action === 'merge') {
                 $prNumber = $ghs->extractPrNumber($task['pr_url'] ?? '');
                 if (!$prNumber) {
