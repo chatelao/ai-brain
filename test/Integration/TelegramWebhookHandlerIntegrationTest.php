@@ -402,8 +402,8 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
             ->with('cb129');
 
         $this->telegramService->expects($this->once())
-            ->method('sendMessage')
-            ->with(123, $this->logicalAnd(
+            ->method('editMessageText')
+            ->with(123, 462, $this->logicalAnd(
                 $this->stringContains('#108'),
                 $this->stringContains('View Task'),
                 $this->stringContains('Choose an action')
@@ -412,14 +412,16 @@ class TelegramWebhookHandlerIntegrationTest extends TestCase
                 $hasRetry = false;
                 $hasMerge = false;
                 $hasBack = false;
+                $hasLogs = false;
                 foreach ($keyboard as $row) {
                     foreach ($row as $button) {
                         if ($button['text'] === '🚀 Retry') $hasRetry = true;
                         if ($button['text'] === '✅ Merge') $hasMerge = true;
                         if ($button['text'] === '⬅️ Back to Tasks') $hasBack = true;
+                        if ($button['text'] === '📋 View Logs') $hasLogs = true;
                     }
                 }
-                return $hasRetry && $hasMerge && $hasBack;
+                return $hasRetry && $hasMerge && $hasBack && $hasLogs;
             }));
 
         $this->assertTrue($this->handler->handle($update));

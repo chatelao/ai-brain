@@ -16,6 +16,7 @@
 | 10 | Enhanced Navigation & Contextual Actions | ✅ |
 | 11 | Notification Settings Management | ✅ |
 | 12 | Pagination & Search | ✅ |
+| 13 | Enhanced Management & Logging | ✅ |
 
 ## Goals
 
@@ -93,3 +94,8 @@
 ## Phase 12: Pagination & Search
 - [x] Implement pagination for `/tasks` list (Next/Prev buttons).
 - [x] Implement `/search` command for finding tasks.
+
+## Phase 13: Enhanced Management & Logging
+- [x] Implement `view_logs:{taskId}` action to see recent task logs in chat.
+- [x] Implement status-based filtering directly from `/status` summary.
+- [x] Support shortcut command `/task <number>` to quickly view task details.
